@@ -7,6 +7,8 @@ public class SocketUDP : MonoBehaviour
 {
     Thread m_serverThread;
     Thread m_clientThread;
+    public bool m_ServerConnected = true;
+    public bool m_ClientConnected = true;
 
     private void Start()
     {
@@ -24,17 +26,19 @@ public class SocketUDP : MonoBehaviour
 
         byte[] buffer = new byte[4056];
         int numMsg = 0;
-        while (true) // NO SE QUE VA AQUÍ
+        while (m_ClientConnected) // NO SE QUE VA AQUÍ
         {
             Thread.Sleep(100 + 200 * numMsg);
-            int recived = clientSocket.ReceiveFrom(buffer, ref ipep);
+            EndPoint sender = new IPEndPoint(IPAddress.Any, 9050);
+            EndPoint Remote = (EndPoint)(sender);
+            int recived = clientSocket.ReceiveFrom(buffer, ref Remote);
             if (recived > 0)
             {
                 string text = System.Text.Encoding.UTF8.GetString(buffer, 0, recived);
-                Debug.Log("Client recived: " + text);
-                text = "Msg from client: " + numMsg;
+                string clientLog = "Client recived from " + Remote.ToString() + ": " + text + " num: " + numMsg;
+                Debug.Log(clientLog);
                 numMsg++;
-                clientSocket.SendTo(System.Text.Encoding.UTF8.GetBytes(text), ipep);
+                clientSocket.SendTo(System.Text.Encoding.UTF8.GetBytes("pong"), Remote);
             }
         }
         clientSocket.Close();
@@ -50,18 +54,20 @@ public class SocketUDP : MonoBehaviour
         byte[] buffer = new byte[4056];
         int numMsg = 0;
 
-        while (true) // NO SE QUE VA AQUÍ
+        while (m_ServerConnected) // NO SE QUE VA AQUÍ
         {
             Thread.Sleep(100 + 200 * numMsg);
-            EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
-            int recived = serverSocket.ReceiveFrom(buffer, ref sender);
+            EndPoint sender = new IPEndPoint(IPAddress.Any, 9050);
+            EndPoint Remote = (EndPoint)(sender);
+
+            int recived = serverSocket.ReceiveFrom(buffer, ref Remote);
             if (recived > 0)
             {
                 string text = System.Text.Encoding.UTF8.GetString(buffer, 0, recived);
-                Debug.Log("Server recived: " + text);
-                text = "Msg from server: " + numMsg;
+                string serverLog = "Server recived from " + Remote.ToString() + ": " + text + " num: " + numMsg;
+                Debug.Log(serverLog);
                 numMsg++;
-                serverSocket.SendTo(System.Text.Encoding.UTF8.GetBytes(text), ipep);
+                serverSocket.SendTo(System.Text.Encoding.UTF8.GetBytes("ping"), Remote);
             }
         }
         serverSocket.Close();
