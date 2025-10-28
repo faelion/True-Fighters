@@ -26,11 +26,13 @@ public class SocketUDP : MonoBehaviour
 
         byte[] buffer = new byte[4056];
         int numMsg = 0;
+
+        EndPoint Remote = new IPEndPoint(IPAddress.Any, 0);
+
         while (m_ClientConnected) // NO SE QUE VA AQUÍ
         {
             Thread.Sleep(100 + 200 * numMsg);
-            EndPoint sender = new IPEndPoint(IPAddress.Any, 9050);
-            EndPoint Remote = (EndPoint)(sender);
+
             int recived = clientSocket.ReceiveFrom(buffer, ref Remote);
             if (recived > 0)
             {
@@ -54,11 +56,11 @@ public class SocketUDP : MonoBehaviour
         byte[] buffer = new byte[4056];
         int numMsg = 0;
 
+        EndPoint Remote = new IPEndPoint(IPAddress.Any, 0);
+
         while (m_ServerConnected) // NO SE QUE VA AQUÍ
         {
             Thread.Sleep(100 + 200 * numMsg);
-            EndPoint sender = new IPEndPoint(IPAddress.Any, 9050);
-            EndPoint Remote = (EndPoint)(sender);
 
             int recived = serverSocket.ReceiveFrom(buffer, ref Remote);
             if (recived > 0)

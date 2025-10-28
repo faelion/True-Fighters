@@ -26,7 +26,7 @@ public class TCPTest : MonoBehaviour
     void ClientConnect()
     {
         clientSocket.Connect(ipep);
-        Debug.Log("Client connectet to the server.");
+        Debug.Log("Client connected to the server.");
 
         byte[] data = new byte[4096];
         int size = 0;
