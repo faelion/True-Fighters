@@ -21,6 +21,8 @@ public class SocketUDP : MonoBehaviour
     {
         Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         EndPoint ipep = new IPEndPoint(IPAddress.Loopback, 9050);
+        Debug.Log("Client: Creating UDP Socket");
+        Debug.Log("Client: Sending First message");
 
         clientSocket.SendTo(System.Text.Encoding.UTF8.GetBytes("Hello"), ipep);
 
@@ -29,7 +31,9 @@ public class SocketUDP : MonoBehaviour
 
         EndPoint Remote = new IPEndPoint(IPAddress.Any, 0);
 
-        while (m_ClientConnected) // NO SE QUE VA AQUÍ
+        Debug.Log("Client: Waiting messages from server");
+
+        while (m_ClientConnected)
         {
             Thread.Sleep(100 + 200 * numMsg);
 
@@ -50,7 +54,9 @@ public class SocketUDP : MonoBehaviour
     {
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         IPEndPoint ipep = new IPEndPoint(IPAddress.Loopback, 9050);
+        Debug.Log("Server: Creating UDP Socket");
         serverSocket.Bind(ipep);
+        Debug.Log("Server: Listening For UDP Package");
         m_clientThread.Start();
 
         byte[] buffer = new byte[4056];
@@ -58,7 +64,7 @@ public class SocketUDP : MonoBehaviour
 
         EndPoint Remote = new IPEndPoint(IPAddress.Any, 0);
 
-        while (m_ServerConnected) // NO SE QUE VA AQUÍ
+        while (m_ServerConnected)
         {
             Thread.Sleep(100 + 200 * numMsg);
 
