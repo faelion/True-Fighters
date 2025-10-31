@@ -25,7 +25,6 @@ public class SocketUDP : MonoBehaviour
         Debug.Log("Client: Sending First message");
 
         clientSocket.SendTo(System.Text.Encoding.UTF8.GetBytes("Hello"), ipep);
-
         byte[] buffer = new byte[4056];
         int numMsg = 0;
 

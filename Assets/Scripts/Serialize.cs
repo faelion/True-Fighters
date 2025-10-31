@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
+[Serializable]
 public class Pokemon
 {
     public string name;
@@ -13,6 +16,7 @@ public class Pokemon
     }
 }
 
+[Serializable]
 public struct DTO
 {
     public string playerName;
@@ -29,57 +33,68 @@ public struct DTO
 
 
 
-public class Serialize : MonoBehaviour
+public class Serialize
 {
-
-    MemoryStream stream;
 
     public void Start()
     {
-        Pokemon charmander = new Pokemon("Charmander");
-        Pokemon bulbasur = new Pokemon("Bulbasur");
-        Pokemon squirtle = new Pokemon("Squirtle");
-        Pokemon pikachu = new Pokemon("Pikachu");
-        List<Pokemon> list = new List<Pokemon>(new Pokemon[] { charmander, bulbasur, squirtle, pikachu });
 
-        DTO data = new DTO("Joan", 10, list);
+        //Pokemon charmander = new Pokemon("Charmander");
+        //Pokemon bulbasur = new Pokemon("Bulbasur");
+        //Pokemon squirtle = new Pokemon("Squirtle");
+        //Pokemon pikachu = new Pokemon("Pikachu");
+        //List<Pokemon> list = new List<Pokemon>(new Pokemon[] { charmander, bulbasur, squirtle, pikachu });
 
-        Debug.Log($"{data.playerName}");
-        Debug.Log($"{data.level}");
-        for (int i = 0; i < data.ownedPokemons.Count; i++)
+        //DTO data = new DTO("Joan", 10, list);
+
+        //Debug.Log($"{data.playerName}");
+        //Debug.Log($"{data.level}");
+        //for (int i = 0; i < data.ownedPokemons.Count; i++)
+        //{
+        //    Debug.Log($"{data.ownedPokemons[i].name}");
+        //}
+
+        //DTO result = Deserialize(SerializeJson(data));
+    }
+
+
+    public byte[] SerializeJson(DTO data)
+    {
+        byte[] objectAsBytes;
+        MemoryStream stream = new MemoryStream();
+        BinaryFormatter formatter = new BinaryFormatter();
+
+        try
         {
-            Debug.Log($"{data.ownedPokemons[i].name}");
+            formatter.Serialize(stream, data);
+        }
+        catch (SerializationException e)
+        {
+            Debug.Log("Serialization Failed : " + e.Message);
+            return null;
         }
 
-        SerializeJson(data);
-        Deserialize();
+        objectAsBytes = stream.ToArray();
+        stream.Close();
+        return objectAsBytes;
     }
 
-
-    void SerializeJson(DTO data)
+    public DTO Deserialize(byte[] objectAsBytes)
     {
-        string json = JsonUtility.ToJson(data);
-        stream = new MemoryStream();
-        BinaryWriter writer = new BinaryWriter(stream);
-        writer.Write(json);
-        List<Pokemon> list = new List<Pokemon>(data.ownedPokemons);
-        writer.Close();
-
-    }
-
-    void Deserialize()
-    {
-        DTO t;
-        BinaryReader reader = new BinaryReader(stream);
+        DTO t = new DTO();
+        MemoryStream stream = new MemoryStream();
+        stream.Write(objectAsBytes, 0, objectAsBytes.Length);
         stream.Seek(0, SeekOrigin.Begin);
-        string json = reader.ReadString();
-        t = JsonUtility.FromJson<DTO>(json);
-        Debug.Log(t.playerName);
-        Debug.Log(t.level);
-        List<Pokemon> list = new List<Pokemon>(t.ownedPokemons);
-        for (int i = 0; i < list.Count; i++)
+        BinaryFormatter formatter = new BinaryFormatter();
+        try
         {
-            Debug.Log($"{list[i].name}");
+            t = (DTO)formatter.Deserialize(stream);
+        }  
+        catch (SerializationException e)
+        {
+            Debug.Log("Deserialization Failed : " + e.Message);
         }
+        stream.Close();
+        return t;
     }
 }
