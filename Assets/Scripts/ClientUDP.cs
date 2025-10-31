@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Unity.VisualScripting;
 using UnityEngine;
 public class ClientUDP : MonoBehaviour
 {
@@ -10,10 +11,7 @@ public class ClientUDP : MonoBehaviour
     public bool connect = false;
     public bool disconnect = false;
 
-
-    Serialize serializer;
     private DTO data;
-    byte[] message;
 
     [Header("DTO")]
     public string playerName = "John";
@@ -22,7 +20,6 @@ public class ClientUDP : MonoBehaviour
 
     void Start()
     {
-        serializer = new Serialize();
         data = new DTO(playerName, level, ownedPokemons);
         m_clientThread = new Thread(ClientSocket);
     }
@@ -49,26 +46,35 @@ public class ClientUDP : MonoBehaviour
         EndPoint ipep = new IPEndPoint(IPAddress.Loopback, 9050);
         Debug.Log("Client: Creating UDP Socket");
         Debug.Log("Client: Sending First message");
-        message = serializer.SerializeJson(data);
+
+        byte[] message;
+        message = Serializer.SerializeDTO(data);
 
         clientSocket.SendTo(message, ipep);
         byte[] buffer = new byte[4056];
-        int numMsg = 0;
 
         EndPoint Remote = new IPEndPoint(IPAddress.Any, 0);
         Debug.Log("Client: Waiting messages from server");
 
         while (m_ClientConnected)
         {
-            Thread.Sleep(100 + 200 * numMsg);
+            Thread.Sleep(500);
 
             int recived = clientSocket.ReceiveFrom(buffer, ref Remote);
             if (recived > 0)
             {
-                string text = System.Text.Encoding.UTF8.GetString(buffer, 0, recived);
-                string clientLog = "Client recived from " + Remote.ToString() + ": " + text + " num: " + numMsg;
-                Debug.Log(clientLog);
-                numMsg++;
+                string serverLog = "Server recived from " + Remote.ToString();
+                Debug.Log(serverLog);
+                data = Deserializer.DeserializeDTO(buffer);
+                Debug.Log($"Player Name: {data.playerName}");
+                Debug.Log($"Level: {data.level}");
+                List<Pokemon> ownedPokemon = data.ownedPokemons;
+                foreach (Pokemon p in ownedPokemon)
+                {
+                    Debug.Log(p.name);
+                }
+                data.level++;
+                message = Serializer.SerializeDTO(this.data);
                 clientSocket.SendTo(message, Remote);
             }
         }

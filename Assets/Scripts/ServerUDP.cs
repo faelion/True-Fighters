@@ -5,13 +5,11 @@ using System.Threading;
 using UnityEngine;
 public class ServerUDP : MonoBehaviour
 {
-    Serialize serializer;
     Thread m_serverThread;
     public bool m_ServerConnected = true;
     DTO client;
     private void Start()
     {
-        serializer = new Serialize();
         m_serverThread = new Thread(ServerSocket);
         m_serverThread.Start();
     }
@@ -23,14 +21,15 @@ public class ServerUDP : MonoBehaviour
         serverSocket.Bind(ipep);
         Debug.Log("Server: Listening For UDP Package");
 
+        byte[] message;
+
         byte[] buffer = new byte[4056];
-        int numMsg = 0;
 
         EndPoint Remote = new IPEndPoint(IPAddress.Any, 0);
 
         while (m_ServerConnected)
         {
-            Thread.Sleep(100 + 200 * numMsg);
+            Thread.Sleep(500);
 
             int recived = 0;
             try
@@ -43,17 +42,19 @@ public class ServerUDP : MonoBehaviour
 
             if (recived > 0)
             {
-                client = serializer.Deserialize(buffer);
-                //string text = System.Text.Encoding.UTF8.GetString(buffer, 0, recived);
-                string serverLog = "Server recived from " + Remote.ToString() + ": " + client.playerName + " num: " + numMsg;
+                client = Deserializer.DeserializeDTO(buffer);
+                string serverLog = "Server recived from " + Remote.ToString();
+                Debug.Log(serverLog);
+                Debug.Log($"Player Name: {client.playerName}");
+                Debug.Log($"Level: {client.level}");
                 List<Pokemon> ownedPokemon = client.ownedPokemons;
                 foreach (Pokemon p in ownedPokemon)
                 {
                     Debug.Log(p.name);
                 }
-                Debug.Log(serverLog);
-                numMsg++;
-                serverSocket.SendTo(System.Text.Encoding.UTF8.GetBytes("ping"), Remote);
+                client.level++;
+                message = Serializer.SerializeDTO(client);
+                serverSocket.SendTo(message, Remote);
             }
         }
         serverSocket.Close();
