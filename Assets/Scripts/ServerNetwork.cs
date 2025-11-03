@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -24,7 +25,7 @@ public class ServerNetwork : MonoBehaviour
     public GameObject projectilePrefab;
 
     private Dictionary<int, ServerPlayer> players = new Dictionary<int, ServerPlayer>();
-    private ServerPlayer serverObject;
+    private ServerNPC serverObject;
     private Dictionary<int, ServerProjectile> projectiles = new Dictionary<int, ServerProjectile>();
 
     private Dictionary<IPEndPoint, int> endpointToPlayerId = new Dictionary<IPEndPoint, int>();
@@ -34,7 +35,7 @@ public class ServerNetwork : MonoBehaviour
     void Start()
     {
         players[1] = new ServerPlayer() { playerId = 1, posX = 0f, posY = 0f, speed = 3.5f };
-        serverObject = new ServerPlayer() { playerId = 999, posX = 2f, posY = 0f, speed = 2.0f };
+        serverObject = new ServerNPC() { id = 999, posX = 2f, posY = 0f, speed = 2.0f };
 
         udp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         udp.ReceiveTimeout = 1000;
@@ -113,6 +114,8 @@ public class ServerNetwork : MonoBehaviour
         {
             p.Simulate(dt);
         }
+
+        serverObject.target = players.Values.FirstOrDefault();
         serverObject.Simulate(dt);
 
         var toRemove = new List<int>();
@@ -135,7 +138,7 @@ public class ServerNetwork : MonoBehaviour
                 var st = new StateMessage() { playerId = p.playerId, posX = p.posX, posY = p.posY, rotZ = p.rotZ, tick = Environment.TickCount };
                 SendMessageToClient(st, clientEndpoint);
             }
-            var so = new StateMessage() { playerId = serverObject.playerId, posX = serverObject.posX, posY = serverObject.posY, rotZ = serverObject.rotZ, tick = Environment.TickCount };
+            var so = new StateMessage() { playerId = serverObject.id, posX = serverObject.posX, posY = serverObject.posY, rotZ = 0, tick = Environment.TickCount };
             SendMessageToClient(so, clientEndpoint);
 
             foreach (var pr in projectiles.Values)
@@ -209,7 +212,7 @@ public class ServerNetwork : MonoBehaviour
         }
     }
 
-    private class ServerPlayer
+    public class ServerPlayer
     {
         public int playerId;
         public string name;
@@ -262,6 +265,31 @@ public class ServerNetwork : MonoBehaviour
         }
     }
 
+    public class ServerNPC
+    {
+        public int id;
+        public float posX, posY;
+        public float speed = 3f;
+        public float followRange = 6f;
+        public float stopRange = 2f;
+        public ServerPlayer target; // jugador al que seguir
+
+        public void Simulate(float deltaTime)
+        {
+            if (target == null) return;
+
+            float dx = target.posX - posX;
+            float dy = target.posY - posY;
+            float dist = MathF.Sqrt(dx * dx + dy * dy);
+
+            if (dist < followRange && dist > stopRange)
+            {
+                posX += dx / dist * speed * deltaTime;
+                posY += dy / dist * speed * deltaTime;
+            }
+        }
+    }
+
     private void HandleJoinRequest(JoinRequestMessage jr, IPEndPoint remote)
     {
         if (endpointToPlayerId.TryGetValue(remote, out int existing))
@@ -288,7 +316,7 @@ public class ServerNetwork : MonoBehaviour
         var playerState = new StateMessage() { playerId = assigned, posX = players[assigned].posX, posY = players[assigned].posY, rotZ = players[assigned].rotZ, tick = Environment.TickCount };
         SendMessageToClient(playerState, remote);
 
-        var soState = new StateMessage() { playerId = serverObject.playerId, posX = serverObject.posX, posY = serverObject.posY, rotZ = serverObject.rotZ, tick = Environment.TickCount };
+        var soState = new StateMessage() { playerId = serverObject.id, posX = serverObject.posX, posY = serverObject.posY, rotZ = 0, tick = Environment.TickCount };
         SendMessageToClient(soState, remote);
     }
 
