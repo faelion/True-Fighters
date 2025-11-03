@@ -13,6 +13,8 @@ public class PlayerInput : MonoBehaviour
 
     void Update()
     {
+        if (!net.HasAssignedId) return;
+
         var mouse = Mouse.current;
         if (mouse != null && mouse.rightButton.wasPressedThisFrame)
         {
@@ -22,7 +24,7 @@ public class PlayerInput : MonoBehaviour
             {
                 InputMessage m = new InputMessage()
                 {
-                    playerId = playerId,
+                    playerId = net.AssignedPlayerId,
                     isMove = true,
                     targetX = hit.point.x,
                     targetY = hit.point.z,

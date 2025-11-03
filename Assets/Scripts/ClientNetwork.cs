@@ -1,44 +1,62 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ClientNetwork : MonoBehaviour
 {
     public string serverHost = "127.0.0.1";
     public int serverPort = 9050;
-    public int clientPlayerId = 1;
+
+    public GameObject playerVisualPrefab;
+    public GameObject serverObjectVisualPrefab;
+    public GameObject projectilePrefab;
+
+    public int clientPlayerId = 0;
 
     private Socket udp;
     private Thread recvThread;
-    private volatile bool running;
+    private volatile bool running = false;
     private EndPoint serverEndpoint;
 
     private ConcurrentQueue<(object msg, IPEndPoint remote)> incoming = new ConcurrentQueue<(object, IPEndPoint)>();
 
-    public GameObject playerVisualPrefab;
-    public GameObject serverObjectVisualPrefab;
-    private GameObject localPlayerGO;
-    private GameObject serverObjectGO;
+    private GameObject localPlayerGO = null;
+    private GameObject serverObjectGO = null;
+    private Dictionary<int, GameObject> projectiles = new Dictionary<int, GameObject>();
 
-    private System.Collections.Generic.Dictionary<int, GameObject> projectiles = new System.Collections.Generic.Dictionary<int, GameObject>();
-    public GameObject projectilePrefab;
+    private volatile bool hasAssignedId = false;
+    private int assignedPlayerId = 0;
+    private int joinAttempts = 0;
+    private const int MAX_JOIN_ATTEMPTS = 8;
+    private float joinRetryDelay = 0.6f;
+    private float timeSinceLastJoin = 0f;
+
+    public bool HasAssignedId => hasAssignedId;
+    public int AssignedPlayerId => assignedPlayerId;
 
     void Start()
     {
-        localPlayerGO = Instantiate(playerVisualPrefab, Vector3.zero, Quaternion.identity);
-        serverObjectGO = Instantiate(serverObjectVisualPrefab, new Vector3(2, 0, 0), Quaternion.identity);
-
-        serverEndpoint = new IPEndPoint(IPAddress.Parse(serverHost), serverPort);
+        if (!string.IsNullOrEmpty(NetworkConfig.serverHost))
+            serverHost = NetworkConfig.serverHost;
+        if (NetworkConfig.serverPort != 0)
+            serverPort = NetworkConfig.serverPort;
 
         udp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         udp.Bind(new IPEndPoint(IPAddress.Any, 0));
         udp.ReceiveTimeout = 1000;
+
+        serverEndpoint = new IPEndPoint(IPAddress.Parse(serverHost), serverPort);
+
         running = true;
         recvThread = new Thread(RecvLoop) { IsBackground = true };
         recvThread.Start();
+
+        SendJoinRequest();
     }
 
     void OnDestroy()
@@ -50,14 +68,38 @@ public class ClientNetwork : MonoBehaviour
 
     public void SendInput(InputMessage input)
     {
-        byte[] b = MsgSerializer.Serialize(input);
+        if (!hasAssignedId) return;
+        input.playerId = assignedPlayerId;
+        SendToServer(input);
+    }
+
+    private void SendToServer(object msg)
+    {
         try
         {
-            udp.SendTo(b, serverEndpoint);
+            byte[] data = MsgSerializer.Serialize(msg);
+            udp.SendTo(data, serverEndpoint);
         }
         catch (Exception e)
         {
             Debug.LogError("Client send failed: " + e);
+        }
+    }
+
+    public void SendJoinRequest()
+    {
+        var jr = new JoinRequestMessage() { playerName = NetworkConfig.playerName ?? "Player" };
+        try
+        {
+            byte[] b = MsgSerializer.Serialize(jr);
+            udp.SendTo(b, serverEndpoint);
+            joinAttempts++;
+            timeSinceLastJoin = 0f;
+            Debug.Log($"Client: Sent JoinRequest attempt {joinAttempts}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("SendJoinRequest failed: " + e);
         }
     }
 
@@ -81,20 +123,17 @@ public class ClientNetwork : MonoBehaviour
             }
             catch (SocketException se)
             {
-                if (se.SocketErrorCode == SocketError.TimedOut)
-                    continue;
-
-                Debug.LogError($"Client receive socket exception: {se} (remoteEP={remoteEP})");
+                if (se.SocketErrorCode == SocketError.TimedOut) continue;
+                Debug.LogError("Client receive socket exception: " + se);
                 Thread.Sleep(100);
-                continue;
             }
             catch (ObjectDisposedException)
             {
                 break;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Debug.LogError("Client recv loop unexpected error: " + ex);
+                Debug.LogError("Client recv loop error: " + e);
                 break;
             }
         }
@@ -102,45 +141,159 @@ public class ClientNetwork : MonoBehaviour
 
     void Update()
     {
+        if (!hasAssignedId && joinAttempts < MAX_JOIN_ATTEMPTS)
+        {
+            timeSinceLastJoin += Time.deltaTime;
+            if (timeSinceLastJoin >= joinRetryDelay)
+            {
+                SendJoinRequest();
+            }
+        }
+
         while (incoming.TryDequeue(out var tup))
         {
             object msg = tup.msg;
-            if (msg is StateMessage s)
+
+            if (msg is JoinResponseMessage jr)
             {
-                if (s.playerId == clientPlayerId)
+                assignedPlayerId = jr.assignedPlayerId;
+                hasAssignedId = true;
+                clientPlayerId = assignedPlayerId;
+                Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
+            }
+            else if (msg is StateMessage s)
+            {
+                HandleStateMessage(s);
+            }
+            else if (msg is ProjectileSpawnMessage ps)
+            {
+                HandleProjectileSpawn(ps);
+            }
+            else if (msg is ProjectileStateMessage pst)
+            {
+                HandleProjectileState(pst);
+            }
+            else
+            {
+                Debug.Log("Client received unknown message type: " + msg.GetType());
+            }
+        }
+
+        CleanDestroyedProjectiles();
+    }
+
+    private void HandleStateMessage(StateMessage s)
+    {
+        if (s.playerId == assignedPlayerId)
+        {
+            if (localPlayerGO == null)
+            {
+                if (playerVisualPrefab != null)
+                {
+                    localPlayerGO = Instantiate(playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
+                    SceneManager.MoveGameObjectToScene(localPlayerGO, this.gameObject.scene);
+                    localPlayerGO.tag = "Player";
+                }
+                else
+                {
+                    Debug.LogWarning("Client: playerVisualPrefab not set, cannot create local player visual.");
+                }
+            }
+            else
+            {
+                if (localPlayerGO != null)
                 {
                     localPlayerGO.transform.position = new Vector3(s.posX, 0f, s.posY);
                     localPlayerGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
                 }
+            }
+        }
+        else
+        {
+            if (serverObjectGO == null)
+            {
+                if (serverObjectVisualPrefab != null)
+                {
+                    serverObjectGO = Instantiate(serverObjectVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
+                    SceneManager.MoveGameObjectToScene(serverObjectGO, this.gameObject.scene);
+                }
                 else
+                {
+                    Debug.LogWarning("Client: serverObjectVisualPrefab not set, cannot create server object visual.");
+                }
+            }
+            else
+            {
+                if (serverObjectGO != null)
                 {
                     serverObjectGO.transform.position = new Vector3(s.posX, 0f, s.posY);
                     serverObjectGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
                 }
             }
-            else if (msg is ProjectileSpawnMessage ps)
-            {
-                var go = Instantiate(projectilePrefab, new Vector3(ps.posX, 0f, ps.posY), Quaternion.identity);
-                projectiles[ps.projectileId] = go;
-                float angle = Mathf.Atan2(ps.dirY, ps.dirX) * Mathf.Rad2Deg;
-                go.transform.rotation = Quaternion.Euler(0f, angle, 0f);
-                Destroy(go, ps.lifeMs / 1000f + 0.2f);
-            }
-            else if (msg is ProjectileStateMessage pst)
-            {
-                if (projectiles.TryGetValue(pst.projectileId, out var go))
-                {
-                    if (go != null)
-                    {
-                        go.transform.position = new Vector3(pst.posX, 0f, pst.posY);
-                    }
-                    else
-                    {
-                        projectiles.Remove(pst.projectileId);
-                    }
-                }
-            }
+        }
+    }
 
+    private void HandleProjectileSpawn(ProjectileSpawnMessage ps)
+    {
+        if (projectilePrefab == null)
+        {
+            Debug.LogWarning("ProjectileSpawnMessage received but projectilePrefab is not set.");
+            return;
+        }
+
+        if (projectiles.TryGetValue(ps.projectileId, out var existing))
+        {
+            if (existing == null)
+                projectiles.Remove(ps.projectileId);
+            else
+            {
+                Debug.LogWarning($"Projectile spawn for already-existing id {ps.projectileId} - ignoring.");
+                return;
+            }
+        }
+
+        var go = Instantiate(projectilePrefab, new Vector3(ps.posX, 0f, ps.posY), Quaternion.identity);
+        SceneManager.MoveGameObjectToScene(go, this.gameObject.scene);
+        float angle = Mathf.Atan2(ps.dirY, ps.dirX) * Mathf.Rad2Deg;
+        go.transform.rotation = Quaternion.Euler(0f, angle, 0f);
+        projectiles[ps.projectileId] = go;
+
+        if (ps.lifeMs > 0)
+            Destroy(go, ps.lifeMs / 1000f + 0.25f);
+    }
+
+    private void HandleProjectileState(ProjectileStateMessage pst)
+    {
+        if (projectiles.TryGetValue(pst.projectileId, out var go))
+        {
+            if (go != null)
+            {
+                go.transform.position = new Vector3(pst.posX, 0f, pst.posY);
+            }
+            else
+            {
+                projectiles.Remove(pst.projectileId);
+            }
+        }
+        else
+        {
+        }
+    }
+
+    private void CleanDestroyedProjectiles()
+    {
+        List<int> toRemove = null;
+        foreach (var kv in projectiles)
+        {
+            if (kv.Value == null)
+            {
+                if (toRemove == null) toRemove = new List<int>();
+                toRemove.Add(kv.Key);
+            }
+        }
+        if (toRemove != null)
+        {
+            foreach (int id in toRemove) projectiles.Remove(id);
         }
     }
 }

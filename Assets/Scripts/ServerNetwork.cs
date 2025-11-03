@@ -27,6 +27,10 @@ public class ServerNetwork : MonoBehaviour
     private ServerPlayer serverObject;
     private Dictionary<int, ServerProjectile> projectiles = new Dictionary<int, ServerProjectile>();
 
+    private Dictionary<IPEndPoint, int> endpointToPlayerId = new Dictionary<IPEndPoint, int>();
+    private Dictionary<int, IPEndPoint> playerIdToEndpoint = new Dictionary<int, IPEndPoint>();
+    private int nextPlayerId = 1;
+
     void Start()
     {
         players[1] = new ServerPlayer() { playerId = 1, posX = 0f, posY = 0f, speed = 3.5f };
@@ -93,10 +97,15 @@ public class ServerNetwork : MonoBehaviour
             if (clientEndpoint == null)
                 clientEndpoint = remote;
 
-            if (msg is InputMessage im)
+            if (msg is JoinRequestMessage jr)
+            {
+                HandleJoinRequest(jr, remote);
+            }
+            else if (msg is InputMessage im)
             {
                 HandleInput(im, remote);
             }
+
         }
 
         float dt = Time.deltaTime;
@@ -203,6 +212,7 @@ public class ServerNetwork : MonoBehaviour
     private class ServerPlayer
     {
         public int playerId;
+        public string name;
         public float posX, posY;
         public float rotZ;
         public float speed = 3.5f;
@@ -251,4 +261,50 @@ public class ServerNetwork : MonoBehaviour
             lifeMs -= (int)(dt * 1000f);
         }
     }
+
+    private void HandleJoinRequest(JoinRequestMessage jr, IPEndPoint remote)
+    {
+        if (endpointToPlayerId.TryGetValue(remote, out int existing))
+        {
+            SendJoinResponse(existing, remote);
+            return;
+        }
+
+        int assigned;
+        assigned = nextPlayerId++;
+
+        endpointToPlayerId[remote] = assigned;
+        playerIdToEndpoint[assigned] = remote;
+
+        if (!players.ContainsKey(assigned))
+        {
+            players[assigned] = new ServerPlayer() { playerId = assigned, posX = 0f, posY = 0f, speed = 3.5f, name = jr.playerName };
+        }
+
+        Debug.Log($"Assigned playerId {assigned} to {remote} with name '{jr.playerName}'");
+
+        SendJoinResponse(assigned, remote);
+
+        var playerState = new StateMessage() { playerId = assigned, posX = players[assigned].posX, posY = players[assigned].posY, rotZ = players[assigned].rotZ, tick = Environment.TickCount };
+        SendMessageToClient(playerState, remote);
+
+        var soState = new StateMessage() { playerId = serverObject.playerId, posX = serverObject.posX, posY = serverObject.posY, rotZ = serverObject.rotZ, tick = Environment.TickCount };
+        SendMessageToClient(soState, remote);
+    }
+
+    private void SendJoinResponse(int assignedId, IPEndPoint remote)
+    {
+        var resp = new JoinResponseMessage() { assignedPlayerId = assignedId, serverTick = Environment.TickCount };
+        try
+        {
+            byte[] b = MsgSerializer.Serialize(resp);
+            udp.SendTo(b, remote);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Failed to send JoinResponse: " + e);
+        }
+    }
+
+
 }

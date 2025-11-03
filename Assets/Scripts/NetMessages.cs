@@ -44,6 +44,18 @@ public class ProjectileStateMessage
     public ProjectileStateMessage() { }
 }
 
+public class JoinRequestMessage
+{
+    public string playerName;
+    public JoinRequestMessage() { }
+}
+
+public class JoinResponseMessage
+{
+    public int assignedPlayerId;
+    public int serverTick;
+    public JoinResponseMessage() { }
+}
 public class InputMessageSurrogate : ISerializationSurrogate
 {
     public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
@@ -140,6 +152,38 @@ public class ProjectileStateSurrogate : ISerializationSurrogate
     }
 }
 
+public class JoinRequestSurrogate : ISerializationSurrogate
+{
+    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
+    {
+        var m = obj as JoinRequestMessage;
+        info.AddValue("playerName", m?.playerName ?? "");
+    }
+    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
+    {
+        var m = obj as JoinRequestMessage ?? new JoinRequestMessage();
+        m.playerName = info.GetString("playerName");
+        return m;
+    }
+}
+
+public class JoinResponseSurrogate : ISerializationSurrogate
+{
+    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
+    {
+        var m = obj as JoinResponseMessage;
+        info.AddValue("assignedPlayerId", m.assignedPlayerId);
+        info.AddValue("serverTick", m.serverTick);
+    }
+    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
+    {
+        var m = obj as JoinResponseMessage ?? new JoinResponseMessage();
+        m.assignedPlayerId = info.GetInt32("assignedPlayerId");
+        m.serverTick = info.GetInt32("serverTick");
+        return m;
+    }
+}
+
 public static class NetSurrogateRegistry
 {
     public static SurrogateSelector CreateSelectorWithNetMessages()
@@ -151,6 +195,8 @@ public static class NetSurrogateRegistry
         selector.AddSurrogate(typeof(StateMessage), ctx, new StateMessageSurrogate());
         selector.AddSurrogate(typeof(ProjectileSpawnMessage), ctx, new ProjectileSpawnSurrogate());
         selector.AddSurrogate(typeof(ProjectileStateMessage), ctx, new ProjectileStateSurrogate());
+        selector.AddSurrogate(typeof(JoinRequestMessage), ctx, new JoinRequestSurrogate());
+        selector.AddSurrogate(typeof(JoinResponseMessage), ctx, new JoinResponseSurrogate());
 
         return selector;
     }
