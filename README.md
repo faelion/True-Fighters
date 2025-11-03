@@ -46,17 +46,6 @@ Updates each frame and is destroyed on collision or expiration.
 Stores global network settings (host, port, player name).
 Shared by Lobby, Client, and Server.
 
-🧱 Data Flow
-+----------------+             +----------------+
-|  ClientScene   |  <------->  |   ServerScene  |
-|                |             |                |
-|  ClientPlayer  |             |  ServerPlayer  |
-|  ClientNetwork |             |  ServerNetwork |
-+----------------+             +----------------+
-        ↑                              ↑
-        |                              |
-   LobbyManager --------------------> NetworkConfig
-
 🤖 Example NPC Behavior
 
 The server has a ServerNPC object.
