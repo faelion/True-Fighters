@@ -411,5 +411,9 @@ public class ServerNetwork : MonoBehaviour
         }
     }
 
+    public List<ServerPlayer> GetPlayerList()
+    {
+        return players.Values.ToList();
+    }
 
 }
