@@ -140,10 +140,24 @@ public class ServerNetwork : MonoBehaviour
             pr.Simulate(dt);
             if (pr.lifeMs <= 0)
                 toRemove.Add(pr.id);
-        }
-        foreach (int id in toRemove)
-        {
-            projectiles.Remove(id);
+            else
+            {
+                foreach (var p in players.Values)
+                {
+                    if (p.playerId == pr.ownerPlayerId)
+                        continue;
+
+                    float dx = p.posX - pr.posX;
+                    float dy = p.posY - pr.posY;
+                    float dist2 = dx * dx + dy * dy;
+                    if (dist2 < 0.25f)
+                    {
+                        p.hit = true;
+                        pr.lifeMs = 0;
+                        break; 
+                    }
+                }
+            }
         }
 
         foreach (var endpoint in endpointToPlayerId.Keys)
@@ -153,6 +167,7 @@ public class ServerNetwork : MonoBehaviour
                 var st = new StateMessage()
                 {
                     playerId = p.playerId,
+                    hit = p.hit,
                     posX = p.posX,
                     posY = p.posY,
                     rotZ = p.rotZ,
@@ -183,6 +198,12 @@ public class ServerNetwork : MonoBehaviour
                 SendMessageToClient(pst, endpoint);
             }
         }
+
+        foreach (int id in toRemove)
+        {
+            projectiles.Remove(id);
+        }
+
     }
 
     private void HandleInput(InputMessage im, IPEndPoint remote)
@@ -211,18 +232,20 @@ public class ServerNetwork : MonoBehaviour
                 var projectile = new ServerProjectile()
                 {
                     id = pid,
+                    ownerPlayerId = im.playerId,
                     posX = pl.posX,
                     posY = pl.posY,
                     dirX = dirX,
                     dirY = dirY,
                     speed = 8f,
-                    lifeMs = 3000
+                    lifeMs = 1500
                 };
                 projectiles[pid] = projectile;
 
                 var spawn = new ProjectileSpawnMessage()
                 {
                     projectileId = pid,
+                    ownerPlayerId = im.playerId,
                     posX = projectile.posX,
                     posY = projectile.posY,
                     dirX = projectile.dirX,
@@ -261,6 +284,9 @@ public class ServerNetwork : MonoBehaviour
         public float speed = 3.5f;
         private float destX, destY;
         private bool hasDest = false;
+        public bool hit = false;
+        private float hitTimer = 0f;
+        private const float hitDuration = 0.2f;
 
         public void SetDestination(float x, float y)
         {
@@ -269,6 +295,16 @@ public class ServerNetwork : MonoBehaviour
 
         public void Simulate(float dt)
         {
+            if (hit)
+            {
+                hitTimer += dt;
+                if (hitTimer >= hitDuration)
+                {
+                    hitTimer = 0f;
+                    hit = false;
+                }
+            }
+
             if (!hasDest) return;
             float dx = destX - posX;
             float dy = destY - posY;
@@ -291,6 +327,7 @@ public class ServerNetwork : MonoBehaviour
     private class ServerProjectile
     {
         public int id;
+        public int ownerPlayerId;
         public float posX, posY;
         public float dirX, dirY;
         public float speed;

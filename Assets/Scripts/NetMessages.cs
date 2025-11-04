@@ -16,6 +16,7 @@ public class InputMessage
 public class StateMessage
 {
     public int playerId;
+    public bool hit;
     public float posX;
     public float posY;
     public float rotZ;
@@ -26,6 +27,7 @@ public class StateMessage
 public class ProjectileSpawnMessage
 {
     public int projectileId;
+    public int ownerPlayerId;
     public float posX;
     public float posY;
     public float dirX;
@@ -38,6 +40,7 @@ public class ProjectileSpawnMessage
 public class ProjectileStateMessage
 {
     public int projectileId;
+    public int ownerPlayerId;
     public float posX;
     public float posY;
     public int lifeMsRemaining;
@@ -87,6 +90,7 @@ public class StateMessageSurrogate : ISerializationSurrogate
     {
         var m = obj as StateMessage;
         info.AddValue("playerId", m.playerId);
+        info.AddValue("hit", m.hit);
         info.AddValue("posX", m.posX);
         info.AddValue("posY", m.posY);
         info.AddValue("rotZ", m.rotZ);
@@ -96,6 +100,7 @@ public class StateMessageSurrogate : ISerializationSurrogate
     {
         var m = obj as StateMessage ?? new StateMessage();
         m.playerId = info.GetInt32("playerId");
+        m.hit = info.GetBoolean("hit");
         m.posX = info.GetSingle("posX");
         m.posY = info.GetSingle("posY");
         m.rotZ = info.GetSingle("rotZ");
@@ -110,6 +115,7 @@ public class ProjectileSpawnSurrogate : ISerializationSurrogate
     {
         var m = obj as ProjectileSpawnMessage;
         info.AddValue("projectileId", m.projectileId);
+        info.AddValue("ownerPlayerId", m.ownerPlayerId);
         info.AddValue("posX", m.posX);
         info.AddValue("posY", m.posY);
         info.AddValue("dirX", m.dirX);
@@ -121,6 +127,7 @@ public class ProjectileSpawnSurrogate : ISerializationSurrogate
     {
         var m = obj as ProjectileSpawnMessage ?? new ProjectileSpawnMessage();
         m.projectileId = info.GetInt32("projectileId");
+        m.ownerPlayerId = info.GetInt32("ownerPlayerId");
         m.posX = info.GetSingle("posX");
         m.posY = info.GetSingle("posY");
         m.dirX = info.GetSingle("dirX");

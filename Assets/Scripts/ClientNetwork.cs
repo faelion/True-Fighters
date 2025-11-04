@@ -40,7 +40,7 @@ public class ClientNetwork : MonoBehaviour
 
     public bool HasAssignedId => hasAssignedId;
     public int AssignedPlayerId => assignedPlayerId;
-
+    float timer = 0.5f;
     void Start()
     {
         if (!string.IsNullOrEmpty(NetworkConfig.serverHost))
@@ -207,6 +207,22 @@ public class ClientNetwork : MonoBehaviour
                 {
                     localPlayerGO.transform.position = new Vector3(s.posX, 0f, s.posY);
                     localPlayerGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
+                    if (s.hit)
+                    {
+                        var rend = localPlayerGO.GetComponentInChildren<Renderer>();
+                        if (rend != null)
+                        {
+                            rend.material.color = Color.red;
+                        }
+                    }
+                    else
+                    {
+                        var rend = localPlayerGO.GetComponentInChildren<Renderer>();
+                        if (rend != null)
+                        {
+                            rend.material.color = Color.blue;
+                        }
+                    }
                 }
             }
         }
@@ -242,6 +258,22 @@ public class ClientNetwork : MonoBehaviour
             {
                 otherGO.transform.position = new Vector3(s.posX, 0f, s.posY);
                 otherGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
+                if (s.hit)
+                {
+                    var rend = otherGO.GetComponentInChildren<Renderer>();
+                    if (rend != null)
+                    {
+                        rend.material.color = Color.red;
+                    }
+                }
+                else
+                {
+                    var rend = otherGO.GetComponentInChildren<Renderer>();
+                    if (rend != null)
+                    {
+                        rend.material.color = Color.blue;
+                    }
+                }
             }
         }
     }
@@ -271,8 +303,6 @@ public class ClientNetwork : MonoBehaviour
         go.transform.rotation = Quaternion.Euler(0f, angle, 0f);
         projectiles[ps.projectileId] = go;
 
-        if (ps.lifeMs > 0)
-            Destroy(go, ps.lifeMs / 1000f + 0.25f);
     }
 
     private void HandleProjectileState(ProjectileStateMessage pst)
@@ -287,10 +317,11 @@ public class ClientNetwork : MonoBehaviour
             {
                 projectiles.Remove(pst.projectileId);
             }
+
+            if (pst.lifeMsRemaining <= 0)
+                Destroy(go, 0.1f);
         }
-        else
-        {
-        }
+        
     }
 
     private void CleanDestroyedProjectiles()
