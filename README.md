@@ -56,8 +56,8 @@ The updated position is sent to clients to move the NPC cube visually.
 
 🧪 Testing Steps
 
-Open the Lobby Scene in Unity and press Play.
-Enter example values (127.0.0.1, 9050, Player1) and click Join. (Editor will play the rol of the server and client)
+Open the Server Scene in Unity and press Play (you can also play in the editor if you open LoggingScene instead).
+Enter example values (127.0.0.1, 9050, Player1) and click Join. (Editor will play the rol of the server, if LoggingScene was open also as a client).
 Then open the build and enter the values (127.0.0.1, 9050, Player2). (Build will play the rol of a client)
 
 Verify that:
