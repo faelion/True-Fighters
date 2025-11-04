@@ -57,10 +57,10 @@ The updated position is sent to clients to move the NPC cube visually.
 🧪 Testing Steps
 
 Open the Lobby Scene in Unity and press Play.
-Enter example values (127.0.0.1, 9050, Player1) and click Join.
+Enter example values (127.0.0.1, 9050, Player1) and click Join. (Editor will play the rol of the server and client)
+The open the build and enter the values (127.0.0.1, 9050, Player2). (Build will play the rol of a client)
 
 Verify that:
-The server loads in the background.
 The client scene loads successfully.
 The NPC moves toward the player when in range.
 Player can move using right click and Q to spawn a projectile.
