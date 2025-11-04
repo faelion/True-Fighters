@@ -29,6 +29,8 @@ public class ClientNetwork : MonoBehaviour
     private GameObject serverObjectGO = null;
     private Dictionary<int, GameObject> projectiles = new Dictionary<int, GameObject>();
 
+    private Dictionary<int, GameObject> otherPlayers = new Dictionary<int, GameObject>();
+
     private volatile bool hasAssignedId = false;
     private int assignedPlayerId = 0;
     private int joinAttempts = 0;
@@ -210,25 +212,36 @@ public class ClientNetwork : MonoBehaviour
         }
         else
         {
-            if (serverObjectGO == null)
+            if (s.playerId == 999)
             {
-                if (serverObjectVisualPrefab != null)
+                // NPC
+                if (serverObjectGO == null && serverObjectVisualPrefab != null)
                 {
                     serverObjectGO = Instantiate(serverObjectVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
                     SceneManager.MoveGameObjectToScene(serverObjectGO, this.gameObject.scene);
                 }
-                else
-                {
-                    Debug.LogWarning("Client: serverObjectVisualPrefab not set, cannot create server object visual.");
-                }
-            }
-            else
-            {
-                if (serverObjectGO != null)
+                else if (serverObjectGO != null)
                 {
                     serverObjectGO.transform.position = new Vector3(s.posX, 0f, s.posY);
                     serverObjectGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
                 }
+                return;
+            }
+
+            // Other players
+            if (!otherPlayers.TryGetValue(s.playerId, out var otherGO) || otherGO == null)
+            {
+                if (playerVisualPrefab != null)
+                {
+                    var go = Instantiate(playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
+                    SceneManager.MoveGameObjectToScene(go, this.gameObject.scene);
+                    otherPlayers[s.playerId] = go;
+                }
+            }
+            else
+            {
+                otherGO.transform.position = new Vector3(s.posX, 0f, s.posY);
+                otherGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
             }
         }
     }

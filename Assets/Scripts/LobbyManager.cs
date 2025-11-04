@@ -19,21 +19,23 @@ public class LobbyManager : MonoBehaviour
         if (portInput) portInput.text = NetworkConfig.serverPort.ToString();
         if (playerNameInput) playerNameInput.text = NetworkConfig.playerName;
 
-        if (!IsSceneLoaded(serverSceneName))
-        {
-            var loadOp = SceneManager.LoadSceneAsync(serverSceneName, LoadSceneMode.Additive);
-            while (!loadOp.isDone) yield return null;
-            Debug.Log("[LobbyManager] Server scene loaded additively: " + serverSceneName);
-        }
-        else
-        {
-            Debug.Log("[LobbyManager] Server scene already loaded: " + serverSceneName);
-        }
+#if UNITY_EDITOR
+    if (!IsSceneLoaded(serverSceneName))
+    {
+        var loadOp = SceneManager.LoadSceneAsync(serverSceneName, LoadSceneMode.Additive);
+        while (!loadOp.isDone) yield return null;
+        Debug.Log("[LobbyManager] Server scene loaded additively: " + serverSceneName);
+    }
+#else
+    Debug.Log("[LobbyManager] Running in build: assuming external server already running.");
+#endif
 
         if (joinButton != null)
         {
             joinButton.onClick.AddListener(OnJoinClicked);
         }
+
+        yield break;
     }
 
     bool IsSceneLoaded(string name)

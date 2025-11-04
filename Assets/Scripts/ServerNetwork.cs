@@ -17,7 +17,6 @@ public class ServerNetwork : MonoBehaviour
 
     private ConcurrentQueue<(object msg, IPEndPoint remote)> incoming = new ConcurrentQueue<(object, IPEndPoint)>();
 
-    private IPEndPoint clientEndpoint;
     private int nextProjectileId = 1;
 
     public GameObject playerPrefab;
@@ -34,7 +33,6 @@ public class ServerNetwork : MonoBehaviour
 
     void Start()
     {
-        players[1] = new ServerPlayer() { playerId = 1, posX = 0f, posY = 0f, speed = 3.5f };
         serverObject = new ServerNPC() { id = 999, posX = 2f, posY = 0f, speed = 2.0f };
 
         udp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -95,9 +93,6 @@ public class ServerNetwork : MonoBehaviour
             object msg = tup.msg;
             IPEndPoint remote = tup.remote;
 
-            if (clientEndpoint == null)
-                clientEndpoint = remote;
-
             if (msg is JoinRequestMessage jr)
             {
                 HandleJoinRequest(jr, remote);
@@ -115,7 +110,27 @@ public class ServerNetwork : MonoBehaviour
             p.Simulate(dt);
         }
 
-        serverObject.target = players.Values.FirstOrDefault();
+        if (serverObject.target == null && players.Count > 0)
+        {
+            foreach(var p in players.Values)
+            {
+                if(p.posX - serverObject.posX < serverObject.followRange &&
+                   p.posY - serverObject.posY < serverObject.followRange)
+                {
+                    serverObject.target = p;
+                    break;
+                }
+            }
+        }else if (serverObject.target != null)
+        {
+            float dx = serverObject.target.posX - serverObject.posX;
+            float dy = serverObject.target.posY - serverObject.posY;
+            float dist = MathF.Sqrt(dx * dx + dy * dy);
+            if (dist > serverObject.followRange)
+            {
+                serverObject.target = null;
+            }
+        }
         serverObject.Simulate(dt);
 
         var toRemove = new List<int>();
@@ -131,20 +146,41 @@ public class ServerNetwork : MonoBehaviour
             projectiles.Remove(id);
         }
 
-        if (clientEndpoint != null)
+        foreach (var endpoint in endpointToPlayerId.Keys)
         {
             foreach (var p in players.Values)
             {
-                var st = new StateMessage() { playerId = p.playerId, posX = p.posX, posY = p.posY, rotZ = p.rotZ, tick = Environment.TickCount };
-                SendMessageToClient(st, clientEndpoint);
+                var st = new StateMessage()
+                {
+                    playerId = p.playerId,
+                    posX = p.posX,
+                    posY = p.posY,
+                    rotZ = p.rotZ,
+                    tick = Environment.TickCount
+                };
+                SendMessageToClient(st, endpoint);
             }
-            var so = new StateMessage() { playerId = serverObject.id, posX = serverObject.posX, posY = serverObject.posY, rotZ = 0, tick = Environment.TickCount };
-            SendMessageToClient(so, clientEndpoint);
+
+            var so = new StateMessage()
+            {
+                playerId = serverObject.id,
+                posX = serverObject.posX,
+                posY = serverObject.posY,
+                rotZ = 0,
+                tick = Environment.TickCount
+            };
+            SendMessageToClient(so, endpoint);
 
             foreach (var pr in projectiles.Values)
             {
-                var pst = new ProjectileStateMessage() { projectileId = pr.id, posX = pr.posX, posY = pr.posY, lifeMsRemaining = pr.lifeMs };
-                SendMessageToClient(pst, clientEndpoint);
+                var pst = new ProjectileStateMessage()
+                {
+                    projectileId = pr.id,
+                    posX = pr.posX,
+                    posY = pr.posY,
+                    lifeMsRemaining = pr.lifeMs
+                };
+                SendMessageToClient(pst, endpoint);
             }
         }
     }
@@ -194,7 +230,11 @@ public class ServerNetwork : MonoBehaviour
                     speed = projectile.speed,
                     lifeMs = projectile.lifeMs
                 };
-                SendMessageToClient(spawn, remote);
+
+                foreach (var endpoint in endpointToPlayerId.Keys)
+                {
+                    SendMessageToClient(spawn, endpoint);
+                }
             }
         }
     }
@@ -272,7 +312,7 @@ public class ServerNetwork : MonoBehaviour
         public float speed = 3f;
         public float followRange = 6f;
         public float stopRange = 2f;
-        public ServerPlayer target; // jugador al que seguir
+        public ServerPlayer target = null; // jugador al que seguir
 
         public void Simulate(float deltaTime)
         {
