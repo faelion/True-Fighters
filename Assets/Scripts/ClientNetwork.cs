@@ -125,10 +125,5 @@ public class ClientNetwork : MonoBehaviour
         }
     }
 
-    public void SendAbility(AbilityRequestMessage ar)
-    {
-        if (!hasAssignedId) return;
-        ar.playerId = assignedPlayerId;
-        SendToServer(ar);
-    }
+    // All inputs (move + abilities) are unified via SendInput(InputMessage)
 }

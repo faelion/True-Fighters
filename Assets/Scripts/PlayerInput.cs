@@ -16,50 +16,36 @@ public class PlayerInput : MonoBehaviour
         if (!net.HasAssignedId) return;
 
         var mouse = Mouse.current;
+        var keyboard = Keyboard.current;
+        InputKind kind = InputKind.None;
+
         if (mouse != null && mouse.rightButton.wasPressedThisFrame)
         {
-            Vector2 screenPos = mouse.position.ReadValue();
-            Ray r = Camera.main.ScreenPointToRay(screenPos);
-            if (Physics.Raycast(r, out RaycastHit hit, 100f, groundMask))
-            {
-                InputMessage m = new InputMessage()
-                {
-                    playerId = net.AssignedPlayerId,
-                    isMove = true,
-                    targetX = hit.point.x,
-                    targetY = hit.point.z,
-                    skillKey = null,
-                    seq = 0
-                };
-                net.SendInput(m);
-            }
+            kind = InputKind.RightClick;
+        }
+        else if (keyboard != null)
+        {
+            if (keyboard.qKey.wasPressedThisFrame) kind = InputKind.Q;
+            else if (keyboard.wKey.wasPressedThisFrame) kind = InputKind.W;
+            else if (keyboard.eKey.wasPressedThisFrame) kind = InputKind.E;
+            else if (keyboard.rKey.wasPressedThisFrame) kind = InputKind.R;
         }
 
-        var keyboard = Keyboard.current;
-        if (keyboard != null && keyboard.qKey.wasPressedThisFrame)
+        if (kind == InputKind.None) return;
+        if (mouse == null) return; // need mouse position for world target
+
+        Vector2 screenPos = mouse.position.ReadValue();
+        Ray r = Camera.main.ScreenPointToRay(screenPos);
+        if (!Physics.Raycast(r, out RaycastHit hit, 100f, groundMask)) return;
+
+        var msg = new InputMessage
         {
-            Vector2 screenPos = mouse.position.ReadValue();
-            Ray r = Camera.main.ScreenPointToRay(screenPos);
-            if (Physics.Raycast(r, out RaycastHit hit, 100f, groundMask))
-            {
-                var dir = new Vector2(hit.point.x - transform.position.x, hit.point.z - transform.position.z);
-                if (dir.sqrMagnitude < 0.0001f) dir = Vector2.right;
-                dir.Normalize();
-                AbilityRequestMessage ar = new AbilityRequestMessage()
-                {
-                    playerId = net.AssignedPlayerId,
-                    abilityIdOrKey = "Q",
-                    targetType = AbilityTargetType.Point,
-                    targetX = hit.point.x,
-                    targetY = hit.point.z,
-                    dirX = dir.x,
-                    dirY = dir.y,
-                    targetEntityId = 0,
-                    seq = 0
-                };
-                net.SendAbility(ar);
-            }
-        }
+            playerId = net.AssignedPlayerId,
+            kind = kind,
+            targetX = hit.point.x,
+            targetY = hit.point.z
+        };
+        net.SendInput(msg);
 
         // Rest of moveset to be added in full version
     }

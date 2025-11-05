@@ -1,13 +1,13 @@
 using System.Runtime.Serialization;
 
+public enum InputKind { None, RightClick, Q, W, E, R }
+
 public class InputMessage
 {
     public int playerId;
-    public bool isMove;
-    public float targetX; 
+    public InputKind kind;
+    public float targetX;
     public float targetY;
-    public string skillKey;
-    public int seq;
     public InputMessage() { }
 }
 
@@ -36,20 +36,6 @@ public class JoinResponseMessage
 }
 
 public enum AbilityTargetType { None, Point, Unit, Direction }
-
-public class AbilityRequestMessage
-{
-    public int playerId;
-    public string abilityIdOrKey; // e.g., "Q" or a specific id
-    public AbilityTargetType targetType;
-    public float targetX;
-    public float targetY;
-    public float dirX;
-    public float dirY;
-    public int targetEntityId;
-    public int seq;
-    public AbilityRequestMessage() { }
-}
 
 public enum AbilityEventType { CastStarted, CastResolved, SpawnProjectile, ProjectileUpdate, ProjectileDespawn, SpawnArea, Dash, Heal, BuffApply, PickupSpawn }
 
@@ -88,21 +74,17 @@ public class InputMessageSurrogate : ISerializationSurrogate
     {
         var m = obj as InputMessage;
         info.AddValue("playerId", m.playerId);
-        info.AddValue("isMove", m.isMove);
+        info.AddValue("kind", (int)m.kind);
         info.AddValue("targetX", m.targetX);
         info.AddValue("targetY", m.targetY);
-        info.AddValue("skillKey", m.skillKey ?? "");
-        info.AddValue("seq", m.seq);
     }
     public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
     {
         var m = obj as InputMessage ?? new InputMessage();
         m.playerId = info.GetInt32("playerId");
-        m.isMove = info.GetBoolean("isMove");
+        m.kind = (InputKind)info.GetInt32("kind");
         m.targetX = info.GetSingle("targetX");
         m.targetY = info.GetSingle("targetY");
-        m.skillKey = info.GetString("skillKey");
-        m.seq = info.GetInt32("seq");
         return m;
     }
 }
@@ -178,8 +160,7 @@ public static class NetSurrogateRegistry
         // Projectile state/despawn unified via AbilityEventMessage
         selector.AddSurrogate(typeof(JoinRequestMessage), ctx, new JoinRequestSurrogate());
         selector.AddSurrogate(typeof(JoinResponseMessage), ctx, new JoinResponseSurrogate());
-        selector.AddSurrogate(typeof(AbilityRequestMessage), ctx, new AbilityRequestSurrogate());
-        selector.AddSurrogate(typeof(AbilityEventMessage), ctx, new AbilityEventSurrogate());
+                selector.AddSurrogate(typeof(AbilityEventMessage), ctx, new AbilityEventSurrogate());
         selector.AddSurrogate(typeof(TickPacketMessage), ctx, new TickPacketSurrogate());
 
         return selector;
@@ -209,37 +190,6 @@ public class TickPacketSurrogate : ISerializationSurrogate
         int ec = info.GetInt32("eventsCount");
         m.abilityEvents = new AbilityEventMessage[ec];
         for (int i = 0; i < ec; i++) m.abilityEvents[i] = (AbilityEventMessage)info.GetValue($"event_{i}", typeof(AbilityEventMessage));
-        return m;
-    }
-}
-
-public class AbilityRequestSurrogate : ISerializationSurrogate
-{
-    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
-    {
-        var m = obj as AbilityRequestMessage;
-        info.AddValue("playerId", m.playerId);
-        info.AddValue("abilityIdOrKey", m.abilityIdOrKey ?? "");
-        info.AddValue("targetType", (int)m.targetType);
-        info.AddValue("targetX", m.targetX);
-        info.AddValue("targetY", m.targetY);
-        info.AddValue("dirX", m.dirX);
-        info.AddValue("dirY", m.dirY);
-        info.AddValue("targetEntityId", m.targetEntityId);
-        info.AddValue("seq", m.seq);
-    }
-    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
-    {
-        var m = obj as AbilityRequestMessage ?? new AbilityRequestMessage();
-        m.playerId = info.GetInt32("playerId");
-        m.abilityIdOrKey = info.GetString("abilityIdOrKey");
-        m.targetType = (AbilityTargetType)info.GetInt32("targetType");
-        m.targetX = info.GetSingle("targetX");
-        m.targetY = info.GetSingle("targetY");
-        m.dirX = info.GetSingle("dirX");
-        m.dirY = info.GetSingle("dirY");
-        m.targetEntityId = info.GetInt32("targetEntityId");
-        m.seq = info.GetInt32("seq");
         return m;
     }
 }
@@ -284,3 +234,4 @@ public class AbilityEventSurrogate : ISerializationSurrogate
 }
 
 // ProjectileDespawnSurrogate removed; unified via AbilityEventMessage
+
