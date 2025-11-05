@@ -22,7 +22,7 @@ public class CameraFollow : MonoBehaviour
             return;
         }
         Vector3 desired = target.position + offset;
-        transform.position = Vector3.Lerp(transform.position, desired, Time.deltaTime * smooth);
+        transform.position = desired;
         transform.LookAt(target);
     }
 }
