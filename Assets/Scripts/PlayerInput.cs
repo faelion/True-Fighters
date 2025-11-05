@@ -42,16 +42,22 @@ public class PlayerInput : MonoBehaviour
             Ray r = Camera.main.ScreenPointToRay(screenPos);
             if (Physics.Raycast(r, out RaycastHit hit, 100f, groundMask))
             {
-                InputMessage m = new InputMessage()
+                var dir = new Vector2(hit.point.x - transform.position.x, hit.point.z - transform.position.z);
+                if (dir.sqrMagnitude < 0.0001f) dir = Vector2.right;
+                dir.Normalize();
+                AbilityRequestMessage ar = new AbilityRequestMessage()
                 {
-                    playerId = playerId,
-                    isMove = false,
+                    playerId = net.AssignedPlayerId,
+                    abilityIdOrKey = "Q",
+                    targetType = AbilityTargetType.Point,
                     targetX = hit.point.x,
                     targetY = hit.point.z,
-                    skillKey = "Q",
+                    dirX = dir.x,
+                    dirY = dir.y,
+                    targetEntityId = 0,
                     seq = 0
                 };
-                net.SendInput(m);
+                net.SendAbility(ar);
             }
         }
 

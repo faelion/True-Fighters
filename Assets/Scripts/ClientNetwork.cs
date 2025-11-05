@@ -5,31 +5,21 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using Networking.Transport;
 
 public class ClientNetwork : MonoBehaviour
 {
     public string serverHost = "127.0.0.1";
     public int serverPort = 9050;
 
-    public GameObject playerVisualPrefab;
-    public GameObject serverObjectVisualPrefab;
-    public GameObject projectilePrefab;
-
     public int clientPlayerId = 0;
 
-    private Socket udp;
-    private Thread recvThread;
-    private volatile bool running = false;
-    private EndPoint serverEndpoint;
+    private INetworkTransport transport;
+    private IPEndPoint serverEndpoint;
 
     private ConcurrentQueue<(object msg, IPEndPoint remote)> incoming = new ConcurrentQueue<(object, IPEndPoint)>();
 
-    private GameObject localPlayerGO = null;
-    private GameObject serverObjectGO = null;
-    private Dictionary<int, GameObject> projectiles = new Dictionary<int, GameObject>();
-
-    private Dictionary<int, GameObject> otherPlayers = new Dictionary<int, GameObject>();
+    // Presentation is handled by replicators; ClientNetwork keeps no scene GameObjects
 
     private volatile bool hasAssignedId = false;
     private int assignedPlayerId = 0;
@@ -48,24 +38,19 @@ public class ClientNetwork : MonoBehaviour
         if (NetworkConfig.serverPort != 0)
             serverPort = NetworkConfig.serverPort;
 
-        udp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        udp.Bind(new IPEndPoint(IPAddress.Any, 0));
-        udp.ReceiveTimeout = 1000;
+        transport = new UdpTransport();
+        transport.Start(new IPEndPoint(IPAddress.Any, 0));
+        transport.OnReceive += (remote, msg) => incoming.Enqueue((msg, remote));
 
         serverEndpoint = new IPEndPoint(IPAddress.Parse(serverHost), serverPort);
-
-        running = true;
-        recvThread = new Thread(RecvLoop) { IsBackground = true };
-        recvThread.Start();
 
         SendJoinRequest();
     }
 
     void OnDestroy()
     {
-        running = false;
-        try { udp?.Close(); } catch { }
-        if (recvThread != null && recvThread.IsAlive) recvThread.Join(500);
+        transport?.Stop();
+        transport?.Dispose();
     }
 
     public void SendInput(InputMessage input)
@@ -79,8 +64,7 @@ public class ClientNetwork : MonoBehaviour
     {
         try
         {
-            byte[] data = MsgSerializer.Serialize(msg);
-            udp.SendTo(data, serverEndpoint);
+            transport.Send(serverEndpoint, msg);
         }
         catch (Exception e)
         {
@@ -93,8 +77,7 @@ public class ClientNetwork : MonoBehaviour
         var jr = new JoinRequestMessage() { playerName = NetworkConfig.playerName ?? "Player" };
         try
         {
-            byte[] b = MsgSerializer.Serialize(jr);
-            udp.SendTo(b, serverEndpoint);
+            transport.Send(serverEndpoint, jr);
             joinAttempts++;
             timeSinceLastJoin = 0f;
             Debug.Log($"Client: Sent JoinRequest attempt {joinAttempts}");
@@ -102,42 +85,6 @@ public class ClientNetwork : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("SendJoinRequest failed: " + e);
-        }
-    }
-
-    private void RecvLoop()
-    {
-        EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-        byte[] buffer = new byte[8192];
-
-        while (running)
-        {
-            try
-            {
-                int r = udp.ReceiveFrom(buffer, ref remoteEP);
-                if (r > 0)
-                {
-                    byte[] payload = new byte[r];
-                    Array.Copy(buffer, 0, payload, 0, r);
-                    object msg = MsgSerializer.Deserialize(payload);
-                    incoming.Enqueue((msg, (IPEndPoint)remoteEP));
-                }
-            }
-            catch (SocketException se)
-            {
-                if (se.SocketErrorCode == SocketError.TimedOut) continue;
-                Debug.LogError("Client receive socket exception: " + se);
-                Thread.Sleep(100);
-            }
-            catch (ObjectDisposedException)
-            {
-                break;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("Client recv loop error: " + e);
-                break;
-            }
         }
     }
 
@@ -162,182 +109,26 @@ public class ClientNetwork : MonoBehaviour
                 hasAssignedId = true;
                 clientPlayerId = assignedPlayerId;
                 Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
+                ClientEventBus.RaiseJoinResponse(jr);
             }
-            else if (msg is StateMessage s)
+            else if (msg is TickPacketMessage tpm)
             {
-                HandleStateMessage(s);
-            }
-            else if (msg is ProjectileSpawnMessage ps)
-            {
-                HandleProjectileSpawn(ps);
-            }
-            else if (msg is ProjectileStateMessage pst)
-            {
-                HandleProjectileState(pst);
+                if (tpm.states != null)
+                    foreach (var state in tpm.states) ClientEventBus.RaiseEntityState(state);
+                if (tpm.abilityEvents != null)
+                    foreach (var ev in tpm.abilityEvents) ClientEventBus.RaiseAbilityEvent(ev);
             }
             else
             {
                 Debug.Log("Client received unknown message type: " + msg.GetType());
             }
         }
-
-        CleanDestroyedProjectiles();
     }
 
-    private void HandleStateMessage(StateMessage s)
+    public void SendAbility(AbilityRequestMessage ar)
     {
-        if (s.playerId == assignedPlayerId)
-        {
-            if (localPlayerGO == null)
-            {
-                if (playerVisualPrefab != null)
-                {
-                    localPlayerGO = Instantiate(playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
-                    SceneManager.MoveGameObjectToScene(localPlayerGO, this.gameObject.scene);
-                    localPlayerGO.tag = "Player";
-                }
-                else
-                {
-                    Debug.LogWarning("Client: playerVisualPrefab not set, cannot create local player visual.");
-                }
-            }
-            else
-            {
-                if (localPlayerGO != null)
-                {
-                    localPlayerGO.transform.position = new Vector3(s.posX, 0f, s.posY);
-                    localPlayerGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
-                    if (s.hit)
-                    {
-                        var rend = localPlayerGO.GetComponentInChildren<Renderer>();
-                        if (rend != null)
-                        {
-                            rend.material.color = Color.red;
-                        }
-                    }
-                    else
-                    {
-                        var rend = localPlayerGO.GetComponentInChildren<Renderer>();
-                        if (rend != null)
-                        {
-                            rend.material.color = Color.blue;
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            if (s.playerId == 999)
-            {
-                // NPC
-                if (serverObjectGO == null && serverObjectVisualPrefab != null)
-                {
-                    serverObjectGO = Instantiate(serverObjectVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
-                    SceneManager.MoveGameObjectToScene(serverObjectGO, this.gameObject.scene);
-                }
-                else if (serverObjectGO != null)
-                {
-                    serverObjectGO.transform.position = new Vector3(s.posX, 0f, s.posY);
-                    serverObjectGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
-                }
-                return;
-            }
-
-            // Other players
-            if (!otherPlayers.TryGetValue(s.playerId, out var otherGO) || otherGO == null)
-            {
-                if (playerVisualPrefab != null)
-                {
-                    var go = Instantiate(playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
-                    SceneManager.MoveGameObjectToScene(go, this.gameObject.scene);
-                    otherPlayers[s.playerId] = go;
-                }
-            }
-            else
-            {
-                otherGO.transform.position = new Vector3(s.posX, 0f, s.posY);
-                otherGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
-                if (s.hit)
-                {
-                    var rend = otherGO.GetComponentInChildren<Renderer>();
-                    if (rend != null)
-                    {
-                        rend.material.color = Color.red;
-                    }
-                }
-                else
-                {
-                    var rend = otherGO.GetComponentInChildren<Renderer>();
-                    if (rend != null)
-                    {
-                        rend.material.color = Color.blue;
-                    }
-                }
-            }
-        }
-    }
-
-    private void HandleProjectileSpawn(ProjectileSpawnMessage ps)
-    {
-        if (projectilePrefab == null)
-        {
-            Debug.LogWarning("ProjectileSpawnMessage received but projectilePrefab is not set.");
-            return;
-        }
-
-        if (projectiles.TryGetValue(ps.projectileId, out var existing))
-        {
-            if (existing == null)
-                projectiles.Remove(ps.projectileId);
-            else
-            {
-                Debug.LogWarning($"Projectile spawn for already-existing id {ps.projectileId} - ignoring.");
-                return;
-            }
-        }
-
-        var go = Instantiate(projectilePrefab, new Vector3(ps.posX, 0f, ps.posY), Quaternion.identity);
-        SceneManager.MoveGameObjectToScene(go, this.gameObject.scene);
-        float angle = Mathf.Atan2(ps.dirY, ps.dirX) * Mathf.Rad2Deg;
-        go.transform.rotation = Quaternion.Euler(0f, angle, 0f);
-        projectiles[ps.projectileId] = go;
-
-    }
-
-    private void HandleProjectileState(ProjectileStateMessage pst)
-    {
-        if (projectiles.TryGetValue(pst.projectileId, out var go))
-        {
-            if (go != null)
-            {
-                go.transform.position = new Vector3(pst.posX, 0f, pst.posY);
-            }
-            else
-            {
-                projectiles.Remove(pst.projectileId);
-            }
-
-            if (pst.lifeMsRemaining <= 0)
-                Destroy(go, 0.1f);
-        }
-        
-    }
-
-    private void CleanDestroyedProjectiles()
-    {
-        List<int> toRemove = null;
-        foreach (var kv in projectiles)
-        {
-            if (kv.Value == null)
-            {
-                if (toRemove == null) toRemove = new List<int>();
-                toRemove.Add(kv.Key);
-            }
-        }
-        if (toRemove != null)
-        {
-            foreach (int id in toRemove) projectiles.Remove(id);
-        }
+        if (!hasAssignedId) return;
+        ar.playerId = assignedPlayerId;
+        SendToServer(ar);
     }
 }

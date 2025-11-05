@@ -1,7 +1,5 @@
 using System.Runtime.Serialization;
 
-public enum NetMessageType { Input, State, ProjectileSpawn, ProjectileState }
-
 public class InputMessage
 {
     public int playerId;
@@ -24,29 +22,6 @@ public class StateMessage
     public StateMessage() { }
 }
 
-public class ProjectileSpawnMessage
-{
-    public int projectileId;
-    public int ownerPlayerId;
-    public float posX;
-    public float posY;
-    public float dirX;
-    public float dirY;
-    public float speed;
-    public int lifeMs;
-    public ProjectileSpawnMessage() { }
-}
-
-public class ProjectileStateMessage
-{
-    public int projectileId;
-    public int ownerPlayerId;
-    public float posX;
-    public float posY;
-    public int lifeMsRemaining;
-    public ProjectileStateMessage() { }
-}
-
 public class JoinRequestMessage
 {
     public string playerName;
@@ -58,6 +33,54 @@ public class JoinResponseMessage
     public int assignedPlayerId;
     public int serverTick;
     public JoinResponseMessage() { }
+}
+
+public enum AbilityTargetType { None, Point, Unit, Direction }
+
+public class AbilityRequestMessage
+{
+    public int playerId;
+    public string abilityIdOrKey; // e.g., "Q" or a specific id
+    public AbilityTargetType targetType;
+    public float targetX;
+    public float targetY;
+    public float dirX;
+    public float dirY;
+    public int targetEntityId;
+    public int seq;
+    public AbilityRequestMessage() { }
+}
+
+public enum AbilityEventType { CastStarted, CastResolved, SpawnProjectile, ProjectileUpdate, ProjectileDespawn, SpawnArea, Dash, Heal, BuffApply, PickupSpawn }
+
+public class AbilityEventMessage
+{
+    public string abilityIdOrKey;
+    public int casterId;
+    public AbilityEventType eventType;
+
+    // Minimal payload fields (extend as needed)
+    // For CastStarted/Resolved
+    public float castTime;
+    public int serverTick;
+
+    // For SpawnProjectile
+    public int projectileId;
+    public float posX, posY, dirX, dirY, speed;
+    public int lifeMs;
+    public float value; // generic numeric payload (e.g., heal amount)
+
+    // For SpawnArea / Dash / Heal / BuffApply / PickupSpawn add fields later
+
+    public AbilityEventMessage() { }
+}
+
+public class TickPacketMessage
+{
+    public int serverTick;
+    public StateMessage[] states;
+    public AbilityEventMessage[] abilityEvents;
+    public TickPacketMessage() { }
 }
 public class InputMessageSurrogate : ISerializationSurrogate
 {
@@ -109,55 +132,6 @@ public class StateMessageSurrogate : ISerializationSurrogate
     }
 }
 
-public class ProjectileSpawnSurrogate : ISerializationSurrogate
-{
-    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
-    {
-        var m = obj as ProjectileSpawnMessage;
-        info.AddValue("projectileId", m.projectileId);
-        info.AddValue("ownerPlayerId", m.ownerPlayerId);
-        info.AddValue("posX", m.posX);
-        info.AddValue("posY", m.posY);
-        info.AddValue("dirX", m.dirX);
-        info.AddValue("dirY", m.dirY);
-        info.AddValue("speed", m.speed);
-        info.AddValue("lifeMs", m.lifeMs);
-    }
-    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
-    {
-        var m = obj as ProjectileSpawnMessage ?? new ProjectileSpawnMessage();
-        m.projectileId = info.GetInt32("projectileId");
-        m.ownerPlayerId = info.GetInt32("ownerPlayerId");
-        m.posX = info.GetSingle("posX");
-        m.posY = info.GetSingle("posY");
-        m.dirX = info.GetSingle("dirX");
-        m.dirY = info.GetSingle("dirY");
-        m.speed = info.GetSingle("speed");
-        m.lifeMs = info.GetInt32("lifeMs");
-        return m;
-    }
-}
-
-public class ProjectileStateSurrogate : ISerializationSurrogate
-{
-    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
-    {
-        var m = obj as ProjectileStateMessage;
-        info.AddValue("projectileId", m.projectileId);
-        info.AddValue("posX", m.posX);
-        info.AddValue("posY", m.posY);
-        info.AddValue("lifeMsRemaining", m.lifeMsRemaining);
-    }
-    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
-    {
-        var m = obj as ProjectileStateMessage ?? new ProjectileStateMessage();
-        m.projectileId = info.GetInt32("projectileId");
-        m.posX = info.GetSingle("posX");
-        m.posY = info.GetSingle("posY");
-        m.lifeMsRemaining = info.GetInt32("lifeMsRemaining");
-        return m;
-    }
-}
 
 public class JoinRequestSurrogate : ISerializationSurrogate
 {
@@ -200,11 +174,113 @@ public static class NetSurrogateRegistry
 
         selector.AddSurrogate(typeof(InputMessage), ctx, new InputMessageSurrogate());
         selector.AddSurrogate(typeof(StateMessage), ctx, new StateMessageSurrogate());
-        selector.AddSurrogate(typeof(ProjectileSpawnMessage), ctx, new ProjectileSpawnSurrogate());
-        selector.AddSurrogate(typeof(ProjectileStateMessage), ctx, new ProjectileStateSurrogate());
+        // Projectile spawns are unified via AbilityEventMessage (SpawnProjectile)
+        // Projectile state/despawn unified via AbilityEventMessage
         selector.AddSurrogate(typeof(JoinRequestMessage), ctx, new JoinRequestSurrogate());
         selector.AddSurrogate(typeof(JoinResponseMessage), ctx, new JoinResponseSurrogate());
+        selector.AddSurrogate(typeof(AbilityRequestMessage), ctx, new AbilityRequestSurrogate());
+        selector.AddSurrogate(typeof(AbilityEventMessage), ctx, new AbilityEventSurrogate());
+        selector.AddSurrogate(typeof(TickPacketMessage), ctx, new TickPacketSurrogate());
 
         return selector;
     }
 }
+
+public class TickPacketSurrogate : ISerializationSurrogate
+{
+    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
+    {
+        var m = obj as TickPacketMessage;
+        info.AddValue("serverTick", m.serverTick);
+        int sc = m.states != null ? m.states.Length : 0;
+        int ec = m.abilityEvents != null ? m.abilityEvents.Length : 0;
+        info.AddValue("statesCount", sc);
+        for (int i = 0; i < sc; i++) info.AddValue($"state_{i}", m.states[i]);
+        info.AddValue("eventsCount", ec);
+        for (int i = 0; i < ec; i++) info.AddValue($"event_{i}", m.abilityEvents[i]);
+    }
+    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
+    {
+        var m = obj as TickPacketMessage ?? new TickPacketMessage();
+        m.serverTick = info.GetInt32("serverTick");
+        int sc = info.GetInt32("statesCount");
+        m.states = new StateMessage[sc];
+        for (int i = 0; i < sc; i++) m.states[i] = (StateMessage)info.GetValue($"state_{i}", typeof(StateMessage));
+        int ec = info.GetInt32("eventsCount");
+        m.abilityEvents = new AbilityEventMessage[ec];
+        for (int i = 0; i < ec; i++) m.abilityEvents[i] = (AbilityEventMessage)info.GetValue($"event_{i}", typeof(AbilityEventMessage));
+        return m;
+    }
+}
+
+public class AbilityRequestSurrogate : ISerializationSurrogate
+{
+    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
+    {
+        var m = obj as AbilityRequestMessage;
+        info.AddValue("playerId", m.playerId);
+        info.AddValue("abilityIdOrKey", m.abilityIdOrKey ?? "");
+        info.AddValue("targetType", (int)m.targetType);
+        info.AddValue("targetX", m.targetX);
+        info.AddValue("targetY", m.targetY);
+        info.AddValue("dirX", m.dirX);
+        info.AddValue("dirY", m.dirY);
+        info.AddValue("targetEntityId", m.targetEntityId);
+        info.AddValue("seq", m.seq);
+    }
+    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
+    {
+        var m = obj as AbilityRequestMessage ?? new AbilityRequestMessage();
+        m.playerId = info.GetInt32("playerId");
+        m.abilityIdOrKey = info.GetString("abilityIdOrKey");
+        m.targetType = (AbilityTargetType)info.GetInt32("targetType");
+        m.targetX = info.GetSingle("targetX");
+        m.targetY = info.GetSingle("targetY");
+        m.dirX = info.GetSingle("dirX");
+        m.dirY = info.GetSingle("dirY");
+        m.targetEntityId = info.GetInt32("targetEntityId");
+        m.seq = info.GetInt32("seq");
+        return m;
+    }
+}
+
+public class AbilityEventSurrogate : ISerializationSurrogate
+{
+    public void GetObjectData(object obj, SerializationInfo info, StreamingContext ctx)
+    {
+        var m = obj as AbilityEventMessage;
+        info.AddValue("abilityIdOrKey", m.abilityIdOrKey ?? "");
+        info.AddValue("casterId", m.casterId);
+        info.AddValue("eventType", (int)m.eventType);
+        info.AddValue("castTime", m.castTime);
+        info.AddValue("serverTick", m.serverTick);
+        info.AddValue("projectileId", m.projectileId);
+        info.AddValue("posX", m.posX);
+        info.AddValue("posY", m.posY);
+        info.AddValue("dirX", m.dirX);
+        info.AddValue("dirY", m.dirY);
+        info.AddValue("speed", m.speed);
+        info.AddValue("lifeMs", m.lifeMs);
+        info.AddValue("value", m.value);
+    }
+    public object SetObjectData(object obj, SerializationInfo info, StreamingContext ctx, ISurrogateSelector selector)
+    {
+        var m = obj as AbilityEventMessage ?? new AbilityEventMessage();
+        m.abilityIdOrKey = info.GetString("abilityIdOrKey");
+        m.casterId = info.GetInt32("casterId");
+        m.eventType = (AbilityEventType)info.GetInt32("eventType");
+        m.castTime = info.GetSingle("castTime");
+        m.serverTick = info.GetInt32("serverTick");
+        m.projectileId = info.GetInt32("projectileId");
+        m.posX = info.GetSingle("posX");
+        m.posY = info.GetSingle("posY");
+        m.dirX = info.GetSingle("dirX");
+        m.dirY = info.GetSingle("dirY");
+        m.speed = info.GetSingle("speed");
+        m.lifeMs = info.GetInt32("lifeMs");
+        m.value = info.GetSingle("value");
+        return m;
+    }
+}
+
+// ProjectileDespawnSurrogate removed; unified via AbilityEventMessage

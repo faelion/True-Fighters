@@ -119,6 +119,57 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &75406380
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 75406382}
+  - component: {fileID: 75406383}
+  m_Layer: 0
+  m_Name: ProjectileViewReplicator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &75406382
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75406380}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &75406383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75406380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d2b7f4cf1b4c4540a54d9519dbf7365, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityViewReplicator
+  projectilePrefab: {fileID: 2603975711762807716, guid: 4fbea7c813015c143ac88b98a76686f7, type: 3}
+  areaPrefab: {fileID: 0}
+  defaultAreaLifetime: 1.5
+  dashVfxPrefab: {fileID: 0}
+  healVfxPrefab: {fileID: 0}
+  buffVfxPrefab: {fileID: 0}
+  pickupPrefab: {fileID: 0}
 --- !u!1 &290843874
 GameObject:
   m_ObjectHideFlags: 0
@@ -448,9 +499,6 @@ MonoBehaviour:
   serverHost: 127.0.0.1
   serverPort: 9050
   clientPlayerId: 1
-  playerVisualPrefab: {fileID: 1337953931877890789, guid: eebc8d124180f964b8ba4eec51299666, type: 3}
-  serverObjectVisualPrefab: {fileID: 831982934189301797, guid: 5f92ceeebb2dbb44e9d6d7355d4eb0c9, type: 3}
-  projectilePrefab: {fileID: 2603975711762807716, guid: 4fbea7c813015c143ac88b98a76686f7, type: 3}
 --- !u!4 &506217646
 Transform:
   m_ObjectHideFlags: 0
@@ -461,6 +509,52 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &604055467
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 604055469}
+  - component: {fileID: 604055468}
+  m_Layer: 0
+  m_Name: EntityViewReplicator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &604055468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 604055467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5efaec23ec5c4c74f90d7d97342a8873, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityViewReplicator
+  playerVisualPrefab: {fileID: 1337953931877890789, guid: eebc8d124180f964b8ba4eec51299666, type: 3}
+  serverObjectVisualPrefab: {fileID: 831982934189301797, guid: 5f92ceeebb2dbb44e9d6d7355d4eb0c9, type: 3}
+--- !u!4 &604055469
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 604055467}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -530,4 +624,6 @@ SceneRoots:
   - {fileID: 290843877}
   - {fileID: 471818399}
   - {fileID: 506217646}
+  - {fileID: 604055469}
+  - {fileID: 75406382}
   - {fileID: 762417320}
