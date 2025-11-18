@@ -21,11 +21,11 @@ namespace ClientContent
         public virtual bool ServerUpdateEffect(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, float dt) { return true; }
 
         // Server-side event population (spawn/update/despawn). Return true to emit the message.
-        public virtual bool ServerPopulateSpawnEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, AbilityEventMessage msg) { return false; }
-        public virtual bool ServerPopulateUpdateEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, AbilityEventMessage msg) { return false; }
-        public virtual bool ServerPopulateDespawnEvent(ServerGame.ServerWorld world, int effectId, int tick, AbilityEventMessage msg) { return false; }
+        public virtual bool ServerPopulateSpawnEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, out IGameEvent evt) { evt = null; return false; }
+        public virtual bool ServerPopulateUpdateEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, out IGameEvent evt) { evt = null; return false; }
+        public virtual bool ServerPopulateDespawnEvent(ServerGame.ServerWorld world, int effectId, int tick, out IGameEvent evt) { evt = null; return false; }
 
-        // Client-side view handler: react to AbilityEventMessage for this ability id
-        public abstract void ClientHandleEvent(AbilityEventMessage evt, GameObject contextRoot);
+        // Client-side view handler: react to typed game events for this ability id
+        public abstract void ClientHandleEvent(IGameEvent evt, GameObject contextRoot);
     }
 }

@@ -164,6 +164,54 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AbilityAssetEventRouter
   databaseResourcePath: Resources/ContentDatabase
+  router: {fileID: 596855448}
+--- !u!1 &102633356
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 102633358}
+  - component: {fileID: 102633357}
+  m_Layer: 0
+  m_Name: HitFlash
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &102633357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102633356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebcbd85e6096ece4c8604fdcdaae2c9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitFlash
+  normalColor: {r: 0, g: 0, b: 1, a: 1}
+  hitColor: {r: 1, g: 0, b: 0, a: 1}
+  router: {fileID: 596855448}
+--- !u!4 &102633358
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102633356}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.00001}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &290843874
 GameObject:
   m_ObjectHideFlags: 0
@@ -308,6 +356,7 @@ MonoBehaviour:
   playerTag: Player
   offset: {x: 0, y: 10, z: -6}
   smooth: 6
+  router: {fileID: 596855448}
 --- !u!1 &471818397
 GameObject:
   m_ObjectHideFlags: 0
@@ -484,6 +533,7 @@ MonoBehaviour:
   serverHost: 127.0.0.1
   serverPort: 9050
   clientPlayerId: 1
+  messageRouter: {fileID: 596855448}
 --- !u!4 &506217646
 Transform:
   m_ObjectHideFlags: 0
@@ -499,7 +549,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &604055467
+--- !u!1 &596855447
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -507,39 +557,83 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 604055469}
-  - component: {fileID: 604055468}
+  - component: {fileID: 596855449}
+  - component: {fileID: 596855448}
   m_Layer: 0
-  m_Name: EntityViewReplicator
+  m_Name: ClientMessageRouter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &604055468
+--- !u!114 &596855448
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 604055467}
+  m_GameObject: {fileID: 596855447}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5efaec23ec5c4c74f90d7d97342a8873, type: 3}
+  m_Script: {fileID: 11500000, guid: 8d940902362c44f4a8bf11fe5684a5bc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EntityViewReplicator
-  playerVisualPrefab: {fileID: 1337953931877890789, guid: eebc8d124180f964b8ba4eec51299666, type: 3}
-  serverObjectVisualPrefab: {fileID: 831982934189301797, guid: 5f92ceeebb2dbb44e9d6d7355d4eb0c9, type: 3}
---- !u!4 &604055469
+  m_EditorClassIdentifier: Assembly-CSharp::ClientMessageRouter
+--- !u!4 &596855449
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 604055467}
+  m_GameObject: {fileID: 596855447}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &745246660
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 745246662}
+  - component: {fileID: 745246661}
+  m_Layer: 0
+  m_Name: NetEntitySpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &745246661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 745246660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f3b99eef4cf6341824d294a3071d24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetEntitySpawner
+  router: {fileID: 596855448}
+  defaultHeroPrefab: {fileID: 1337953931877890789, guid: eebc8d124180f964b8ba4eec51299666, type: 3}
+--- !u!4 &745246662
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 745246660}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.00001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -609,6 +703,8 @@ SceneRoots:
   - {fileID: 290843877}
   - {fileID: 471818399}
   - {fileID: 506217646}
-  - {fileID: 604055469}
   - {fileID: 75406382}
   - {fileID: 762417320}
+  - {fileID: 596855449}
+  - {fileID: 102633358}
+  - {fileID: 745246662}

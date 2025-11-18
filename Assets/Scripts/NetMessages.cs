@@ -37,35 +37,74 @@ public class JoinResponseMessage
 
 public enum AbilityTargetType { None, Point, Unit, Direction }
 
-public enum AbilityEventType { CastStarted, CastResolved, SpawnProjectile, ProjectileUpdate, ProjectileDespawn, SpawnArea, Dash, Heal, BuffApply, PickupSpawn }
+// Game events are now strongly typed payloads identified by GameEventType.
+public enum GameEventType { ProjectileSpawn = 1, ProjectileUpdate = 2, ProjectileDespawn = 3, Dash = 4 }
 
-public class AbilityEventMessage
+public interface IGameEvent
 {
-    public string abilityIdOrKey;
-    public int casterId;
-    public AbilityEventType eventType;
+    GameEventType Type { get; }
+    string SourceId { get; }
+    int CasterId { get; }
+    int ServerTick { get; set; }
+}
 
-    // Minimal payload fields (extend as needed)
-    // For CastStarted/Resolved
-    public float castTime;
-    public int serverTick;
+public class ProjectileSpawnEvent : IGameEvent
+{
+    public string SourceId { get; set; }
+    public int CasterId { get; set; }
+    public int ServerTick { get; set; }
+    public int ProjectileId { get; set; }
+    public float PosX { get; set; }
+    public float PosY { get; set; }
+    public float DirX { get; set; }
+    public float DirY { get; set; }
+    public float Speed { get; set; }
+    public int LifeMs { get; set; }
+    public GameEventType Type => GameEventType.ProjectileSpawn;
+}
 
-    // For SpawnProjectile
-    public int projectileId;
-    public float posX, posY, dirX, dirY, speed;
-    public int lifeMs;
-    public float value; // generic numeric payload (e.g., heal amount)
+public class ProjectileUpdateEvent : IGameEvent
+{
+    public string SourceId { get; set; }
+    public int CasterId { get; set; }
+    public int ServerTick { get; set; }
+    public int ProjectileId { get; set; }
+    public float PosX { get; set; }
+    public float PosY { get; set; }
+    public float DirX { get; set; }
+    public float DirY { get; set; }
+    public float Speed { get; set; }
+    public int LifeMs { get; set; }
+    public GameEventType Type => GameEventType.ProjectileUpdate;
+}
 
-    // For SpawnArea / Dash / Heal / BuffApply / PickupSpawn add fields later
+public class ProjectileDespawnEvent : IGameEvent
+{
+    public string SourceId { get; set; }
+    public int CasterId { get; set; }
+    public int ServerTick { get; set; }
+    public int ProjectileId { get; set; }
+    public GameEventType Type => GameEventType.ProjectileDespawn;
+}
 
-    public AbilityEventMessage() { }
+public class DashEvent : IGameEvent
+{
+    public string SourceId { get; set; }
+    public int CasterId { get; set; }
+    public int ServerTick { get; set; }
+    public float PosX { get; set; }
+    public float PosY { get; set; }
+    public float DirX { get; set; }
+    public float DirY { get; set; }
+    public float Speed { get; set; }
+    public GameEventType Type => GameEventType.Dash;
 }
 
 public class TickPacketMessage
 {
     public int serverTick;
     public StateMessage[] states;
-    public AbilityEventMessage[] abilityEvents;
+    public IGameEvent[] events;
     public int statesCount;
     public int eventsCount;
     public TickPacketMessage() { }

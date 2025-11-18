@@ -53,12 +53,12 @@ namespace ServerGame
         }
 
         // Instant (non-persistent) ability events queue
-        private readonly List<AbilityEventMessage> pendingAbilityEvents = new List<AbilityEventMessage>();
-        public void EnqueueAbilityEvent(AbilityEventMessage ev) => pendingAbilityEvents.Add(ev);
-        public List<AbilityEventMessage> ConsumePendingAbilityEvents()
+        private readonly List<IGameEvent> pendingEvents = new List<IGameEvent>();
+        public void EnqueueEvent(IGameEvent ev) => pendingEvents.Add(ev);
+        public List<IGameEvent> ConsumePendingEvents()
         {
-            var copy = new List<AbilityEventMessage>(pendingAbilityEvents);
-            pendingAbilityEvents.Clear();
+            var copy = new List<IGameEvent>(pendingEvents);
+            pendingEvents.Clear();
             return copy;
         }
 

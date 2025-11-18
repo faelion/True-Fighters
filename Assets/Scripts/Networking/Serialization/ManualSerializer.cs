@@ -12,8 +12,13 @@ namespace Networking.Serialization
         private const byte TYPE_StateMessage = 2;
         private const byte TYPE_JoinRequestMessage = 3;
         private const byte TYPE_JoinResponseMessage = 4;
-        private const byte TYPE_AbilityEventMessage = 5;
         private const byte TYPE_TickPacketMessage = 6;
+
+        // Event payloads (embedded inside TickPacket or standalone)
+        private const byte TYPE_ProjectileSpawnEvent = 11;
+        private const byte TYPE_ProjectileUpdateEvent = 12;
+        private const byte TYPE_ProjectileDespawnEvent = 13;
+        private const byte TYPE_DashEvent = 14;
 
         public byte[] Serialize(object obj)
         {
@@ -41,10 +46,10 @@ namespace Networking.Serialization
                     bw.Write(TYPE_JoinResponseMessage);
                     WriteJoinResponse(bw, jp);
                 }
-                else if (obj is AbilityEventMessage aem)
+                else if (obj is IGameEvent ge)
                 {
-                    bw.Write(TYPE_AbilityEventMessage);
-                    WriteAbilityEvent(bw, aem);
+                    bw.Write(GetEventTypeId(ge));
+                    WriteEventPayload(bw, ge);
                 }
                 else if (obj is TickPacketMessage tpm)
                 {
@@ -80,8 +85,11 @@ namespace Networking.Serialization
                     case TYPE_StateMessage: return ReadStateMessage(br);
                     case TYPE_JoinRequestMessage: return ReadJoinRequest(br);
                     case TYPE_JoinResponseMessage: return ReadJoinResponse(br);
-                    case TYPE_AbilityEventMessage: return ReadAbilityEvent(br);
                     case TYPE_TickPacketMessage: return ReadTickPacket(br);
+                    case TYPE_ProjectileSpawnEvent: return ReadProjectileSpawnEvent(br);
+                    case TYPE_ProjectileUpdateEvent: return ReadProjectileUpdateEvent(br);
+                    case TYPE_ProjectileDespawnEvent: return ReadProjectileDespawnEvent(br);
+                    case TYPE_DashEvent: return ReadDashEvent(br);
                     default:
                         throw new NotSupportedException("Unknown message type id: " + type);
                 }
@@ -166,39 +174,155 @@ namespace Networking.Serialization
             };
         }
 
-        private static void WriteAbilityEvent(BinaryWriter bw, AbilityEventMessage m)
+        private static byte GetEventTypeId(IGameEvent ev)
         {
-            WriteString(bw, m.abilityIdOrKey);
-            bw.Write(m.casterId);
-            bw.Write((int)m.eventType);
-            bw.Write(m.castTime);
-            bw.Write(m.serverTick);
-            bw.Write(m.projectileId);
-            bw.Write(m.posX);
-            bw.Write(m.posY);
-            bw.Write(m.dirX);
-            bw.Write(m.dirY);
-            bw.Write(m.speed);
-            bw.Write(m.lifeMs);
-            bw.Write(m.value);
-        }
-        private static AbilityEventMessage ReadAbilityEvent(BinaryReader br)
-        {
-            return new AbilityEventMessage
+            switch (ev.Type)
             {
-                abilityIdOrKey = ReadString(br),
-                casterId = br.ReadInt32(),
-                eventType = (AbilityEventType)br.ReadInt32(),
-                castTime = br.ReadSingle(),
-                serverTick = br.ReadInt32(),
-                projectileId = br.ReadInt32(),
-                posX = br.ReadSingle(),
-                posY = br.ReadSingle(),
-                dirX = br.ReadSingle(),
-                dirY = br.ReadSingle(),
-                speed = br.ReadSingle(),
-                lifeMs = br.ReadInt32(),
-                value = br.ReadSingle(),
+                case GameEventType.ProjectileSpawn: return TYPE_ProjectileSpawnEvent;
+                case GameEventType.ProjectileUpdate: return TYPE_ProjectileUpdateEvent;
+                case GameEventType.ProjectileDespawn: return TYPE_ProjectileDespawnEvent;
+                case GameEventType.Dash: return TYPE_DashEvent;
+                default: throw new NotSupportedException("Unknown event type: " + ev.Type);
+            }
+        }
+
+        private static void WriteEvent(BinaryWriter bw, IGameEvent ev)
+        {
+            bw.Write(GetEventTypeId(ev));
+            WriteEventPayload(bw, ev);
+        }
+
+        private static void WriteEventPayload(BinaryWriter bw, IGameEvent ev)
+        {
+            switch (ev.Type)
+            {
+                case GameEventType.ProjectileSpawn:
+                {
+                    var m = (ProjectileSpawnEvent)ev;
+                    WriteString(bw, m.SourceId);
+                    bw.Write(m.CasterId);
+                    bw.Write(m.ServerTick);
+                    bw.Write(m.ProjectileId);
+                    bw.Write(m.PosX);
+                    bw.Write(m.PosY);
+                    bw.Write(m.DirX);
+                    bw.Write(m.DirY);
+                    bw.Write(m.Speed);
+                    bw.Write(m.LifeMs);
+                    break;
+                }
+                case GameEventType.ProjectileUpdate:
+                {
+                    var m = (ProjectileUpdateEvent)ev;
+                    WriteString(bw, m.SourceId);
+                    bw.Write(m.CasterId);
+                    bw.Write(m.ServerTick);
+                    bw.Write(m.ProjectileId);
+                    bw.Write(m.PosX);
+                    bw.Write(m.PosY);
+                    bw.Write(m.DirX);
+                    bw.Write(m.DirY);
+                    bw.Write(m.Speed);
+                    bw.Write(m.LifeMs);
+                    break;
+                }
+                case GameEventType.ProjectileDespawn:
+                {
+                    var m = (ProjectileDespawnEvent)ev;
+                    WriteString(bw, m.SourceId);
+                    bw.Write(m.CasterId);
+                    bw.Write(m.ServerTick);
+                    bw.Write(m.ProjectileId);
+                    break;
+                }
+                case GameEventType.Dash:
+                {
+                    var m = (DashEvent)ev;
+                    WriteString(bw, m.SourceId);
+                    bw.Write(m.CasterId);
+                    bw.Write(m.ServerTick);
+                    bw.Write(m.PosX);
+                    bw.Write(m.PosY);
+                    bw.Write(m.DirX);
+                    bw.Write(m.DirY);
+                    bw.Write(m.Speed);
+                    break;
+                }
+                default:
+                    throw new NotSupportedException("Unknown event type: " + ev.Type);
+            }
+        }
+
+        private static IGameEvent ReadEvent(BinaryReader br, byte type)
+        {
+            switch (type)
+            {
+                case TYPE_ProjectileSpawnEvent: return ReadProjectileSpawnEvent(br);
+                case TYPE_ProjectileUpdateEvent: return ReadProjectileUpdateEvent(br);
+                case TYPE_ProjectileDespawnEvent: return ReadProjectileDespawnEvent(br);
+                case TYPE_DashEvent: return ReadDashEvent(br);
+                default:
+                    throw new NotSupportedException("Unknown event type id: " + type);
+            }
+        }
+
+        private static ProjectileSpawnEvent ReadProjectileSpawnEvent(BinaryReader br)
+        {
+            return new ProjectileSpawnEvent
+            {
+                SourceId = ReadString(br),
+                CasterId = br.ReadInt32(),
+                ServerTick = br.ReadInt32(),
+                ProjectileId = br.ReadInt32(),
+                PosX = br.ReadSingle(),
+                PosY = br.ReadSingle(),
+                DirX = br.ReadSingle(),
+                DirY = br.ReadSingle(),
+                Speed = br.ReadSingle(),
+                LifeMs = br.ReadInt32(),
+            };
+        }
+
+        private static ProjectileUpdateEvent ReadProjectileUpdateEvent(BinaryReader br)
+        {
+            return new ProjectileUpdateEvent
+            {
+                SourceId = ReadString(br),
+                CasterId = br.ReadInt32(),
+                ServerTick = br.ReadInt32(),
+                ProjectileId = br.ReadInt32(),
+                PosX = br.ReadSingle(),
+                PosY = br.ReadSingle(),
+                DirX = br.ReadSingle(),
+                DirY = br.ReadSingle(),
+                Speed = br.ReadSingle(),
+                LifeMs = br.ReadInt32(),
+            };
+        }
+
+        private static ProjectileDespawnEvent ReadProjectileDespawnEvent(BinaryReader br)
+        {
+            return new ProjectileDespawnEvent
+            {
+                SourceId = ReadString(br),
+                CasterId = br.ReadInt32(),
+                ServerTick = br.ReadInt32(),
+                ProjectileId = br.ReadInt32(),
+            };
+        }
+
+        private static DashEvent ReadDashEvent(BinaryReader br)
+        {
+            return new DashEvent
+            {
+                SourceId = ReadString(br),
+                CasterId = br.ReadInt32(),
+                ServerTick = br.ReadInt32(),
+                PosX = br.ReadSingle(),
+                PosY = br.ReadSingle(),
+                DirX = br.ReadSingle(),
+                DirY = br.ReadSingle(),
+                Speed = br.ReadSingle(),
             };
         }
 
@@ -208,9 +332,9 @@ namespace Networking.Serialization
             int sc = m.statesCount > 0 ? m.statesCount : (m.states != null ? m.states.Length : 0);
             bw.Write(sc);
             for (int i = 0; i < sc; i++) WriteStateMessage(bw, m.states[i]);
-            int ec = m.eventsCount > 0 ? m.eventsCount : (m.abilityEvents != null ? m.abilityEvents.Length : 0);
+            int ec = m.eventsCount > 0 ? m.eventsCount : (m.events != null ? m.events.Length : 0);
             bw.Write(ec);
-            for (int i = 0; i < ec; i++) WriteAbilityEvent(bw, m.abilityEvents[i]);
+            for (int i = 0; i < ec; i++) WriteEvent(bw, m.events[i]);
         }
         private static TickPacketMessage ReadTickPacket(BinaryReader br)
         {
@@ -220,8 +344,12 @@ namespace Networking.Serialization
             m.states = new StateMessage[sc];
             for (int i = 0; i < sc; i++) m.states[i] = ReadStateMessage(br);
             int ec = br.ReadInt32();
-            m.abilityEvents = new AbilityEventMessage[ec];
-            for (int i = 0; i < ec; i++) m.abilityEvents[i] = ReadAbilityEvent(br);
+            m.events = new IGameEvent[ec];
+            for (int i = 0; i < ec; i++)
+            {
+                byte evtType = br.ReadByte();
+                m.events[i] = ReadEvent(br, evtType);
+            }
             m.statesCount = sc;
             m.eventsCount = ec;
             return m;

@@ -19,5 +19,6 @@ namespace ClientContent
         public float baseHp = 500f;
         public float baseMoveSpeed = 3.5f;
         public List<Binding> bindings = new List<Binding>();
+        public GameObject heroPrefab;
     }
 }

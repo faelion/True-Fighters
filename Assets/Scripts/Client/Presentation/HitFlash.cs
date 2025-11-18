@@ -7,6 +7,7 @@ public class HitFlash : MonoBehaviour
 
     private Renderer cachedRenderer;
     private NetEntityView view;
+    [SerializeField] private ClientMessageRouter router;
 
     void Awake()
     {
@@ -16,12 +17,16 @@ public class HitFlash : MonoBehaviour
 
     void OnEnable()
     {
-        ClientEventBus.OnEntityState += OnEntityState;
+        if (router == null)
+            router = FindObjectOfType<ClientMessageRouter>();
+        if (router != null)
+            router.OnEntityState += OnEntityState;
     }
 
     void OnDisable()
     {
-        ClientEventBus.OnEntityState -= OnEntityState;
+        if (router != null)
+            router.OnEntityState -= OnEntityState;
     }
 
     private void OnEntityState(StateMessage m)
@@ -39,4 +44,3 @@ public class HitFlash : MonoBehaviour
         mat.color = isHit ? hitColor : normalColor;
     }
 }
-

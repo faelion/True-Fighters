@@ -1,28 +1,32 @@
 using UnityEngine;
 
-// Routes ability events to the corresponding AbilityAsset for client-side view handling
+// Routes server events to the corresponding AbilityAsset for client-side view handling
 public class AbilityAssetEventRouter : MonoBehaviour
 {
     public string databaseResourcePath = "ContentDatabase";
+    [SerializeField] private ClientMessageRouter router;
 
     void OnEnable()
     {
         ClientContent.AbilityAssetRegistry.EnsureLoaded(databaseResourcePath);
-        ClientEventBus.OnAbilityEvent += OnAbilityEvent;
+        if (router == null)
+            router = FindObjectOfType<ClientMessageRouter>();
+        if (router != null)
+            router.OnServerEvent += OnServerEvent;
     }
 
     void OnDisable()
     {
-        ClientEventBus.OnAbilityEvent -= OnAbilityEvent;
+        if (router != null)
+            router.OnServerEvent -= OnServerEvent;
     }
 
-    private void OnAbilityEvent(AbilityEventMessage evt)
+    private void OnServerEvent(IGameEvent evt)
     {
-        if (string.IsNullOrEmpty(evt.abilityIdOrKey)) return;
-        if (ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(evt.abilityIdOrKey, out var asset) && asset != null)
+        if (evt == null || string.IsNullOrEmpty(evt.SourceId)) return;
+        if (ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(evt.SourceId, out var asset) && asset != null)
         {
             asset.ClientHandleEvent(evt, gameObject);
         }
     }
 }
-

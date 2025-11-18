@@ -63,84 +63,105 @@ namespace ClientContent
             return eff.lifeMs > 0;
         }
 
-        public override bool ServerPopulateSpawnEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, AbilityEventMessage msg)
+        public override bool ServerPopulateSpawnEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, out IGameEvent evt)
         {
-            msg.abilityIdOrKey = id;
-            msg.casterId = eff.ownerPlayerId;
-            msg.eventType = AbilityEventType.SpawnProjectile;
-            msg.projectileId = eff.id;
-            msg.posX = eff.posX; msg.posY = eff.posY;
-            msg.dirX = eff.dirX; msg.dirY = eff.dirY;
-            msg.speed = eff.speed; msg.lifeMs = eff.lifeMs;
-            msg.serverTick = tick;
+            evt = new ProjectileSpawnEvent
+            {
+                SourceId = id,
+                CasterId = eff.ownerPlayerId,
+                ServerTick = tick,
+                ProjectileId = eff.id,
+                PosX = eff.posX,
+                PosY = eff.posY,
+                DirX = eff.dirX,
+                DirY = eff.dirY,
+                Speed = eff.speed,
+                LifeMs = eff.lifeMs
+            };
             return true;
         }
 
-        public override bool ServerPopulateUpdateEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, AbilityEventMessage msg)
+        public override bool ServerPopulateUpdateEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, out IGameEvent evt)
         {
-            msg.abilityIdOrKey = id;
-            msg.casterId = eff.ownerPlayerId;
-            msg.eventType = AbilityEventType.ProjectileUpdate;
-            msg.projectileId = eff.id;
-            msg.posX = eff.posX; msg.posY = eff.posY;
-            msg.dirX = eff.dirX; msg.dirY = eff.dirY;
-            msg.speed = eff.speed; msg.lifeMs = eff.lifeMs;
-            msg.serverTick = tick;
+            evt = new ProjectileUpdateEvent
+            {
+                SourceId = id,
+                CasterId = eff.ownerPlayerId,
+                ServerTick = tick,
+                ProjectileId = eff.id,
+                PosX = eff.posX,
+                PosY = eff.posY,
+                DirX = eff.dirX,
+                DirY = eff.dirY,
+                Speed = eff.speed,
+                LifeMs = eff.lifeMs
+            };
             return true;
         }
 
-        public override bool ServerPopulateDespawnEvent(ServerGame.ServerWorld world, int effectId, int tick, AbilityEventMessage msg)
+        public override bool ServerPopulateDespawnEvent(ServerGame.ServerWorld world, int effectId, int tick, out IGameEvent evt)
         {
-            msg.abilityIdOrKey = id;
-            msg.casterId = 0;
-            msg.eventType = AbilityEventType.ProjectileDespawn;
-            msg.projectileId = effectId;
-            msg.serverTick = tick;
+            evt = new ProjectileDespawnEvent
+            {
+                SourceId = id,
+                CasterId = 0,
+                ServerTick = tick,
+                ProjectileId = effectId
+            };
             return true;
         }
 
         private readonly System.Collections.Generic.Dictionary<int, GameObject> live = new System.Collections.Generic.Dictionary<int, GameObject>();
 
-        public override void ClientHandleEvent(AbilityEventMessage evt, GameObject contextRoot)
+        public override void ClientHandleEvent(IGameEvent evt, GameObject contextRoot)
         {
-            if (evt.abilityIdOrKey != id) return;
-            switch (evt.eventType)
+            if (evt == null || evt.SourceId != id) return;
+            switch (evt.Type)
             {
-                case AbilityEventType.SpawnProjectile:
-                    if (live.ContainsKey(evt.projectileId)) break;
+                case GameEventType.ProjectileSpawn:
+                {
+                    var e = (ProjectileSpawnEvent)evt;
+                    if (live.ContainsKey(e.ProjectileId)) break;
                     GameObject prefab = projectilePrefab;
                     GameObject go;
                     if (prefab)
-                        go = Object.Instantiate(prefab, new Vector3(evt.posX, 0f, evt.posY), Quaternion.identity);
+                        go = Object.Instantiate(prefab, new Vector3(e.PosX, 0f, e.PosY), Quaternion.identity);
                     else
                     {
                         go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        go.transform.position = new Vector3(evt.posX, 0f, evt.posY);
+                        go.transform.position = new Vector3(e.PosX, 0f, e.PosY);
                         go.transform.localScale = Vector3.one * 0.3f;
                     }
                     SceneManager.MoveGameObjectToScene(go, contextRoot.scene);
-                    float angle = Mathf.Atan2(evt.dirY, evt.dirX) * Mathf.Rad2Deg;
+                    float angle = Mathf.Atan2(e.DirY, e.DirX) * Mathf.Rad2Deg;
                     go.transform.rotation = Quaternion.Euler(0f, angle, 0f);
-                    live[evt.projectileId] = go;
+                    live[e.ProjectileId] = go;
                     break;
-                case AbilityEventType.ProjectileUpdate:
-                    if (live.TryGetValue(evt.projectileId, out var uGo) && uGo)
+                }
+                case GameEventType.ProjectileUpdate:
+                {
+                    var e = (ProjectileUpdateEvent)evt;
+                    if (live.TryGetValue(e.ProjectileId, out var uGo) && uGo)
                     {
-                        uGo.transform.position = new Vector3(evt.posX, 0f, evt.posY);
-                        if (evt.lifeMs <= 0)
+                        uGo.transform.position = new Vector3(e.PosX, 0f, e.PosY);
+                        if (e.LifeMs <= 0)
                         {
                             Object.Destroy(uGo);
-                            live.Remove(evt.projectileId);
+                            live.Remove(e.ProjectileId);
                         }
                     }
                     break;
-                case AbilityEventType.ProjectileDespawn:
-                    if (live.TryGetValue(evt.projectileId, out var dGo))
+                }
+                case GameEventType.ProjectileDespawn:
+                {
+                    var e = (ProjectileDespawnEvent)evt;
+                    if (live.TryGetValue(e.ProjectileId, out var dGo))
                     {
                         if (dGo) Object.Destroy(dGo);
-                        live.Remove(evt.projectileId);
+                        live.Remove(e.ProjectileId);
                     }
                     break;
+                }
             }
         }
     }

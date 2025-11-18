@@ -23,28 +23,27 @@ namespace ClientContent
             if (dist2 > range * range) return false;
 
             Shared.MathUtil.Normalize(ref dx, ref dy);
-            world.EnqueueAbilityEvent(new AbilityEventMessage
+            world.EnqueueEvent(new DashEvent
             {
-                abilityIdOrKey = id,
-                casterId = playerId,
-                eventType = AbilityEventType.Dash,
-                posX = caster.posX,
-                posY = caster.posY,
-                dirX = dx,
-                dirY = dy,
-                speed = speed,
-                serverTick = System.Environment.TickCount
+                SourceId = id,
+                CasterId = playerId,
+                PosX = caster.posX,
+                PosY = caster.posY,
+                DirX = dx,
+                DirY = dy,
+                Speed = speed,
+                ServerTick = 0
             });
             return true;
         }
 
-        public override void ClientHandleEvent(AbilityEventMessage evt, GameObject contextRoot)
+        public override void ClientHandleEvent(IGameEvent evt, GameObject contextRoot)
         {
-            if (evt.abilityIdOrKey != id) return;
-            if (evt.eventType != AbilityEventType.Dash) return;
+            if (evt == null || evt.Type != GameEventType.Dash || evt.SourceId != id) return;
+            var dash = (DashEvent)evt;
             GameObject prefab = dashVfx;
             if (!prefab) return;
-            var go = Object.Instantiate(prefab, new Vector3(evt.posX, 0f, evt.posY), Quaternion.LookRotation(new Vector3(evt.dirX, 0f, evt.dirY)));
+            var go = Object.Instantiate(prefab, new Vector3(dash.PosX, 0f, dash.PosY), Quaternion.LookRotation(new Vector3(dash.DirX, 0f, dash.DirY)));
             SceneManager.MoveGameObjectToScene(go, contextRoot.scene);
             Object.Destroy(go, 1.0f);
         }

@@ -16,6 +16,7 @@ public class ClientNetwork : MonoBehaviour
 
     private INetworkTransport transport;
     private IPEndPoint serverEndpoint;
+    [SerializeField] private ClientMessageRouter messageRouter;
 
     private ConcurrentQueue<(object msg, IPEndPoint remote)> incoming = new ConcurrentQueue<(object, IPEndPoint)>();
 
@@ -33,6 +34,9 @@ public class ClientNetwork : MonoBehaviour
     float timer = 0.5f;
     void Start()
     {
+        if (messageRouter == null)
+            messageRouter = FindObjectOfType<ClientMessageRouter>();
+
         if (!string.IsNullOrEmpty(NetworkConfig.serverHost))
             serverHost = NetworkConfig.serverHost;
         if (NetworkConfig.serverPort != 0)
@@ -109,14 +113,14 @@ public class ClientNetwork : MonoBehaviour
                 hasAssignedId = true;
                 clientPlayerId = assignedPlayerId;
                 Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
-                ClientEventBus.RaiseJoinResponse(jr);
+                messageRouter?.RaiseJoinResponse(jr);
             }
             else if (msg is TickPacketMessage tpm)
             {
                 if (tpm.states != null)
-                    foreach (var state in tpm.states) ClientEventBus.RaiseEntityState(state);
-                if (tpm.abilityEvents != null)
-                    foreach (var ev in tpm.abilityEvents) ClientEventBus.RaiseAbilityEvent(ev);
+                    foreach (var state in tpm.states) messageRouter?.RaiseEntityState(state);
+                if (tpm.events != null)
+                    foreach (var ev in tpm.events) messageRouter?.RaiseServerEvent(ev);
             }
             else
             {
