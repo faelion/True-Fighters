@@ -11,7 +11,7 @@ namespace ClientContent
         public struct Binding
         {
             public string key; // e.g., "Q","W","E","R" (or any)
-            public BaseAbilitySO ability;
+            public AbilityAsset ability;
         }
 
         public string id;
@@ -21,4 +21,3 @@ namespace ClientContent
         public List<Binding> bindings = new List<Binding>();
     }
 }
-

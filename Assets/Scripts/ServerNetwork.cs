@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using System.Buffers;
 using Networking.Transport;
 using ServerGame;
 
@@ -18,9 +19,27 @@ public class ServerNetwork : MonoBehaviour
     private readonly Dictionary<IPEndPoint, int> endpointToPlayerId = new Dictionary<IPEndPoint, int>();
     private readonly Dictionary<int, IPEndPoint> playerIdToEndpoint = new Dictionary<int, IPEndPoint>();
     private int nextPlayerId = 1;
+    private readonly System.Collections.Generic.List<StateMessage> stateBuffer = new System.Collections.Generic.List<StateMessage>(32);
+    private readonly System.Collections.Generic.List<AbilityEventMessage> eventBuffer = new System.Collections.Generic.List<AbilityEventMessage>(64);
+    private readonly List<StateMessage> stateObjs = new List<StateMessage>(32);
+    private readonly List<AbilityEventMessage> eventObjs = new List<AbilityEventMessage>(64);
+    private int eventObjCountUsed = 0;
+
+    private static string KeyFromInputKind(InputKind kind)
+    {
+        switch (kind)
+        {
+            case InputKind.Q: return "Q";
+            case InputKind.W: return "W";
+            case InputKind.E: return "E";
+            case InputKind.R: return "R";
+            default: return null;
+        }
+    }
 
     void Start()
     {
+        ClientContent.AbilityAssetRegistry.EnsureLoaded();
         world = new ServerWorld();
         transport = new UdpTransport();
         transport.Start(new IPEndPoint(IPAddress.Loopback, listenPort));
@@ -48,11 +67,24 @@ public class ServerNetwork : MonoBehaviour
         world.Simulate(Time.deltaTime);
 
         int tickNow = Environment.TickCount;
-        var states = BuildStateMessages(tickNow);
-        var abilityEvents = BuildAbilityEvents(tickNow);
-        var pkt = new TickPacketMessage { serverTick = tickNow, states = states.ToArray(), abilityEvents = abilityEvents.ToArray() };
+        stateBuffer.Clear();
+        eventBuffer.Clear();
+        eventObjCountUsed = 0;
+        BuildStateMessages(tickNow);
+        BuildAbilityEvents(tickNow);
+
+        int sc = stateBuffer.Count;
+        int ec = eventBuffer.Count;
+        var statesArr = ArrayPool<StateMessage>.Shared.Rent(sc);
+        var eventsArr = ArrayPool<AbilityEventMessage>.Shared.Rent(ec);
+        stateBuffer.CopyTo(0, statesArr, 0, sc);
+        eventBuffer.CopyTo(0, eventsArr, 0, ec);
+        var pkt = new TickPacketMessage { serverTick = tickNow, states = statesArr, abilityEvents = eventsArr, statesCount = sc, eventsCount = ec };
         foreach (var endpoint in endpointToPlayerId.Keys)
             SendMessageToClient(pkt, endpoint);
+        pkt.states = null; pkt.abilityEvents = null;
+        ArrayPool<StateMessage>.Shared.Return(statesArr, clearArray: true);
+        ArrayPool<AbilityEventMessage>.Shared.Return(eventsArr, clearArray: true);
     }
 
     private void HandleInput(InputMessage im, IPEndPoint remote)
@@ -63,54 +95,66 @@ public class ServerNetwork : MonoBehaviour
             return;
         }
 
-        switch (im.kind)
+        if (im.kind == InputKind.RightClick)
         {
-            case InputKind.RightClick:
-                world.HandleMove(pid, im.targetX, im.targetY);
-                break;
-            case InputKind.Q:
-            case InputKind.W:
-            case InputKind.E:
-            case InputKind.R:
-                world.EnsurePlayer(pid);
-                var key = im.kind == InputKind.Q ? "Q" : im.kind == InputKind.W ? "W" : im.kind == InputKind.E ? "E" : "R";
-                world.TryCastAbility(pid, key, im.targetX, im.targetY);
-                break;
-            default:
-                break;
+            world.HandleMove(pid, im.targetX, im.targetY);
+            return;
+        }
+        var key = KeyFromInputKind(im.kind);
+        if (key != null)
+        {
+            //Debug.Log($"[Server] Player {pid} casts ability '{key}' at ({im.targetX}, {im.targetY})");
+            world.EnsurePlayer(pid);
+            world.TryCastAbility(pid, key, im.targetX, im.targetY);
         }
     }
 
-    private List<StateMessage> BuildStateMessages(int tick)
+    private void BuildStateMessages(int tick)
     {
-        var list = new List<StateMessage>(world.Players.Count + 1);
+        int countNeeded = world.Players.Count + 1; // players + npc
+        while (stateObjs.Count < countNeeded) stateObjs.Add(new StateMessage());
+
+        int i = 0;
         foreach (var p in world.Players.Values)
         {
-            list.Add(new StateMessage
-            {
-                playerId = p.playerId,
-                hit = p.hit,
-                posX = p.posX,
-                posY = p.posY,
-                rotZ = p.rotZ,
-                tick = tick
-            });
+            var sm = stateObjs[i++];
+            sm.playerId = p.playerId;
+            sm.hit = p.hit;
+            sm.posX = p.posX;
+            sm.posY = p.posY;
+            sm.rotZ = p.rotZ;
+            sm.tick = tick;
+            stateBuffer.Add(sm);
         }
-        list.Add(new StateMessage { playerId = world.Npc.id, posX = world.Npc.posX, posY = world.Npc.posY, rotZ = 0, tick = tick });
-        return list;
+        var npc = stateObjs[i++];
+        npc.playerId = world.Npc.id;
+        npc.hit = false;
+        npc.posX = world.Npc.posX;
+        npc.posY = world.Npc.posY;
+        npc.rotZ = 0f;
+        npc.tick = tick;
+        stateBuffer.Add(npc);
     }
 
-    private List<AbilityEventMessage> BuildAbilityEvents(int tick)
+    private void BuildAbilityEvents(int tick)
     {
-        var list = new List<AbilityEventMessage>();
-
         var instant = world.ConsumePendingAbilityEvents();
         if (instant != null)
         {
             foreach (var e in instant)
             {
-                e.serverTick = tick;
-                list.Add(e);
+                var m = GetEventObj();
+                m.abilityIdOrKey = e.abilityIdOrKey;
+                m.casterId = e.casterId;
+                m.eventType = e.eventType;
+                m.castTime = e.castTime;
+                m.serverTick = tick;
+                m.projectileId = e.projectileId;
+                m.posX = e.posX; m.posY = e.posY;
+                m.dirX = e.dirX; m.dirY = e.dirY;
+                m.speed = e.speed; m.lifeMs = e.lifeMs;
+                m.value = e.value;
+                eventBuffer.Add(m);
             }
         }
 
@@ -120,65 +164,51 @@ public class ServerNetwork : MonoBehaviour
             foreach (var id in spawned)
             {
                 if (!world.AbilityEffects.TryGetValue(id, out var eff)) continue;
-                var spawn = new AbilityEventMessage { casterId = eff.ownerPlayerId, serverTick = tick };
-                if (eff.type == AbilityEffectType.Projectile)
+                if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
                 {
-                    spawn.eventType = AbilityEventType.SpawnProjectile;
-                    spawn.abilityIdOrKey = eff.abilityId;
-                    spawn.projectileId = eff.id;
-                    spawn.posX = eff.posX; spawn.posY = eff.posY;
-                    spawn.dirX = eff.dirX; spawn.dirY = eff.dirY;
-                    spawn.speed = eff.speed; spawn.lifeMs = eff.lifeMs;
+                    Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' when spawning effect {id}");
+                    continue;
                 }
-                else if (eff.type == AbilityEffectType.Area)
-                {
-                    spawn.eventType = AbilityEventType.SpawnArea;
-                    spawn.abilityIdOrKey = eff.abilityId;
-                    spawn.posX = eff.posX; spawn.posY = eff.posY;
-                    spawn.lifeMs = eff.lifeMs;
-                }
-                list.Add(spawn);
+                var spawn = GetEventObj();
+                if (asset.ServerPopulateSpawnEvent(world, eff, tick, spawn))
+                    eventBuffer.Add(spawn);
             }
         }
 
         foreach (var eff in world.AbilityEffects.Values)
         {
-            if (eff.type == AbilityEffectType.Projectile)
+            if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
             {
-                list.Add(new AbilityEventMessage
-                {
-                    abilityIdOrKey = eff.abilityId,
-                    casterId = eff.ownerPlayerId,
-                    eventType = AbilityEventType.ProjectileUpdate,
-                    projectileId = eff.id,
-                    posX = eff.posX,
-                    posY = eff.posY,
-                    dirX = eff.dirX,
-                    dirY = eff.dirY,
-                    speed = eff.speed,
-                    lifeMs = eff.lifeMs,
-                    serverTick = tick
-                });
+                Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' on update of effect {eff.id}");
+                continue;
             }
+            var upd = GetEventObj();
+            if (asset.ServerPopulateUpdateEvent(world, eff, tick, upd))
+                eventBuffer.Add(upd);
         }
 
         var despawned = world.ConsumeRecentlyDespawnedEffects();
         if (despawned != null)
         {
-            foreach (var id in despawned)
+            foreach (var pair in despawned)
             {
-                list.Add(new AbilityEventMessage
+                if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(pair.abilityId, out var asset) || asset == null)
                 {
-                    abilityIdOrKey = "",
-                    casterId = 0,
-                    eventType = AbilityEventType.ProjectileDespawn,
-                    projectileId = id,
-                    serverTick = tick
-                });
+                    Debug.LogWarning($"[Server] Missing ability asset for id '{pair.abilityId}' on despawn of effect {pair.id}");
+                    continue;
+                }
+                var desp = GetEventObj();
+                if (asset.ServerPopulateDespawnEvent(world, pair.id, tick, desp))
+                    eventBuffer.Add(desp);
             }
         }
+    }
 
-        return list;
+    private AbilityEventMessage GetEventObj()
+    {
+        if (eventObjCountUsed >= eventObjs.Count)
+            eventObjs.Add(new AbilityEventMessage());
+        return eventObjs[eventObjCountUsed++];
     }
 
     private void SendMessageToClient(object msg, IPEndPoint remote)

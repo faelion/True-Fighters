@@ -11,11 +11,11 @@ namespace ServerGame
         public readonly ServerNPC Npc = new ServerNPC { id = 999, posX = 2f, posY = 0f, speed = 2.0f };
 
         private int nextEffectId = 1;
-        private readonly List<int> recentlyDespawnedEffects = new List<int>();
+        private readonly List<(int id, string abilityId)> recentlyDespawnedEffects = new List<(int id, string abilityId)>();
         private readonly List<int> recentlySpawnedEffects = new List<int>();
 
-        // Per-player ability book: key (Q,W,E,R) -> AbilityDef
-        public readonly Dictionary<int, Dictionary<string, Content.AbilityDef>> AbilityBooks = new Dictionary<int, Dictionary<string, Content.AbilityDef>>();
+        // Per-player ability book: key (Q,W,E,R) -> AbilityAsset
+        public readonly Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>> AbilityBooks = new Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>>();
 
         public ServerPlayer EnsurePlayer(int id, string name = null)
         {
@@ -23,9 +23,9 @@ namespace ServerGame
             {
                 p = new ServerPlayer { playerId = id, name = name ?? $"Player{id}", posX = 0f, posY = 0f, speed = 3.5f };
                 Players[id] = p;
-                // attach default abilities on first creation via content registry
+                // attach default abilities on first creation via asset registry
                 if (!AbilityBooks.ContainsKey(id))
-                    AbilityBooks[id] = Content.ServerContent.GetDefaultBindings();
+                    AbilityBooks[id] = ClientContent.AbilityAssetRegistry.GetDefaultBindings();
             }
             else if (!string.IsNullOrEmpty(name))
             {
@@ -42,49 +42,13 @@ namespace ServerGame
             p.hasDest = true;
         }
 
-        public int SpawnAbilityProjectile(int ownerPlayerId, float targetX, float targetY, float speed, int lifeMs, string abilityId)
+        public int RegisterAbilityEffect(AbilityEffect effect, bool markSpawn)
         {
-            var pl = EnsurePlayer(ownerPlayerId);
-            float dirX = targetX - pl.posX;
-            float dirY = targetY - pl.posY;
-            float len = MathF.Sqrt(dirX * dirX + dirY * dirY);
-            if (len <= 0.001f) { dirX = 1f; dirY = 0f; len = 1f; }
-            dirX /= len; dirY /= len;
-
-            int id = nextEffectId++;
-            var effect = new AbilityEffect
-            {
-                id = id,
-                ownerPlayerId = ownerPlayerId,
-                type = AbilityEffectType.Projectile,
-                abilityId = abilityId,
-                posX = pl.posX,
-                posY = pl.posY,
-                dirX = dirX,
-                dirY = dirY,
-                speed = speed,
-                lifeMs = lifeMs
-            };
+            int id = effect.id;
+            if (id == 0) id = nextEffectId++;
+            effect.id = id;
             AbilityEffects[id] = effect;
-            // Note: marking spawn is done by the caller (ability system) to avoid double-adding.
-            return id;
-        }
-
-        public int SpawnAbilityArea(int ownerPlayerId, float centerX, float centerY, float radius, int lifeMs, string abilityId)
-        {
-            int id = nextEffectId++;
-            var effect = new AbilityEffect
-            {
-                id = id,
-                ownerPlayerId = ownerPlayerId,
-                type = AbilityEffectType.Area,
-                abilityId = abilityId,
-                posX = centerX,
-                posY = centerY,
-                radius = radius,
-                lifeMs = lifeMs
-            };
-            AbilityEffects[id] = effect;
+            if (markSpawn) MarkEffectSpawned(id);
             return id;
         }
 
@@ -104,26 +68,29 @@ namespace ServerGame
             movementSystem ??= new Systems.MovementSystem();
             npcSystem ??= new Systems.NpcSystem();
             abilitySystem ??= new Systems.AbilitySystem();
+            abilityEffectSystem ??= new Systems.AbilityEffectSystem();
 
             movementSystem.Tick(this, dt);
             npcSystem.Tick(this, dt);
             abilitySystem.Tick(this, dt);
+            abilityEffectSystem.Tick(this, dt);
         }
 
         private Systems.MovementSystem movementSystem;
         private Systems.NpcSystem npcSystem;
         private Systems.AbilitySystem abilitySystem;
+        private Systems.AbilityEffectSystem abilityEffectSystem;
 
-        public IReadOnlyList<int> ConsumeRecentlyDespawnedEffects()
+        public IReadOnlyList<(int id, string abilityId)> ConsumeRecentlyDespawnedEffects()
         {
-            var copy = new List<int>(recentlyDespawnedEffects);
+            var copy = new List<(int id, string abilityId)>(recentlyDespawnedEffects);
             recentlyDespawnedEffects.Clear();
             return copy;
         }
 
-        public void MarkEffectDespawned(int id)
+        public void MarkEffectDespawned(int id, string abilityId)
         {
-            recentlyDespawnedEffects.Add(id);
+            recentlyDespawnedEffects.Add((id, abilityId));
         }
 
         public IReadOnlyList<int> ConsumeRecentlySpawnedEffects()
@@ -157,21 +124,6 @@ namespace ServerGame
         public bool hasDest = false;
         public bool hit = false;
         public float hitTimer = 0f;
-    }
-
-    public enum AbilityEffectType { Projectile, Area, Dash, Pickup }
-
-    public class AbilityEffect
-    {
-        public int id;
-        public int ownerPlayerId;
-        public AbilityEffectType type;
-        public string abilityId; // which ability spawned this effect
-        public float posX, posY;
-        public float dirX, dirY;
-        public float speed;
-        public int lifeMs;
-        public float radius; // used by Area effects
     }
 
     public class ServerNPC

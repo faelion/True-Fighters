@@ -6,6 +6,6 @@ namespace Networking.Serialization
     {
         byte[] Serialize(object obj);
         object Deserialize(byte[] data);
+        object Deserialize(byte[] data, int offset, int count);
     }
 }
-

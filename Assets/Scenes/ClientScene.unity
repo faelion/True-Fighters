@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 75406382}
   - component: {fileID: 75406383}
   m_Layer: 0
-  m_Name: ProjectileViewReplicator
+  m_Name: AbilityAssetEventRouter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -160,16 +160,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 75406380}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d2b7f4cf1b4c4540a54d9519dbf7365, type: 3}
+  m_Script: {fileID: 11500000, guid: cd8b1b8356cabca49aa71f52e99cd8e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AbilityViewReplicator
-  projectilePrefab: {fileID: 2603975711762807716, guid: 4fbea7c813015c143ac88b98a76686f7, type: 3}
-  areaPrefab: {fileID: 0}
-  defaultAreaLifetime: 1.5
-  dashVfxPrefab: {fileID: 0}
-  healVfxPrefab: {fileID: 0}
-  buffVfxPrefab: {fileID: 0}
-  pickupPrefab: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityAssetEventRouter
+  databaseResourcePath: Resources/ContentDatabase
 --- !u!1 &290843874
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,7 +174,6 @@ GameObject:
   m_Component:
   - component: {fileID: 290843877}
   - component: {fileID: 290843876}
-  - component: {fileID: 290843875}
   - component: {fileID: 290843878}
   - component: {fileID: 290843879}
   m_Layer: 0
@@ -190,14 +183,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &290843875
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 290843874}
-  m_Enabled: 1
 --- !u!20 &290843876
 Camera:
   m_ObjectHideFlags: 0

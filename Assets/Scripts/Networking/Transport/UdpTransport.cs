@@ -18,7 +18,7 @@ namespace Networking.Transport
 
         public UdpTransport(ISerializer serializer = null)
         {
-            this.serializer = serializer ?? new BinaryFormatterSerializer();
+            this.serializer = serializer ?? new Networking.Serialization.ManualSerializer();
         }
 
         public void Start(IPEndPoint localBind)
@@ -67,9 +67,7 @@ namespace Networking.Transport
                     int r = udp.ReceiveFrom(buffer, ref remoteEP);
                     if (r > 0)
                     {
-                        byte[] payload = new byte[r];
-                        Buffer.BlockCopy(buffer, 0, payload, 0, r);
-                        object msg = serializer.Deserialize(payload);
+                        object msg = serializer.Deserialize(buffer, 0, r);
                         OnReceive?.Invoke((IPEndPoint)remoteEP, msg);
                     }
                 }
@@ -97,4 +95,3 @@ namespace Networking.Transport
         }
     }
 }
-

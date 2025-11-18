@@ -46,7 +46,5 @@ public class PlayerInput : MonoBehaviour
             targetY = hit.point.z
         };
         net.SendInput(msg);
-
-        // Rest of moveset to be added in full version
     }
 }

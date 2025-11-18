@@ -22,7 +22,7 @@ namespace ServerGame.Systems
                 if (!p.hasDest) continue;
                 float dx = p.destX - p.posX;
                 float dy = p.destY - p.posY;
-                float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+                float dist = Shared.MathUtil.Length(dx, dy);
                 if (dist < 0.05f)
                 {
                     p.posX = p.destX; p.posY = p.destY; p.hasDest = false;
@@ -39,4 +39,3 @@ namespace ServerGame.Systems
         }
     }
 }
-

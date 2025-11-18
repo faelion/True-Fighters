@@ -7,8 +7,7 @@ namespace ClientContent
     public class ContentDatabaseSO : ScriptableObject
     {
         public string defaultHeroId = "default";
-        public List<BaseAbilitySO> abilities = new List<BaseAbilitySO>();
+        public List<AbilityAsset> abilities = new List<AbilityAsset>();
         public List<HeroSO> heroes = new List<HeroSO>();
     }
 }
-

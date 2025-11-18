@@ -12,6 +12,30 @@ public class EntityViewReplicator : MonoBehaviour
     private readonly Dictionary<int, GameObject> otherPlayers = new Dictionary<int, GameObject>();
     private int localPlayerId = -1;
 
+    private GameObject SpawnOrUpdate(GameObject current, GameObject prefab, Vector3 pos, float rotY, string tag = null, int? entityId = null, bool addHitFlash = false)
+    {
+        if (!current)
+        {
+            if (!prefab) return null;
+            var go = Instantiate(prefab, pos, Quaternion.Euler(0f, rotY, 0f));
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, gameObject.scene);
+            if (!string.IsNullOrEmpty(tag)) go.tag = tag;
+            if (entityId.HasValue)
+            {
+                var view = go.GetComponent<NetEntityView>() ?? go.AddComponent<NetEntityView>();
+                view.entityId = entityId.Value;
+            }
+            if (addHitFlash && !go.GetComponent<HitFlash>()) go.AddComponent<HitFlash>();
+            return go;
+        }
+        else
+        {
+            current.transform.position = pos;
+            current.transform.rotation = Quaternion.Euler(0f, rotY, 0f);
+            return current;
+        }
+    }
+
     void OnEnable()
     {
         ClientEventBus.OnJoinResponse += OnJoinResponse;
@@ -39,58 +63,24 @@ public class EntityViewReplicator : MonoBehaviour
     {
         if (s.playerId == localPlayerId)
         {
-            if (!localPlayerGO)
-            {
-                if (playerVisualPrefab)
-                {
-                    localPlayerGO = Instantiate(playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
-                    SceneManager.MoveGameObjectToScene(localPlayerGO, gameObject.scene);
-                    localPlayerGO.tag = "Player";
-                    var view = localPlayerGO.GetComponent<NetEntityView>() ?? localPlayerGO.AddComponent<NetEntityView>();
-                    view.entityId = s.playerId;
-                    if (!localPlayerGO.GetComponent<HitFlash>()) localPlayerGO.AddComponent<HitFlash>();
-                }
-            }
-            else
-            {
-                localPlayerGO.transform.position = new Vector3(s.posX, 0f, s.posY);
-                localPlayerGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
-            }
+            localPlayerGO = SpawnOrUpdate(localPlayerGO, playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), s.rotZ, "Player", s.playerId, addHitFlash: true);
             return;
         }
 
         if (s.playerId == 999)
         {
-            if (!serverObjectGO && serverObjectVisualPrefab)
-            {
-                serverObjectGO = Instantiate(serverObjectVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
-                SceneManager.MoveGameObjectToScene(serverObjectGO, gameObject.scene);
-            }
-            else if (serverObjectGO)
-            {
-                serverObjectGO.transform.position = new Vector3(s.posX, 0f, s.posY);
-                serverObjectGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
-            }
+            serverObjectGO = SpawnOrUpdate(serverObjectGO, serverObjectVisualPrefab, new Vector3(s.posX, 0f, s.posY), s.rotZ);
             return;
         }
 
-        if (!otherPlayers.TryGetValue(s.playerId, out var otherGO) || otherGO == null)
+        if (!otherPlayers.TryGetValue(s.playerId, out var otherGO) || !otherGO)
         {
-            if (playerVisualPrefab)
-            {
-                var go = Instantiate(playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), Quaternion.Euler(0f, s.rotZ, 0f));
-                SceneManager.MoveGameObjectToScene(go, gameObject.scene);
-                var view = go.GetComponent<NetEntityView>() ?? go.AddComponent<NetEntityView>();
-                view.entityId = s.playerId;
-                if (!go.GetComponent<HitFlash>()) go.AddComponent<HitFlash>();
-                otherPlayers[s.playerId] = go;
-            }
+            var go = SpawnOrUpdate(null, playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), s.rotZ, null, s.playerId, addHitFlash: true);
+            if (go) otherPlayers[s.playerId] = go;
         }
         else
         {
-            otherGO.transform.position = new Vector3(s.posX, 0f, s.posY);
-            otherGO.transform.rotation = Quaternion.Euler(0f, s.rotZ, 0f);
+            SpawnOrUpdate(otherGO, playerVisualPrefab, new Vector3(s.posX, 0f, s.posY), s.rotZ);
         }
     }
 }
-

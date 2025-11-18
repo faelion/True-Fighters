@@ -13,13 +13,29 @@ public class CameraFollow : MonoBehaviour
         if (go) target = go.transform;
     }
 
+    void OnEnable()
+    {
+        ClientEventBus.OnJoinResponse += OnJoinResponse;
+    }
+
+    void OnDisable()
+    {
+        ClientEventBus.OnJoinResponse -= OnJoinResponse;
+    }
+
+    void OnJoinResponse(JoinResponseMessage _)
+    {
+        var go = GameObject.FindWithTag(playerTag);
+        if (go) target = go.transform;
+    }
+
     void LateUpdate()
     {
         if (!target)
         {
             var go = GameObject.FindWithTag(playerTag);
             if (go) target = go.transform;
-            return;
+            if (!target) return;
         }
         Vector3 desired = target.position + offset;
         transform.position = Vector3.Lerp(transform.position, desired, Time.deltaTime * smooth);
