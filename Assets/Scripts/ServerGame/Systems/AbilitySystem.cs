@@ -11,6 +11,18 @@ namespace ServerGame.Systems
         // cooldowns[playerId][key] = seconds remaining
         private readonly Dictionary<int, Dictionary<string, float>> cooldowns = new Dictionary<int, Dictionary<string, float>>();
 
+        public static string KeyFromInputKind(InputKind kind)
+        {
+            switch (kind)
+            {
+                case InputKind.Q: return "Q";
+                case InputKind.W: return "W";
+                case InputKind.E: return "E";
+                case InputKind.R: return "R";
+                default: return null;
+            }
+        }
+
         public void Tick(ServerWorld world, float dt)
         {
             // 1) Cooldowns

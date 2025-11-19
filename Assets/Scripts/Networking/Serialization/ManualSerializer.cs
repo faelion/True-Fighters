@@ -151,12 +151,14 @@ namespace Networking.Serialization
         private static void WriteJoinRequest(BinaryWriter bw, JoinRequestMessage m)
         {
             WriteString(bw, m.playerName);
+            WriteString(bw, m.heroId);
         }
         private static JoinRequestMessage ReadJoinRequest(BinaryReader br)
         {
             return new JoinRequestMessage
             {
                 playerName = ReadString(br),
+                heroId = ReadString(br),
             };
         }
 
@@ -164,6 +166,7 @@ namespace Networking.Serialization
         {
             bw.Write(m.assignedPlayerId);
             bw.Write(m.serverTick);
+            WriteString(bw, m.heroId);
         }
         private static JoinResponseMessage ReadJoinResponse(BinaryReader br)
         {
@@ -171,6 +174,7 @@ namespace Networking.Serialization
             {
                 assignedPlayerId = br.ReadInt32(),
                 serverTick = br.ReadInt32(),
+                heroId = ReadString(br),
             };
         }
 

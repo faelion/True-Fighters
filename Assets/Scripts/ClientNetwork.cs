@@ -78,7 +78,7 @@ public class ClientNetwork : MonoBehaviour
 
     public void SendJoinRequest()
     {
-        var jr = new JoinRequestMessage() { playerName = NetworkConfig.playerName ?? "Player" };
+        var jr = new JoinRequestMessage() { playerName = NetworkConfig.playerName ?? "Player", heroId = NetworkConfig.heroId };
         try
         {
             transport.Send(serverEndpoint, jr);

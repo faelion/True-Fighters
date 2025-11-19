@@ -17,7 +17,7 @@ namespace ServerGame
         // Per-player ability book: key (Q,W,E,R) -> AbilityAsset
         public readonly Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>> AbilityBooks = new Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>>();
 
-        public ServerPlayer EnsurePlayer(int id, string name = null)
+        public ServerPlayer EnsurePlayer(int id, string name = null, string heroId = null)
         {
             if (!Players.TryGetValue(id, out var p))
             {
@@ -25,7 +25,9 @@ namespace ServerGame
                 Players[id] = p;
                 // attach default abilities on first creation via asset registry
                 if (!AbilityBooks.ContainsKey(id))
-                    AbilityBooks[id] = ClientContent.AbilityAssetRegistry.GetDefaultBindings();
+                    AbilityBooks[id] = string.IsNullOrEmpty(heroId)
+                        ? ClientContent.AbilityAssetRegistry.GetDefaultBindings()
+                        : ClientContent.AbilityAssetRegistry.GetBindingsForHero(heroId);
             }
             else if (!string.IsNullOrEmpty(name))
             {
@@ -62,25 +64,6 @@ namespace ServerGame
             return copy;
         }
 
-        public void Simulate(float dt)
-        {
-            // Systems are invoked externally now; this remains as a convenience if needed.
-            movementSystem ??= new Systems.MovementSystem();
-            npcSystem ??= new Systems.NpcSystem();
-            abilitySystem ??= new Systems.AbilitySystem();
-            abilityEffectSystem ??= new Systems.AbilityEffectSystem();
-
-            movementSystem.Tick(this, dt);
-            npcSystem.Tick(this, dt);
-            abilitySystem.Tick(this, dt);
-            abilityEffectSystem.Tick(this, dt);
-        }
-
-        private Systems.MovementSystem movementSystem;
-        private Systems.NpcSystem npcSystem;
-        private Systems.AbilitySystem abilitySystem;
-        private Systems.AbilityEffectSystem abilityEffectSystem;
-
         public IReadOnlyList<(int id, string abilityId)> ConsumeRecentlyDespawnedEffects()
         {
             var copy = new List<(int id, string abilityId)>(recentlyDespawnedEffects);
@@ -108,9 +91,13 @@ namespace ServerGame
         // Convenience entrypoint for server to request a cast immediately
         public bool TryCastAbility(int playerId, string key, float targetX, float targetY)
         {
-            abilitySystem ??= new Systems.AbilitySystem();
+            if (abilitySystem == null) return false;
             return abilitySystem.TryCast(this, playerId, key, targetX, targetY);
         }
+
+        internal void BindAbilitySystem(Systems.AbilitySystem system) => abilitySystem = system;
+
+        private Systems.AbilitySystem abilitySystem;
     }
 
     public class ServerPlayer

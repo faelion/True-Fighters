@@ -34,16 +34,21 @@ namespace ClientContent
 
         public static Dictionary<string, AbilityAsset> GetDefaultBindings()
         {
+            return GetBindingsForHero(DefaultHeroId);
+        }
+
+        public static Dictionary<string, AbilityAsset> GetBindingsForHero(string heroId)
+        {
             EnsureLoaded();
             HeroSO hero = null;
-            if (!string.IsNullOrEmpty(DefaultHeroId))
-                Heroes.TryGetValue(DefaultHeroId, out hero);
+            if (!string.IsNullOrEmpty(heroId))
+                Heroes.TryGetValue(heroId, out hero);
 
             // If default hero not found, pick the first available hero as fallback
             if (hero == null && Heroes.Count > 0)
             {
                 foreach (var h in Heroes.Values) { hero = h; break; }
-                Debug.LogWarning($"[AbilityAssetRegistry] DefaultHeroId '{DefaultHeroId}' not found. Using hero '{hero.id}' as fallback.");
+                Debug.LogWarning($"[AbilityAssetRegistry] HeroId '{heroId}' not found. Using hero '{hero.id}' as fallback.");
             }
 
             if (hero != null)

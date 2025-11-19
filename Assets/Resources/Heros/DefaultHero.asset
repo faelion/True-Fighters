@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DefaultHero
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.HeroSO
   id: 1
-  displayName: Default
+  displayName: PanaEvaristo
   baseHp: 500
   baseMoveSpeed: 3.5
   bindings:

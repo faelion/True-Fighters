@@ -15,30 +15,20 @@ public class ServerNetwork : MonoBehaviour
     private INetworkTransport transport;
     private readonly ConcurrentQueue<(object msg, IPEndPoint remote)> incoming = new ConcurrentQueue<(object, IPEndPoint)>();
     private ServerWorld world;
+    private ServerGame.Systems.SimulationRunner simulation;
 
-    private readonly Dictionary<IPEndPoint, int> endpointToPlayerId = new Dictionary<IPEndPoint, int>();
-    private readonly Dictionary<int, IPEndPoint> playerIdToEndpoint = new Dictionary<int, IPEndPoint>();
-    private int nextPlayerId = 1;
+    private ServerGame.ConnectionRegistry connections;
+    private ServerGame.ServerSnapshotBuilder snapshotBuilder;
     private readonly System.Collections.Generic.List<StateMessage> stateBuffer = new System.Collections.Generic.List<StateMessage>(32);
     private readonly System.Collections.Generic.List<IGameEvent> eventBuffer = new System.Collections.Generic.List<IGameEvent>(64);
-    private readonly List<StateMessage> stateObjs = new List<StateMessage>(32);
-
-    private static string KeyFromInputKind(InputKind kind)
-    {
-        switch (kind)
-        {
-            case InputKind.Q: return "Q";
-            case InputKind.W: return "W";
-            case InputKind.E: return "E";
-            case InputKind.R: return "R";
-            default: return null;
-        }
-    }
 
     void Start()
     {
         ClientContent.AbilityAssetRegistry.EnsureLoaded();
         world = new ServerWorld();
+        simulation = new ServerGame.Systems.SimulationRunner(world);
+        connections = new ServerGame.ConnectionRegistry();
+        snapshotBuilder = new ServerGame.ServerSnapshotBuilder();
         transport = new UdpTransport();
         transport.Start(new IPEndPoint(IPAddress.Loopback, listenPort));
         transport.OnReceive += (remote, msg) => incoming.Enqueue((msg, remote));
@@ -62,13 +52,12 @@ public class ServerNetwork : MonoBehaviour
                 HandleInput(im, remote);
         }
 
-        world.Simulate(Time.deltaTime);
+        simulation.Tick(Time.deltaTime);
 
         int tickNow = Environment.TickCount;
         stateBuffer.Clear();
         eventBuffer.Clear();
-        BuildStateMessages(tickNow);
-        BuildAbilityEvents(tickNow);
+        snapshotBuilder.BuildSnapshot(world, tickNow, stateBuffer, eventBuffer);
 
         int sc = stateBuffer.Count;
         int ec = eventBuffer.Count;
@@ -77,7 +66,7 @@ public class ServerNetwork : MonoBehaviour
         stateBuffer.CopyTo(0, statesArr, 0, sc);
         eventBuffer.CopyTo(0, eventsArr, 0, ec);
         var pkt = new TickPacketMessage { serverTick = tickNow, states = statesArr, events = eventsArr, statesCount = sc, eventsCount = ec };
-        foreach (var endpoint in endpointToPlayerId.Keys)
+        foreach (var endpoint in connections.PlayerEndpoints.Values)
             SendMessageToClient(pkt, endpoint);
         pkt.states = null; pkt.events = null;
         ArrayPool<StateMessage>.Shared.Return(statesArr, clearArray: true);
@@ -86,7 +75,7 @@ public class ServerNetwork : MonoBehaviour
 
     private void HandleInput(InputMessage im, IPEndPoint remote)
     {
-        if (!endpointToPlayerId.TryGetValue(remote, out int pid))
+        if (!connections.TryGetPlayerId(remote, out int pid))
         {
             Debug.LogWarning($"[Server] Input from unknown endpoint {remote}");
             return;
@@ -97,95 +86,12 @@ public class ServerNetwork : MonoBehaviour
             world.HandleMove(pid, im.targetX, im.targetY);
             return;
         }
-        var key = KeyFromInputKind(im.kind);
+        var key = ServerGame.Systems.AbilitySystem.KeyFromInputKind(im.kind);
         if (key != null)
         {
             //Debug.Log($"[Server] Player {pid} casts ability '{key}' at ({im.targetX}, {im.targetY})");
             world.EnsurePlayer(pid);
             world.TryCastAbility(pid, key, im.targetX, im.targetY);
-        }
-    }
-
-    private void BuildStateMessages(int tick)
-    {
-        int countNeeded = world.Players.Count + 1; // players + npc
-        while (stateObjs.Count < countNeeded) stateObjs.Add(new StateMessage());
-
-        int i = 0;
-        foreach (var p in world.Players.Values)
-        {
-            var sm = stateObjs[i++];
-            sm.playerId = p.playerId;
-            sm.hit = p.hit;
-            sm.posX = p.posX;
-            sm.posY = p.posY;
-            sm.rotZ = p.rotZ;
-            sm.tick = tick;
-            stateBuffer.Add(sm);
-        }
-        var npc = stateObjs[i++];
-        npc.playerId = world.Npc.id;
-        npc.hit = false;
-        npc.posX = world.Npc.posX;
-        npc.posY = world.Npc.posY;
-        npc.rotZ = 0f;
-        npc.tick = tick;
-        stateBuffer.Add(npc);
-    }
-
-    private void BuildAbilityEvents(int tick)
-    {
-        var instant = world.ConsumePendingEvents();
-        if (instant != null)
-        {
-            foreach (var e in instant)
-            {
-                if (e == null) continue;
-                e.ServerTick = tick;
-                eventBuffer.Add(e);
-            }
-        }
-
-        var spawned = world.ConsumeRecentlySpawnedEffects();
-        if (spawned != null)
-        {
-            foreach (var id in spawned)
-            {
-                if (!world.AbilityEffects.TryGetValue(id, out var eff)) continue;
-                if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
-                {
-                    Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' when spawning effect {id}");
-                    continue;
-                }
-                if (asset.ServerPopulateSpawnEvent(world, eff, tick, out var spawn) && spawn != null)
-                    eventBuffer.Add(spawn);
-            }
-        }
-
-        foreach (var eff in world.AbilityEffects.Values)
-        {
-            if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
-            {
-                Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' on update of effect {eff.id}");
-                continue;
-            }
-            if (asset.ServerPopulateUpdateEvent(world, eff, tick, out var upd) && upd != null)
-                eventBuffer.Add(upd);
-        }
-
-        var despawned = world.ConsumeRecentlyDespawnedEffects();
-        if (despawned != null)
-        {
-            foreach (var pair in despawned)
-            {
-                if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(pair.abilityId, out var asset) || asset == null)
-                {
-                    Debug.LogWarning($"[Server] Missing ability asset for id '{pair.abilityId}' on despawn of effect {pair.id}");
-                    continue;
-                }
-                if (asset.ServerPopulateDespawnEvent(world, pair.id, tick, out var desp) && desp != null)
-                    eventBuffer.Add(desp);
-            }
         }
     }
 
@@ -197,24 +103,16 @@ public class ServerNetwork : MonoBehaviour
 
     private void HandleJoinRequest(JoinRequestMessage jr, IPEndPoint remote)
     {
-        if (endpointToPlayerId.TryGetValue(remote, out int existing))
-        {
-            SendJoinResponse(existing, remote);
-            return;
-        }
-
-        int assigned = nextPlayerId++;
-        endpointToPlayerId[remote] = assigned;
-        playerIdToEndpoint[assigned] = remote;
-        world.EnsurePlayer(assigned, jr.playerName);
-        Debug.Log($"Assigned playerId {assigned} to {remote} with name '{jr.playerName}'");
-        SendJoinResponse(assigned, remote);
+        int assigned = connections.EnsurePlayer(remote, jr, world);
+        string heroId = connections.GetHeroId(assigned);
+        Debug.Log($"Assigned playerId {assigned} to {remote} with name '{jr.playerName}' hero '{heroId}'");
+        SendJoinResponse(assigned, remote, heroId);
         // Initial states will arrive in the next TickPacket
     }
 
-    private void SendJoinResponse(int assignedId, IPEndPoint remote)
+    private void SendJoinResponse(int assignedId, IPEndPoint remote, string heroId)
     {
-        var resp = new JoinResponseMessage { assignedPlayerId = assignedId, serverTick = Environment.TickCount };
+        var resp = new JoinResponseMessage { assignedPlayerId = assignedId, serverTick = Environment.TickCount, heroId = heroId };
         try { transport.Send(remote, resp); }
         catch (Exception e) { Debug.LogError("Failed to send JoinResponse: " + e); }
     }

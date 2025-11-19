@@ -25,6 +25,7 @@ public class StateMessage
 public class JoinRequestMessage
 {
     public string playerName;
+    public string heroId;
     public JoinRequestMessage() { }
 }
 
@@ -32,6 +33,7 @@ public class JoinResponseMessage
 {
     public int assignedPlayerId;
     public int serverTick;
+    public string heroId;
     public JoinResponseMessage() { }
 }
 
