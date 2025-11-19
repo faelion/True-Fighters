@@ -10,7 +10,7 @@ public class AbilityAssetEventRouter : MonoBehaviour
     {
         ClientContent.AbilityAssetRegistry.EnsureLoaded(databaseResourcePath);
         if (router == null)
-            router = FindObjectOfType<ClientMessageRouter>();
+            router = FindFirstObjectByType<ClientMessageRouter>();
         if (router != null)
             router.OnServerEvent += OnServerEvent;
     }

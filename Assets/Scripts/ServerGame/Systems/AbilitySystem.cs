@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Shared;
 using ClientContent;
 
 namespace ServerGame.Systems

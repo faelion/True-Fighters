@@ -31,11 +31,11 @@ public class ClientNetwork : MonoBehaviour
 
     public bool HasAssignedId => hasAssignedId;
     public int AssignedPlayerId => assignedPlayerId;
-    float timer = 0.5f;
+
     void Start()
     {
         if (messageRouter == null)
-            messageRouter = FindObjectOfType<ClientMessageRouter>();
+            messageRouter = FindFirstObjectByType<ClientMessageRouter>();
 
         if (!string.IsNullOrEmpty(NetworkConfig.serverHost))
             serverHost = NetworkConfig.serverHost;

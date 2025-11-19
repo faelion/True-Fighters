@@ -111,5 +111,4 @@ public class TickPacketMessage
     public int eventsCount;
     public TickPacketMessage() { }
 }
-// Manual serialization is used; Surrogates removed.
 

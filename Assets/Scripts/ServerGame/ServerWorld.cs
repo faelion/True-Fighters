@@ -11,9 +11,6 @@ namespace ServerGame
         public readonly ServerNPC Npc = new ServerNPC { id = 999, posX = 2f, posY = 0f, speed = 2.0f };
 
         private int nextEffectId = 1;
-        private readonly List<(int id, string abilityId)> recentlyDespawnedEffects = new List<(int id, string abilityId)>();
-        private readonly List<int> recentlySpawnedEffects = new List<int>();
-
         // Per-player ability book: key (Q,W,E,R) -> AbilityAsset
         public readonly Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>> AbilityBooks = new Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>>();
 
@@ -44,13 +41,13 @@ namespace ServerGame
             p.hasDest = true;
         }
 
-        public int RegisterAbilityEffect(AbilityEffect effect, bool markSpawn)
+        public int RegisterAbilityEffect(AbilityEffect effect, ClientContent.AbilityAsset sourceAsset = null)
         {
             int id = effect.id;
             if (id == 0) id = nextEffectId++;
             effect.id = id;
             AbilityEffects[id] = effect;
-            if (markSpawn) MarkEffectSpawned(id);
+            sourceAsset?.OnEffectSpawn(this, effect);
             return id;
         }
 
@@ -62,30 +59,6 @@ namespace ServerGame
             var copy = new List<IGameEvent>(pendingEvents);
             pendingEvents.Clear();
             return copy;
-        }
-
-        public IReadOnlyList<(int id, string abilityId)> ConsumeRecentlyDespawnedEffects()
-        {
-            var copy = new List<(int id, string abilityId)>(recentlyDespawnedEffects);
-            recentlyDespawnedEffects.Clear();
-            return copy;
-        }
-
-        public void MarkEffectDespawned(int id, string abilityId)
-        {
-            recentlyDespawnedEffects.Add((id, abilityId));
-        }
-
-        public IReadOnlyList<int> ConsumeRecentlySpawnedEffects()
-        {
-            var copy = new List<int>(recentlySpawnedEffects);
-            recentlySpawnedEffects.Clear();
-            return copy;
-        }
-
-        public void MarkEffectSpawned(int id)
-        {
-            recentlySpawnedEffects.Add(id);
         }
 
         // Convenience entrypoint for server to request a cast immediately

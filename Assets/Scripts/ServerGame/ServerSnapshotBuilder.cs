@@ -56,46 +56,14 @@ namespace ServerGame
                 }
             }
 
-            var spawned = world.ConsumeRecentlySpawnedEffects();
-            if (spawned != null)
-            {
-                foreach (var id in spawned)
-                {
-                    if (!world.AbilityEffects.TryGetValue(id, out var eff)) continue;
-                    if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
-                    {
-                        UnityEngine.Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' when spawning effect {id}");
-                        continue;
-                    }
-                    if (asset.ServerPopulateSpawnEvent(world, eff, tick, out var spawn) && spawn != null)
-                        eventBuffer.Add(spawn);
-                }
-            }
-
             foreach (var eff in world.AbilityEffects.Values)
             {
                 if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
                 {
-                    UnityEngine.Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' on update of effect {eff.id}");
+                    UnityEngine.Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' when emitting events for effect {eff.id}");
                     continue;
                 }
-                if (asset.ServerPopulateUpdateEvent(world, eff, tick, out var upd) && upd != null)
-                    eventBuffer.Add(upd);
-            }
-
-            var despawned = world.ConsumeRecentlyDespawnedEffects();
-            if (despawned != null)
-            {
-                foreach (var pair in despawned)
-                {
-                    if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(pair.abilityId, out var asset) || asset == null)
-                    {
-                        UnityEngine.Debug.LogWarning($"[Server] Missing ability asset for id '{pair.abilityId}' on despawn of effect {pair.id}");
-                        continue;
-                    }
-                    if (asset.ServerPopulateDespawnEvent(world, pair.id, tick, out var desp) && desp != null)
-                        eventBuffer.Add(desp);
-                }
+                asset.EmitEvents(world, eff, tick, eventBuffer);
             }
         }
     }

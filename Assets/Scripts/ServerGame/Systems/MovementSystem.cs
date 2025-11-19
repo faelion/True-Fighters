@@ -1,5 +1,5 @@
 using System;
-using ServerGame;
+using UnityEngine;
 
 namespace ServerGame.Systems
 {
@@ -22,7 +22,7 @@ namespace ServerGame.Systems
                 if (!p.hasDest) continue;
                 float dx = p.destX - p.posX;
                 float dy = p.destY - p.posY;
-                float dist = Shared.MathUtil.Length(dx, dy);
+                float dist = Mathf.Sqrt(dx * dx + dy * dy);
                 if (dist < 0.05f)
                 {
                     p.posX = p.destX; p.posY = p.destY; p.hasDest = false;

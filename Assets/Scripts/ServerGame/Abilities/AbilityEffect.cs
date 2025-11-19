@@ -9,6 +9,11 @@ namespace ServerGame
         public float dirX, dirY;
         public float speed;
         public int lifeMs;
-        public float radius; // optional for Area-like effects
+        public AbilityEffectData data;
+
+        public T GetData<T>() where T : AbilityEffectData
+        {
+            return data as T;
+        }
     }
 }

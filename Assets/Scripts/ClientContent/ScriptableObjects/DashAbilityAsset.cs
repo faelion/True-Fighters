@@ -22,15 +22,17 @@ namespace ClientContent
             float dist2 = dx * dx + dy * dy;
             if (dist2 > range * range) return false;
 
-            Shared.MathUtil.Normalize(ref dx, ref dy);
+            Vector2 dir = new Vector2(dx, dy);
+            if (dir.sqrMagnitude <= 0.0001f) dir = Vector2.right;
+            dir.Normalize();
             world.EnqueueEvent(new DashEvent
             {
                 SourceId = id,
                 CasterId = playerId,
                 PosX = caster.posX,
                 PosY = caster.posY,
-                DirX = dx,
-                DirY = dy,
+                DirX = dir.x,
+                DirY = dir.y,
                 Speed = speed,
                 ServerTick = 0
             });

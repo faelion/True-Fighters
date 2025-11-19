@@ -19,7 +19,7 @@ namespace ServerGame.Systems
 
                 if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
                     continue;
-                bool alive = asset.ServerUpdateEffect(world, eff, dt);
+                bool alive = asset.OnEffectTick(world, eff, dt);
                 if (!alive)
                 {
                     eff.lifeMs = 0;
@@ -33,8 +33,13 @@ namespace ServerGame.Systems
                 {
                     if (world.AbilityEffects.TryGetValue(id, out var eff))
                     {
+                        if (ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) && asset != null)
+                        {
+                            if (asset.EmitDespawnEvent(world, eff, out var despawnEvt) && despawnEvt != null)
+                                world.EnqueueEvent(despawnEvt);
+                            asset.OnEffectExpired(world, eff);
+                        }
                         world.AbilityEffects.Remove(id);
-                        world.MarkEffectDespawned(id, eff.abilityId);
                     }
                 }
             }

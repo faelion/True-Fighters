@@ -6,6 +6,13 @@ namespace ClientContent
     [CreateAssetMenu(menuName = "Content/Ability Assets/Projectile", fileName = "ProjectileAbilityAsset")]
     public class ProjectileAbilityAsset : AbilityAsset
     {
+        [System.Serializable]
+        public class ProjectileEffectData : ServerGame.AbilityEffectData
+        {
+            public float damage;
+            public bool spawnSent;
+        }
+
         [Header("Projectile Data")]
         public float projectileSpeed = 8f;
         public int projectileLifeMs = 1500;
@@ -22,30 +29,34 @@ namespace ClientContent
             float dist2 = dx * dx + dy * dy;
             if (dist2 > range * range) return false;
 
-            float dirX = dx, dirY = dy;
-            Shared.MathUtil.Normalize(ref dirX, ref dirY);
+            Vector2 dir = new Vector2(dx, dy);
+            if (dir.sqrMagnitude <= 0.0001f) dir = Vector2.right;
+            dir.Normalize();
             var effect = new ServerGame.AbilityEffect
             {
                 ownerPlayerId = playerId,
                 abilityId = id,
                 posX = caster.posX,
                 posY = caster.posY,
-                dirX = dirX,
-                dirY = dirY,
+                dirX = dir.x,
+                dirY = dir.y,
                 speed = projectileSpeed,
-                lifeMs = projectileLifeMs
+                lifeMs = projectileLifeMs,
+                data = new ProjectileEffectData { damage = damage, spawnSent = false }
             };
-            int projId = world.RegisterAbilityEffect(effect, markSpawn: true);
+            int projId = world.RegisterAbilityEffect(effect, this);
             return true;
         }
 
-        public override bool ServerUpdateEffect(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, float dt)
+        public override bool OnEffectTick(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, float dt)
         {
             // Move projectile
             float step = eff.speed * dt;
             eff.posX += eff.dirX * step;
             eff.posY += eff.dirY * step;
             
+            var data = eff.GetData<ProjectileEffectData>();
+
             // Simple collision with players different from owner
             foreach (var p in world.Players.Values)
             {
@@ -56,6 +67,8 @@ namespace ClientContent
                 if (dist2 < 0.25f)
                 {
                     p.hit = true;
+                    OnEffectHit(world, eff, p.playerId);
+                    // data?.damage could be used here to reduce HP when HealthSystem exista
                     eff.lifeMs = 0; // mark for despawn
                     break;
                 }
@@ -63,9 +76,28 @@ namespace ClientContent
             return eff.lifeMs > 0;
         }
 
-        public override bool ServerPopulateSpawnEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, out IGameEvent evt)
+        public override void EmitEvents(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, System.Collections.Generic.IList<IGameEvent> buffer)
         {
-            evt = new ProjectileSpawnEvent
+            var data = eff.GetData<ProjectileEffectData>();
+            if (data != null && !data.spawnSent)
+            {
+                buffer.Add(new ProjectileSpawnEvent
+                {
+                    SourceId = id,
+                    CasterId = eff.ownerPlayerId,
+                    ServerTick = tick,
+                    ProjectileId = eff.id,
+                    PosX = eff.posX,
+                    PosY = eff.posY,
+                    DirX = eff.dirX,
+                    DirY = eff.dirY,
+                    Speed = eff.speed,
+                    LifeMs = eff.lifeMs
+                });
+                data.spawnSent = true;
+            }
+
+            buffer.Add(new ProjectileUpdateEvent
             {
                 SourceId = id,
                 CasterId = eff.ownerPlayerId,
@@ -77,36 +109,16 @@ namespace ClientContent
                 DirY = eff.dirY,
                 Speed = eff.speed,
                 LifeMs = eff.lifeMs
-            };
-            return true;
+            });
         }
 
-        public override bool ServerPopulateUpdateEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, out IGameEvent evt)
-        {
-            evt = new ProjectileUpdateEvent
-            {
-                SourceId = id,
-                CasterId = eff.ownerPlayerId,
-                ServerTick = tick,
-                ProjectileId = eff.id,
-                PosX = eff.posX,
-                PosY = eff.posY,
-                DirX = eff.dirX,
-                DirY = eff.dirY,
-                Speed = eff.speed,
-                LifeMs = eff.lifeMs
-            };
-            return true;
-        }
-
-        public override bool ServerPopulateDespawnEvent(ServerGame.ServerWorld world, int effectId, int tick, out IGameEvent evt)
+        public override bool EmitDespawnEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect effect, out IGameEvent evt)
         {
             evt = new ProjectileDespawnEvent
             {
                 SourceId = id,
                 CasterId = 0,
-                ServerTick = tick,
-                ProjectileId = effectId
+                ProjectileId = effect.id
             };
             return true;
         }

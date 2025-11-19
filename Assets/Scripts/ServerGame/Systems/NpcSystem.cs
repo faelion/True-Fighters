@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace ServerGame.Systems
 {
@@ -37,7 +38,7 @@ namespace ServerGame.Systems
 
             float dx2 = npc.target.posX - npc.posX;
             float dy2 = npc.target.posY - npc.posY;
-            float dist = Shared.MathUtil.Length(dx2, dy2);
+            float dist = Mathf.Sqrt(dx2 * dx2 + dy2 * dy2);
             if (dist < npc.followRange && dist > npc.stopRange)
             {
                 npc.posX += dx2 / dist * npc.speed * dt;

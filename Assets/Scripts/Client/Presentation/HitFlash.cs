@@ -18,7 +18,7 @@ public class HitFlash : MonoBehaviour
     void OnEnable()
     {
         if (router == null)
-            router = FindObjectOfType<ClientMessageRouter>();
+            router = FindFirstObjectByType<ClientMessageRouter>();
         if (router != null)
             router.OnEntityState += OnEntityState;
     }

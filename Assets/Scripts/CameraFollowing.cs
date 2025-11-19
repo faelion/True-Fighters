@@ -17,7 +17,7 @@ public class CameraFollow : MonoBehaviour
     void OnEnable()
     {
         if (router == null)
-            router = FindObjectOfType<ClientMessageRouter>();
+            router = FindFirstObjectByType<ClientMessageRouter>();
         if (router != null)
             router.OnJoinResponse += OnJoinResponse;
     }
