@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ServerGame.Entities;
+using ClientContent;
 
 // Spawns and updates net entity views based on StateMessage stream.
 public class NetEntitySpawner : MonoBehaviour
@@ -16,7 +18,7 @@ public class NetEntitySpawner : MonoBehaviour
         if (router != null)
             router.OnEntityState += OnEntityState;
 
-        ClientContent.AbilityAssetRegistry.EnsureLoaded();
+        ClientContent.ContentAssetRegistry.EnsureLoaded();
     }
 
     void OnDisable()
@@ -31,7 +33,7 @@ public class NetEntitySpawner : MonoBehaviour
 
         if (!views.TryGetValue(m.playerId, out var view) || view == null)
         {
-            var prefab = GetPrefabForPlayer(m.playerId);
+            var prefab = GetPrefabForMessage(m);
             GameObject go;
             if (prefab != null)
                 go = Instantiate(prefab);
@@ -50,18 +52,27 @@ public class NetEntitySpawner : MonoBehaviour
         t.rotation = Quaternion.Euler(0f, m.rotZ, 0f);
     }
 
-    private GameObject GetPrefabForPlayer(int playerId)
+    private GameObject GetPrefabForMessage(StateMessage m)
     {
-        // For ahora usamos el héroe por defecto del registro; si no hay, fallback a defaultHeroPrefab.
-        ClientContent.AbilityAssetRegistry.EnsureLoaded();
-        ClientContent.HeroSO hero = null;
-        if (!string.IsNullOrEmpty(ClientContent.AbilityAssetRegistry.DefaultHeroId))
-            ClientContent.AbilityAssetRegistry.Heroes.TryGetValue(ClientContent.AbilityAssetRegistry.DefaultHeroId, out hero);
-
-        if (hero == null && ClientContent.AbilityAssetRegistry.Heroes.Count > 0)
+        var type = (ServerGame.Entities.EntityType)m.entityType;
+        switch (type)
         {
-            foreach (var h in ClientContent.AbilityAssetRegistry.Heroes.Values) { hero = h; break; }
+            case ServerGame.Entities.EntityType.Hero:
+                if (!string.IsNullOrEmpty(m.archetypeId) && ClientContent.ContentAssetRegistry.Heroes.TryGetValue(m.archetypeId, out var hero) && hero.heroPrefab)
+                    return hero.heroPrefab;
+                break;
+            case ServerGame.Entities.EntityType.Neutral:
+                var neutral = ClientContent.ContentAssetRegistry.GetNeutral(m.archetypeId);
+                if (neutral != null && neutral.prefab)
+                    return neutral.prefab;
+                break;
+            default:
+                break;
         }
-        return hero != null ? hero.heroPrefab : defaultHeroPrefab;
+        // fallback
+        ClientContent.ContentAssetRegistry.Heroes.TryGetValue(ClientContent.ContentAssetRegistry.DefaultHeroId, out var defHero);
+        if (defHero != null && defHero.heroPrefab)
+            return defHero.heroPrefab;
+        return defaultHeroPrefab;
     }
 }

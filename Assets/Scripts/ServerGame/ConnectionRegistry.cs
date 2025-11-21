@@ -17,7 +17,7 @@ namespace ServerGame
 
         public string GetHeroId(int playerId)
         {
-            return playerIdToHero.TryGetValue(playerId, out var heroId) ? heroId : ClientContent.AbilityAssetRegistry.DefaultHeroId;
+            return playerIdToHero.TryGetValue(playerId, out var heroId) ? heroId : ClientContent.ContentAssetRegistry.DefaultHeroId;
         }
 
         public int EnsurePlayer(IPEndPoint endpoint, JoinRequestMessage jr, ServerWorld world)
@@ -26,7 +26,7 @@ namespace ServerGame
                 return existing;
 
             int assigned = nextPlayerId++;
-            string heroId = !string.IsNullOrEmpty(jr.heroId) ? jr.heroId : ClientContent.AbilityAssetRegistry.DefaultHeroId;
+            string heroId = !string.IsNullOrEmpty(jr.heroId) ? jr.heroId : ClientContent.ContentAssetRegistry.DefaultHeroId;
 
             endpointToPlayerId[endpoint] = assigned;
             playerIdToEndpoint[assigned] = endpoint;

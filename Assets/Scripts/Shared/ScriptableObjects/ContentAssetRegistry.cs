@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace ClientContent
 {
-    public static class AbilityAssetRegistry
+    public static class ContentAssetRegistry
     {
         private static bool loaded = false;
         public static readonly Dictionary<string, AbilityAsset> Abilities = new Dictionary<string, AbilityAsset>();
         public static readonly Dictionary<string, HeroSO> Heroes = new Dictionary<string, HeroSO>();
+        public static readonly Dictionary<string, NeutralEntitySO> Neutrals = new Dictionary<string, NeutralEntitySO>();
         public static string DefaultHeroId = "default";
+        public static string DefaultNeutralId = "neutral_default";
 
         public static void EnsureLoaded(string databaseResourcePath = "ContentDatabase")
         {
@@ -20,6 +22,7 @@ namespace ClientContent
                 loaded = true; return;
             }
             DefaultHeroId = string.IsNullOrEmpty(db.defaultHeroId) ? DefaultHeroId : db.defaultHeroId;
+            DefaultNeutralId = string.IsNullOrEmpty(db.defaultNeutralId) ? DefaultNeutralId : db.defaultNeutralId;
             Abilities.Clear();
             if (db.abilities != null)
                 foreach (var a in db.abilities)
@@ -28,7 +31,11 @@ namespace ClientContent
             if (db.heroes != null)
                 foreach (var h in db.heroes)
                     if (h != null && !string.IsNullOrEmpty(h.id)) Heroes[h.id] = h;
-            Debug.Log($"[AbilityAssetRegistry] Loaded {Abilities.Count} abilities and {Heroes.Count} heroes. DefaultHeroId='{DefaultHeroId}'");
+            Neutrals.Clear();
+            if (db.neutrals != null)
+                foreach (var n in db.neutrals)
+                    if (n != null && !string.IsNullOrEmpty(n.id)) Neutrals[n.id] = n;
+            Debug.Log($"[AbilityAssetRegistry] Loaded {Abilities.Count} abilities, {Heroes.Count} heroes, {Neutrals.Count} neutrals. DefaultHeroId='{DefaultHeroId}' DefaultNeutralId='{DefaultNeutralId}'");
             loaded = true;
         }
 
@@ -71,6 +78,15 @@ namespace ClientContent
             if (!Abilities.ContainsKey(fallback.id)) Abilities[fallback.id] = fallback;
             Debug.LogWarning("[AbilityAssetRegistry] Using fallback projectile ability on key Q (no valid hero bindings found)." );
             return new Dictionary<string, AbilityAsset> { ["Q"] = fallback };
+        }
+
+        public static NeutralEntitySO GetNeutral(string id)
+        {
+            EnsureLoaded();
+            if (string.IsNullOrEmpty(id)) id = DefaultNeutralId;
+            if (Neutrals.TryGetValue(id, out var n) && n != null) return n;
+            if (Neutrals.TryGetValue(DefaultNeutralId, out var def)) return def;
+            return null;
         }
     }
 }

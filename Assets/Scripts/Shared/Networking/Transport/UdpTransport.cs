@@ -13,6 +13,7 @@ namespace Networking.Transport
         private Thread recvThread;
         private volatile bool running;
         private ISerializer serializer;
+        private readonly System.Collections.Concurrent.ConcurrentQueue<(IPEndPoint, object)> receiveQueue = new System.Collections.Concurrent.ConcurrentQueue<(IPEndPoint, object)>();
 
         public event Action<IPEndPoint, object> OnReceive;
 
@@ -68,7 +69,7 @@ namespace Networking.Transport
                     if (r > 0)
                     {
                         object msg = serializer.Deserialize(buffer, 0, r);
-                        OnReceive?.Invoke((IPEndPoint)remoteEP, msg);
+                        receiveQueue.Enqueue(((IPEndPoint)remoteEP, msg));
                     }
                 }
                 catch (SocketException se)
@@ -86,6 +87,14 @@ namespace Networking.Transport
                     Debug.LogError("[UdpTransport] recv loop error: " + e);
                     break;
                 }
+            }
+        }
+
+        public void Update()
+        {
+            while (receiveQueue.TryDequeue(out var result))
+            {
+                OnReceive?.Invoke(result.Item1, result.Item2);
             }
         }
 

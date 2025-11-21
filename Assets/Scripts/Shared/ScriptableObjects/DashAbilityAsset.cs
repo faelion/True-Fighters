@@ -17,8 +17,8 @@ namespace ClientContent
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
             var caster = world.EnsurePlayer(playerId);
-            float dx = targetX - caster.posX;
-            float dy = targetY - caster.posY;
+            float dx = targetX - caster.Transform.posX;
+            float dy = targetY - caster.Transform.posY;
             float dist2 = dx * dx + dy * dy;
             if (dist2 > range * range) return false;
 
@@ -29,8 +29,8 @@ namespace ClientContent
             {
                 SourceId = id,
                 CasterId = playerId,
-                PosX = caster.posX,
-                PosY = caster.posY,
+                PosX = caster.Transform.posX,
+                PosY = caster.Transform.posY,
                 DirX = dir.x,
                 DirY = dir.y,
                 Speed = speed,

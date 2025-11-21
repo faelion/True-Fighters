@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: ContentDatabase
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.ContentDatabaseSO
   defaultHeroId: default
+  defaultNeutralId: neutral_default
   abilities:
   - {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
   - {fileID: 11400000, guid: 048859dc965cd10499256fd2d0345f6c, type: 2}
   heroes:
   - {fileID: 11400000, guid: a831a35e839ead24ca0bb335170b0b5d, type: 2}
+  neutrals:
+  - {fileID: 11400000, guid: ccbe95f7de4d5e44cbce25e4bf8c90d6, type: 2}

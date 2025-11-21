@@ -7,6 +7,7 @@ namespace Networking.Transport
     {
         void Start(IPEndPoint localBind);
         void Stop();
+        void Update();
         void Send(IPEndPoint remote, object message);
         event Action<IPEndPoint, object> OnReceive;
     }

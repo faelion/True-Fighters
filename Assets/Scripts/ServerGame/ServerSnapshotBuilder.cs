@@ -16,29 +16,24 @@ namespace ServerGame
         private void BuildStates(ServerWorld world, int tick, IList<StateMessage> stateBuffer)
         {
             stateBuffer.Clear();
-            int countNeeded = world.Players.Count + 1; // players + npc
-            while (stateObjs.Count < countNeeded) stateObjs.Add(new StateMessage());
-
             int i = 0;
-            foreach (var p in world.Players.Values)
+            foreach (var entity in world.EntityRepo.AllEntities)
             {
+                if (i >= stateObjs.Count)
+                    stateObjs.Add(new StateMessage());
                 var sm = stateObjs[i++];
-                sm.playerId = p.playerId;
-                sm.hit = p.hit;
-                sm.posX = p.posX;
-                sm.posY = p.posY;
-                sm.rotZ = p.rotZ;
+                sm.playerId = entity.Id;
+                sm.hp = entity.Health.currentHp;
+                sm.maxHp = entity.Health.maxHp;
+                sm.posX = entity.Transform.posX;
+                sm.posY = entity.Transform.posY;
+                sm.rotZ = entity.Transform.rotZ;
+                sm.teamId = entity.Team.teamId;
+                sm.entityType = (int)entity.Type;
+                sm.archetypeId = entity.ArchetypeId ?? string.Empty;
                 sm.tick = tick;
                 stateBuffer.Add(sm);
             }
-            var npc = stateObjs[i++];
-            npc.playerId = world.Npc.id;
-            npc.hit = false;
-            npc.posX = world.Npc.posX;
-            npc.posY = world.Npc.posY;
-            npc.rotZ = 0f;
-            npc.tick = tick;
-            stateBuffer.Add(npc);
         }
 
         private void BuildEvents(ServerWorld world, int tick, IList<IGameEvent> eventBuffer)
@@ -58,7 +53,7 @@ namespace ServerGame
 
             foreach (var eff in world.AbilityEffects.Values)
             {
-                if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
+                if (!ClientContent.ContentAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
                 {
                     UnityEngine.Debug.LogWarning($"[Server] Missing ability asset for id '{eff.abilityId}' when emitting events for effect {eff.id}");
                     continue;

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77a3abc1455196745bc6a4f32a5f2044, type: 3}
+  m_Name: DefaultNPC
+  m_EditorClassIdentifier: Assembly-CSharp::ClientContent.NeutralEntitySO
+  id: neutral_default
+  displayName: El pana roberto
+  baseHp: 400
+  moveSpeed: 2
+  prefab: {fileID: 831982934189301797, guid: 5f92ceeebb2dbb44e9d6d7355d4eb0c9, type: 3}

@@ -1,44 +1,88 @@
 using System;
 using System.Collections.Generic;
+using ServerGame.Entities;
+using ClientContent;
 
 namespace ServerGame
 {
     public class ServerWorld
     {
         public const float HitFlashDuration = 0.2f;
-        public readonly Dictionary<int, ServerPlayer> Players = new Dictionary<int, ServerPlayer>();
         public readonly Dictionary<int, AbilityEffect> AbilityEffects = new Dictionary<int, AbilityEffect>();
-        public readonly ServerNPC Npc = new ServerNPC { id = 999, posX = 2f, posY = 0f, speed = 2.0f };
+        public readonly EntityRepository EntityRepo = new EntityRepository();
+        public GameEntity NeutralNpc { get; }
 
+        private readonly Dictionary<int, GameEntity> heroEntities = new Dictionary<int, GameEntity>();
+        private readonly List<IGameEvent> pendingEvents = new List<IGameEvent>();
         private int nextEffectId = 1;
+
         // Per-player ability book: key (Q,W,E,R) -> AbilityAsset
         public readonly Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>> AbilityBooks = new Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>>();
 
-        public ServerPlayer EnsurePlayer(int id, string name = null, string heroId = null)
+        public ServerWorld()
         {
-            if (!Players.TryGetValue(id, out var p))
+            NeutralNpc = CreateNeutralNpc(ContentAssetRegistry.DefaultNeutralId, 2f, 0f);
+        }
+
+        public GameEntity EnsurePlayer(int id, string name = null, string heroId = null)
+        {
+            string resolvedHeroId = string.IsNullOrEmpty(heroId) ? ContentAssetRegistry.DefaultHeroId : heroId;
+            if (!heroEntities.TryGetValue(id, out var entity))
             {
-                p = new ServerPlayer { playerId = id, name = name ?? $"Player{id}", posX = 0f, posY = 0f, speed = 3.5f };
-                Players[id] = p;
+                entity = EntityRepo.CreateEntity(EntityType.Hero, forcedId: id);
+                entity.OwnerPlayerId = id;
+                entity.Name = name ?? $"Player{id}";
+                entity.Team.teamId = id;
+                entity.ArchetypeId = resolvedHeroId;
+                var hero = ContentAssetRegistry.Heroes != null && !string.IsNullOrEmpty(resolvedHeroId) && ContentAssetRegistry.Heroes.TryGetValue(resolvedHeroId, out var heroSo)
+                    ? heroSo : null;
+                float hp = hero != null ? hero.baseHp : 500f;
+                float moveSpeed = hero != null ? hero.baseMoveSpeed : 3.5f;
+                entity.Health.Reset(hp);
+                entity.Movement.moveSpeed = moveSpeed;
+                heroEntities[id] = entity;
                 // attach default abilities on first creation via asset registry
                 if (!AbilityBooks.ContainsKey(id))
-                    AbilityBooks[id] = string.IsNullOrEmpty(heroId)
-                        ? ClientContent.AbilityAssetRegistry.GetDefaultBindings()
-                        : ClientContent.AbilityAssetRegistry.GetBindingsForHero(heroId);
+                    AbilityBooks[id] = ContentAssetRegistry.GetBindingsForHero(resolvedHeroId);
             }
             else if (!string.IsNullOrEmpty(name))
             {
-                p.name = name;
+                entity.Name = name;
+                entity.ArchetypeId = resolvedHeroId;
             }
-            return p;
+            return entity;
         }
+
+        public GameEntity GetHeroEntity(int playerId)
+        {
+            heroEntities.TryGetValue(playerId, out var entity);
+            return entity;
+        }
+
+        public IEnumerable<GameEntity> HeroEntities => heroEntities.Values;
+
+        public GameEntity CreateNeutralNpc(string neutralId, float posX, float posY)
+        {
+            var config = ContentAssetRegistry.GetNeutral(neutralId);
+            var npc = EntityRepo.CreateEntity(EntityType.Neutral);
+            npc.ArchetypeId = config != null ? config.id : neutralId;
+            npc.Transform.posX = posX;
+            npc.Transform.posY = posY;
+            npc.Movement.moveSpeed = config != null ? config.moveSpeed : 2f;
+            npc.Health.Reset(config != null ? config.baseHp : 400f);
+            npc.Team.teamId = -1;
+            npc.Npc = new NpcComponent();
+            return npc;
+        }
+
+        public bool TryGetEntity(int entityId, out GameEntity entity) => EntityRepo.TryGetEntity(entityId, out entity);
 
         public void HandleMove(int playerId, float targetX, float targetY)
         {
-            var p = EnsurePlayer(playerId);
-            p.destX = targetX;
-            p.destY = targetY;
-            p.hasDest = true;
+            var entity = EnsurePlayer(playerId);
+            entity.Movement.destX = targetX;
+            entity.Movement.destY = targetY;
+            entity.Movement.hasDestination = true;
         }
 
         public int RegisterAbilityEffect(AbilityEffect effect, ClientContent.AbilityAsset sourceAsset = null)
@@ -52,7 +96,6 @@ namespace ServerGame
         }
 
         // Instant (non-persistent) ability events queue
-        private readonly List<IGameEvent> pendingEvents = new List<IGameEvent>();
         public void EnqueueEvent(IGameEvent ev) => pendingEvents.Add(ev);
         public List<IGameEvent> ConsumePendingEvents()
         {
@@ -71,28 +114,5 @@ namespace ServerGame
         internal void BindAbilitySystem(Systems.AbilitySystem system) => abilitySystem = system;
 
         private Systems.AbilitySystem abilitySystem;
-    }
-
-    public class ServerPlayer
-    {
-        public int playerId;
-        public string name;
-        public float posX, posY;
-        public float rotZ;
-        public float speed = 3.5f;
-        public float destX, destY;
-        public bool hasDest = false;
-        public bool hit = false;
-        public float hitTimer = 0f;
-    }
-
-    public class ServerNPC
-    {
-        public int id;
-        public float posX, posY;
-        public float speed = 3f;
-        public float followRange = 6f;
-        public float stopRange = 2f;
-        public ServerPlayer target = null;
     }
 }

@@ -13,7 +13,6 @@ public class ServerNetwork : MonoBehaviour
     public int listenPort = 9050;
 
     private INetworkTransport transport;
-    private readonly ConcurrentQueue<(object msg, IPEndPoint remote)> incoming = new ConcurrentQueue<(object, IPEndPoint)>();
     private ServerWorld world;
     private ServerGame.Systems.SimulationRunner simulation;
 
@@ -24,14 +23,14 @@ public class ServerNetwork : MonoBehaviour
 
     void Start()
     {
-        ClientContent.AbilityAssetRegistry.EnsureLoaded();
+        ClientContent.ContentAssetRegistry.EnsureLoaded();
         world = new ServerWorld();
         simulation = new ServerGame.Systems.SimulationRunner(world);
         connections = new ServerGame.ConnectionRegistry();
         snapshotBuilder = new ServerGame.ServerSnapshotBuilder();
         transport = new UdpTransport();
         transport.Start(new IPEndPoint(IPAddress.Loopback, listenPort));
-        transport.OnReceive += (remote, msg) => incoming.Enqueue((msg, remote));
+        transport.OnReceive += OnReceiveMessage;
     }
 
     void OnDestroy()
@@ -42,16 +41,7 @@ public class ServerNetwork : MonoBehaviour
 
     void Update()
     {
-        while (incoming.TryDequeue(out var tup))
-        {
-            var msg = tup.msg;
-            var remote = tup.remote;
-            if (msg is JoinRequestMessage jr)
-                HandleJoinRequest(jr, remote);
-            else if (msg is InputMessage im)
-                HandleInput(im, remote);
-        }
-
+        transport?.Update();
         simulation.Tick(Time.deltaTime);
 
         int tickNow = Environment.TickCount;
@@ -71,6 +61,14 @@ public class ServerNetwork : MonoBehaviour
         pkt.states = null; pkt.events = null;
         ArrayPool<StateMessage>.Shared.Return(statesArr, clearArray: true);
         ArrayPool<IGameEvent>.Shared.Return(eventsArr, clearArray: true);
+    }
+
+    private void OnReceiveMessage(IPEndPoint remote, object msg)
+    {
+        if (msg is JoinRequestMessage jr)
+            HandleJoinRequest(jr, remote);
+        else if (msg is InputMessage im)
+            HandleInput(im, remote);
     }
 
     private void HandleInput(InputMessage im, IPEndPoint remote)

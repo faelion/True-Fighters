@@ -14,6 +14,7 @@ namespace ServerGame.Systems
             systems = new ISystem[]
             {
                 new MovementSystem(),
+                new HealthSystem(),
                 new NpcSystem(),
                 abilitySystem,
                 new AbilityEffectSystem()

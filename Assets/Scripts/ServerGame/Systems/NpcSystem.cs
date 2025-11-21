@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using ServerGame.Entities;
 
 namespace ServerGame.Systems
 {
@@ -7,42 +8,53 @@ namespace ServerGame.Systems
     {
         public void Tick(ServerWorld world, float dt)
         {
-            var npc = world.Npc;
-            if (npc == null) return;
+            var npcEntity = world.NeutralNpc;
+            if (npcEntity == null) return;
+            var npcComponent = npcEntity.Npc;
+            if (npcComponent == null) return;
 
-            if (npc.target == null && world.Players.Count > 0)
+            GameEntity targetEntity = null;
+            if (npcComponent.targetEntityId != -1)
             {
-                foreach (var p in world.Players.Values)
+                world.EntityRepo.TryGetEntity(npcComponent.targetEntityId, out targetEntity);
+            }
+
+            if (targetEntity == null)
+            {
+                foreach (var hero in world.HeroEntities)
                 {
-                    float dx = p.posX - npc.posX;
-                    float dy = p.posY - npc.posY;
-                    if (dx * dx + dy * dy <= npc.followRange * npc.followRange)
+                    if (!hero.Health.IsAlive) continue;
+                    float dx = hero.Transform.posX - npcEntity.Transform.posX;
+                    float dy = hero.Transform.posY - npcEntity.Transform.posY;
+                    if (dx * dx + dy * dy <= npcComponent.followRange * npcComponent.followRange)
                     {
-                        npc.target = p;
+                        targetEntity = hero;
+                        npcComponent.targetEntityId = hero.Id;
                         break;
                     }
                 }
             }
-            else if (npc.target != null)
+            else
             {
-                float dx = npc.target.posX - npc.posX;
-                float dy = npc.target.posY - npc.posY;
+                float dx = targetEntity.Transform.posX - npcEntity.Transform.posX;
+                float dy = targetEntity.Transform.posY - npcEntity.Transform.posY;
                 float dist2 = dx * dx + dy * dy;
-                if (dist2 > npc.followRange * npc.followRange)
+                if (dist2 > npcComponent.followRange * npcComponent.followRange)
                 {
-                    npc.target = null;
+                    npcComponent.targetEntityId = -1;
+                    targetEntity = null;
                 }
             }
 
-            if (npc.target == null) return;
+            if (targetEntity == null) return;
 
-            float dx2 = npc.target.posX - npc.posX;
-            float dy2 = npc.target.posY - npc.posY;
+            float dx2 = targetEntity.Transform.posX - npcEntity.Transform.posX;
+            float dy2 = targetEntity.Transform.posY - npcEntity.Transform.posY;
             float dist = Mathf.Sqrt(dx2 * dx2 + dy2 * dy2);
-            if (dist < npc.followRange && dist > npc.stopRange)
+            if (dist < npcComponent.followRange && dist > npcComponent.stopRange)
             {
-                npc.posX += dx2 / dist * npc.speed * dt;
-                npc.posY += dy2 / dist * npc.speed * dt;
+                npcEntity.Transform.posX += dx2 / dist * npcEntity.Movement.moveSpeed * dt;
+                npcEntity.Transform.posY += dy2 / dist * npcEntity.Movement.moveSpeed * dt;
             }
         }
     }

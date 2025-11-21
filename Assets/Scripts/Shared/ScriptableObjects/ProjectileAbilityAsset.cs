@@ -24,8 +24,8 @@ namespace ClientContent
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
             var caster = world.EnsurePlayer(playerId);
-            float dx = targetX - caster.posX;
-            float dy = targetY - caster.posY;
+            float dx = targetX - caster.Transform.posX;
+            float dy = targetY - caster.Transform.posY;
             float dist2 = dx * dx + dy * dy;
             if (dist2 > range * range) return false;
 
@@ -36,8 +36,8 @@ namespace ClientContent
             {
                 ownerPlayerId = playerId,
                 abilityId = id,
-                posX = caster.posX,
-                posY = caster.posY,
+                posX = caster.Transform.posX,
+                posY = caster.Transform.posY,
                 dirX = dir.x,
                 dirY = dir.y,
                 speed = projectileSpeed,
@@ -58,17 +58,20 @@ namespace ClientContent
             var data = eff.GetData<ProjectileEffectData>();
 
             // Simple collision with players different from owner
-            foreach (var p in world.Players.Values)
+            world.TryGetEntity(eff.ownerPlayerId, out var casterEntity);
+            foreach (var entity in world.EntityRepo.AllEntities)
             {
-                if (p.playerId == eff.ownerPlayerId) continue;
-                float dx = p.posX - eff.posX;
-                float dy = p.posY - eff.posY;
+                if (entity.Id == eff.ownerPlayerId) continue;
+                if (!entity.Health.IsAlive) continue;
+                if (casterEntity != null && !casterEntity.Team.IsEnemyTo(entity.Team)) continue;
+                float dx = entity.Transform.posX - eff.posX;
+                float dy = entity.Transform.posY - eff.posY;
                 float dist2 = dx * dx + dy * dy;
                 if (dist2 < 0.25f)
                 {
-                    p.hit = true;
-                    OnEffectHit(world, eff, p.playerId);
-                    // data?.damage could be used here to reduce HP when HealthSystem exista
+                    float dmg = data != null ? data.damage : damage;
+                    entity.Health.ApplyDamage(dmg);
+                    OnEffectHit(world, eff, entity.Id);
                     eff.lifeMs = 0; // mark for despawn
                     break;
                 }

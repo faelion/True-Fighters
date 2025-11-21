@@ -13,11 +13,15 @@ public class InputMessage
 
 public class StateMessage
 {
-    public int playerId;
-    public bool hit;
+    public int playerId; // now represents entityId
+    public float hp;
+    public float maxHp;
     public float posX;
     public float posY;
     public float rotZ;
+    public int teamId;
+    public int entityType;
+    public string archetypeId;
     public int tick;
     public StateMessage() { }
 }

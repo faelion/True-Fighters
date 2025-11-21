@@ -17,7 +17,7 @@ namespace ServerGame.Systems
                     continue;
                 }
 
-                if (!ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
+                if (!ClientContent.ContentAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
                     continue;
                 bool alive = asset.OnEffectTick(world, eff, dt);
                 if (!alive)
@@ -33,7 +33,7 @@ namespace ServerGame.Systems
                 {
                     if (world.AbilityEffects.TryGetValue(id, out var eff))
                     {
-                        if (ClientContent.AbilityAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) && asset != null)
+                        if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) && asset != null)
                         {
                             if (asset.EmitDespawnEvent(world, eff, out var despawnEvt) && despawnEvt != null)
                                 world.EnqueueEvent(despawnEvt);

@@ -129,10 +129,14 @@ namespace Networking.Serialization
         private static void WriteStateMessage(BinaryWriter bw, StateMessage m)
         {
             bw.Write(m.playerId);
-            bw.Write(m.hit);
+            bw.Write(m.hp);
+            bw.Write(m.maxHp);
             bw.Write(m.posX);
             bw.Write(m.posY);
             bw.Write(m.rotZ);
+            bw.Write(m.teamId);
+            bw.Write(m.entityType);
+            WriteString(bw, m.archetypeId);
             bw.Write(m.tick);
         }
         private static StateMessage ReadStateMessage(BinaryReader br)
@@ -140,10 +144,14 @@ namespace Networking.Serialization
             return new StateMessage
             {
                 playerId = br.ReadInt32(),
-                hit = br.ReadBoolean(),
+                hp = br.ReadSingle(),
+                maxHp = br.ReadSingle(),
                 posX = br.ReadSingle(),
                 posY = br.ReadSingle(),
                 rotZ = br.ReadSingle(),
+                teamId = br.ReadInt32(),
+                entityType = br.ReadInt32(),
+                archetypeId = ReadString(br),
                 tick = br.ReadInt32(),
             };
         }

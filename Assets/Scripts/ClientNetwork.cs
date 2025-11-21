@@ -18,8 +18,6 @@ public class ClientNetwork : MonoBehaviour
     private IPEndPoint serverEndpoint;
     [SerializeField] private ClientMessageRouter messageRouter;
 
-    private ConcurrentQueue<(object msg, IPEndPoint remote)> incoming = new ConcurrentQueue<(object, IPEndPoint)>();
-
     // Presentation is handled by replicators; ClientNetwork keeps no scene GameObjects
 
     private volatile bool hasAssignedId = false;
@@ -44,7 +42,7 @@ public class ClientNetwork : MonoBehaviour
 
         transport = new UdpTransport();
         transport.Start(new IPEndPoint(IPAddress.Any, 0));
-        transport.OnReceive += (remote, msg) => incoming.Enqueue((msg, remote));
+        transport.OnReceive += OnReceiveMessage;
 
         serverEndpoint = new IPEndPoint(IPAddress.Parse(serverHost), serverPort);
 
@@ -94,6 +92,8 @@ public class ClientNetwork : MonoBehaviour
 
     void Update()
     {
+        transport?.Update();
+
         if (!hasAssignedId && joinAttempts < MAX_JOIN_ATTEMPTS)
         {
             timeSinceLastJoin += Time.deltaTime;
@@ -102,30 +102,28 @@ public class ClientNetwork : MonoBehaviour
                 SendJoinRequest();
             }
         }
+    }
 
-        while (incoming.TryDequeue(out var tup))
+    private void OnReceiveMessage(IPEndPoint remote, object msg)
+    {
+        if (msg is JoinResponseMessage jr)
         {
-            object msg = tup.msg;
-
-            if (msg is JoinResponseMessage jr)
-            {
-                assignedPlayerId = jr.assignedPlayerId;
-                hasAssignedId = true;
-                clientPlayerId = assignedPlayerId;
-                Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
-                messageRouter?.RaiseJoinResponse(jr);
-            }
-            else if (msg is TickPacketMessage tpm)
-            {
-                if (tpm.states != null)
-                    foreach (var state in tpm.states) messageRouter?.RaiseEntityState(state);
-                if (tpm.events != null)
-                    foreach (var ev in tpm.events) messageRouter?.RaiseServerEvent(ev);
-            }
-            else
-            {
-                Debug.Log("Client received unknown message type: " + msg.GetType());
-            }
+            assignedPlayerId = jr.assignedPlayerId;
+            hasAssignedId = true;
+            clientPlayerId = assignedPlayerId;
+            Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
+            messageRouter?.RaiseJoinResponse(jr);
+        }
+        else if (msg is TickPacketMessage tpm)
+        {
+            if (tpm.states != null)
+                foreach (var state in tpm.states) messageRouter?.RaiseEntityState(state);
+            if (tpm.events != null)
+                foreach (var ev in tpm.events) messageRouter?.RaiseServerEvent(ev);
+        }
+        else
+        {
+            Debug.Log("Client received unknown message type: " + msg.GetType());
         }
     }
 

@@ -44,15 +44,14 @@ namespace ServerGame.Systems
 
         public bool TryCast(ServerWorld world, int playerId, string key, float targetX, float targetY)
         {
-            if (!world.Players.TryGetValue(playerId, out var caster))
-                caster = world.EnsurePlayer(playerId);
+            var caster = world.GetHeroEntity(playerId) ?? world.EnsurePlayer(playerId);
 
             if (!world.AbilityBooks.TryGetValue(playerId, out var book) || book == null || !book.TryGetValue(key, out var ability))
                 return false; // no such ability
 
             // Ensure registry knows about this ability id (defensive for missing content load)
-            if (!ClientContent.AbilityAssetRegistry.Abilities.ContainsKey(ability.id))
-                ClientContent.AbilityAssetRegistry.Abilities[ability.id] = ability;
+            if (!ClientContent.ContentAssetRegistry.Abilities.ContainsKey(ability.id))
+                ClientContent.ContentAssetRegistry.Abilities[ability.id] = ability;
 
             if (!cooldowns.TryGetValue(playerId, out var cdByKey))
             {

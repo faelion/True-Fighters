@@ -4,10 +4,14 @@ public class HitFlash : MonoBehaviour
 {
     public Color normalColor = Color.blue;
     public Color hitColor = Color.red;
+    public float flashDuration = 0.2f;
 
     private Renderer cachedRenderer;
     private NetEntityView view;
     [SerializeField] private ClientMessageRouter router;
+    private float lastHp = -1f;
+    private bool flashing = false;
+    private float flashTimer = 0f;
 
     void Awake()
     {
@@ -27,13 +31,38 @@ public class HitFlash : MonoBehaviour
     {
         if (router != null)
             router.OnEntityState -= OnEntityState;
+        flashing = false;
+        lastHp = -1f;
+        SetHit(false);
+    }
+
+    void Update()
+    {
+        if (!flashing) return;
+        flashTimer -= Time.deltaTime;
+        if (flashTimer <= 0f)
+        {
+            flashing = false;
+            SetHit(false);
+        }
     }
 
     private void OnEntityState(StateMessage m)
     {
         if (view == null) return;
         if (m.playerId != view.entityId) return;
-        SetHit(m.hit);
+        if (lastHp < 0f)
+        {
+            lastHp = m.hp;
+            return;
+        }
+        if (m.hp < lastHp - 0.01f)
+        {
+            flashing = true;
+            flashTimer = flashDuration;
+            SetHit(true);
+        }
+        lastHp = m.hp;
     }
 
     public void SetHit(bool isHit)

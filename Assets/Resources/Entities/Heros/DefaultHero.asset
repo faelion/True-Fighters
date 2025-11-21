@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4945a1f6b582daa4db6db837b9da270e, type: 3}
   m_Name: DefaultHero
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.HeroSO
-  id: 1
+  id: default
   displayName: PanaEvaristo
   baseHp: 500
   baseMoveSpeed: 3.5
