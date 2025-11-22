@@ -12,6 +12,7 @@ namespace Networking.Serialization
         private const byte TYPE_StateMessage = 2;
         private const byte TYPE_JoinRequestMessage = 3;
         private const byte TYPE_JoinResponseMessage = 4;
+        private const byte TYPE_StartGameMessage = 5;
         private const byte TYPE_TickPacketMessage = 6;
 
         // Event payloads (embedded inside TickPacket or standalone)
@@ -19,6 +20,7 @@ namespace Networking.Serialization
         private const byte TYPE_ProjectileUpdateEvent = 12;
         private const byte TYPE_ProjectileDespawnEvent = 13;
         private const byte TYPE_DashEvent = 14;
+        private const byte TYPE_EntityDespawnEvent = 15;
 
         public byte[] Serialize(object obj)
         {
@@ -45,6 +47,11 @@ namespace Networking.Serialization
                 {
                     bw.Write(TYPE_JoinResponseMessage);
                     WriteJoinResponse(bw, jp);
+                }
+                else if (obj is StartGameMessage sgm)
+                {
+                    bw.Write(TYPE_StartGameMessage);
+                    WriteStartGame(bw, sgm);
                 }
                 else if (obj is IGameEvent ge)
                 {
@@ -85,11 +92,13 @@ namespace Networking.Serialization
                     case TYPE_StateMessage: return ReadStateMessage(br);
                     case TYPE_JoinRequestMessage: return ReadJoinRequest(br);
                     case TYPE_JoinResponseMessage: return ReadJoinResponse(br);
+                    case TYPE_StartGameMessage: return ReadStartGame(br);
                     case TYPE_TickPacketMessage: return ReadTickPacket(br);
                     case TYPE_ProjectileSpawnEvent: return ReadProjectileSpawnEvent(br);
                     case TYPE_ProjectileUpdateEvent: return ReadProjectileUpdateEvent(br);
                     case TYPE_ProjectileDespawnEvent: return ReadProjectileDespawnEvent(br);
                     case TYPE_DashEvent: return ReadDashEvent(br);
+                    case TYPE_EntityDespawnEvent: return ReadEntityDespawnEvent(br);
                     default:
                         throw new NotSupportedException("Unknown message type id: " + type);
                 }
@@ -194,6 +203,7 @@ namespace Networking.Serialization
                 case GameEventType.ProjectileUpdate: return TYPE_ProjectileUpdateEvent;
                 case GameEventType.ProjectileDespawn: return TYPE_ProjectileDespawnEvent;
                 case GameEventType.Dash: return TYPE_DashEvent;
+                case GameEventType.EntityDespawn: return TYPE_EntityDespawnEvent;
                 default: throw new NotSupportedException("Unknown event type: " + ev.Type);
             }
         }
@@ -260,6 +270,13 @@ namespace Networking.Serialization
                     bw.Write(m.Speed);
                     break;
                 }
+                case GameEventType.EntityDespawn:
+                {
+                    var m = (EntityDespawnEvent)ev;
+                    bw.Write(m.CasterId);
+                    bw.Write(m.ServerTick);
+                    break;
+                }
                 default:
                     throw new NotSupportedException("Unknown event type: " + ev.Type);
             }
@@ -273,6 +290,7 @@ namespace Networking.Serialization
                 case TYPE_ProjectileUpdateEvent: return ReadProjectileUpdateEvent(br);
                 case TYPE_ProjectileDespawnEvent: return ReadProjectileDespawnEvent(br);
                 case TYPE_DashEvent: return ReadDashEvent(br);
+                case TYPE_EntityDespawnEvent: return ReadEntityDespawnEvent(br);
                 default:
                     throw new NotSupportedException("Unknown event type id: " + type);
             }
@@ -338,6 +356,15 @@ namespace Networking.Serialization
             };
         }
 
+        private static EntityDespawnEvent ReadEntityDespawnEvent(BinaryReader br)
+        {
+            return new EntityDespawnEvent
+            {
+                CasterId = br.ReadInt32(),
+                ServerTick = br.ReadInt32(),
+            };
+        }
+
         private static void WriteTickPacket(BinaryWriter bw, TickPacketMessage m)
         {
             bw.Write(m.serverTick);
@@ -365,6 +392,18 @@ namespace Networking.Serialization
             m.statesCount = sc;
             m.eventsCount = ec;
             return m;
+        }
+
+        private static void WriteStartGame(BinaryWriter bw, StartGameMessage m)
+        {
+            WriteString(bw, m.sceneName);
+        }
+        private static StartGameMessage ReadStartGame(BinaryReader br)
+        {
+            return new StartGameMessage
+            {
+                sceneName = ReadString(br),
+            };
         }
     }
 }

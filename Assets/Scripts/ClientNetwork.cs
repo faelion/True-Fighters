@@ -32,13 +32,23 @@ public class ClientNetwork : MonoBehaviour
 
     void Start()
     {
+        DontDestroyOnLoad(gameObject);
+        // messageRouter will be null here if scene is not loaded yet or if it's in another scene
+        // We need to find it dynamically or have it register itself
+    }
+
+    private void EnsureRouter()
+    {
         if (messageRouter == null)
             messageRouter = FindFirstObjectByType<ClientMessageRouter>();
+    }
 
-        if (!string.IsNullOrEmpty(NetworkConfig.serverHost))
-            serverHost = NetworkConfig.serverHost;
-        if (NetworkConfig.serverPort != 0)
-            serverPort = NetworkConfig.serverPort;
+    public void Connect(string host, int port)
+    {
+        serverHost = host;
+        serverPort = port;
+        
+        if (transport != null) { transport.Stop(); transport.Dispose(); }
 
         transport = new UdpTransport();
         transport.Start(new IPEndPoint(IPAddress.Any, 0));
@@ -46,6 +56,8 @@ public class ClientNetwork : MonoBehaviour
 
         serverEndpoint = new IPEndPoint(IPAddress.Parse(serverHost), serverPort);
 
+        joinAttempts = 0;
+        hasAssignedId = false;
         SendJoinRequest();
     }
 
@@ -106,6 +118,7 @@ public class ClientNetwork : MonoBehaviour
 
     private void OnReceiveMessage(IPEndPoint remote, object msg)
     {
+        EnsureRouter();
         if (msg is JoinResponseMessage jr)
         {
             assignedPlayerId = jr.assignedPlayerId;
@@ -113,6 +126,11 @@ public class ClientNetwork : MonoBehaviour
             clientPlayerId = assignedPlayerId;
             Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
             messageRouter?.RaiseJoinResponse(jr);
+        }
+        else if (msg is StartGameMessage sgm)
+        {
+            Debug.Log($"Client: Received StartGameMessage -> Loading scene '{sgm.sceneName}'");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(sgm.sceneName);
         }
         else if (msg is TickPacketMessage tpm)
         {

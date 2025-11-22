@@ -13,18 +13,51 @@ public class NetEntitySpawner : MonoBehaviour
 
     void OnEnable()
     {
+        // Try to find router, but also retry in Update if not found yet (e.g. scene load race condition)
         if (router == null)
             router = FindFirstObjectByType<ClientMessageRouter>();
+        
         if (router != null)
+        {
             router.OnEntityState += OnEntityState;
+            router.OnServerEvent += OnServerEvent;
+        }
 
         ClientContent.ContentAssetRegistry.EnsureLoaded();
+    }
+
+    void Update()
+    {
+        if (router == null)
+        {
+            router = FindFirstObjectByType<ClientMessageRouter>();
+            if (router != null)
+            {
+                router.OnEntityState += OnEntityState;
+                router.OnServerEvent += OnServerEvent;
+            }
+        }
     }
 
     void OnDisable()
     {
         if (router != null)
+        {
             router.OnEntityState -= OnEntityState;
+            router.OnServerEvent -= OnServerEvent;
+        }
+    }
+
+    private void OnServerEvent(IGameEvent ev)
+    {
+        if (ev.Type == GameEventType.EntityDespawn)
+        {
+            if (views.TryGetValue(ev.CasterId, out var view))
+            {
+                Destroy(view.gameObject);
+                views.Remove(ev.CasterId);
+            }
+        }
     }
 
     private void OnEntityState(StateMessage m)

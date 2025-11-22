@@ -41,10 +41,16 @@ public class JoinResponseMessage
     public JoinResponseMessage() { }
 }
 
+public class StartGameMessage
+{
+    public string sceneName;
+    public StartGameMessage() { }
+}
+
 public enum AbilityTargetType { None, Point, Unit, Direction }
 
 // Game events are now strongly typed payloads identified by GameEventType.
-public enum GameEventType { ProjectileSpawn = 1, ProjectileUpdate = 2, ProjectileDespawn = 3, Dash = 4 }
+public enum GameEventType { ProjectileSpawn = 1, ProjectileUpdate = 2, ProjectileDespawn = 3, Dash = 4, EntityDespawn = 5 }
 
 public interface IGameEvent
 {
@@ -52,6 +58,14 @@ public interface IGameEvent
     string SourceId { get; }
     int CasterId { get; }
     int ServerTick { get; set; }
+}
+
+public class EntityDespawnEvent : IGameEvent
+{
+    public string SourceId => "";
+    public int CasterId { get; set; } // The entity being despawned
+    public int ServerTick { get; set; }
+    public GameEventType Type => GameEventType.EntityDespawn;
 }
 
 public class ProjectileSpawnEvent : IGameEvent

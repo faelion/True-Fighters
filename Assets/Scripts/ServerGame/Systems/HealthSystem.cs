@@ -4,9 +4,19 @@ namespace ServerGame.Systems
     {
         public void Tick(ServerWorld world, float dt)
         {
+            // Use a list to avoid modification during iteration if we remove entities
+            var toDespawn = new System.Collections.Generic.List<int>();
+
             foreach (var entity in world.EntityRepo.AllEntities)
             {
                 var health = entity.Health;
+                
+                if (!health.IsAlive)
+                {
+                    toDespawn.Add(entity.Id);
+                    continue;
+                }
+
                 if (!health.recentlyHit) continue;
                 health.hitTimer += dt;
                 if (health.hitTimer >= ServerWorld.HitFlashDuration)
@@ -14,6 +24,11 @@ namespace ServerGame.Systems
                     health.hitTimer = 0f;
                     health.recentlyHit = false;
                 }
+            }
+
+            foreach (var id in toDespawn)
+            {
+                world.DespawnEntity(id);
             }
         }
     }

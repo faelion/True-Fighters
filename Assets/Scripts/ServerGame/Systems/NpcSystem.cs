@@ -8,12 +8,14 @@ namespace ServerGame.Systems
     {
         public void Tick(ServerWorld world, float dt)
         {
-            var npcEntity = world.NeutralNpc;
-            if (npcEntity == null) return;
-            var npcComponent = npcEntity.Npc;
-            if (npcComponent == null) return;
+            foreach (var npcEntity in world.EntityRepo.GetByType(EntityType.Neutral))
+            {
+                if (!npcEntity.Health.IsAlive) continue;
 
-            GameEntity targetEntity = null;
+                var npcComponent = npcEntity.Npc;
+                if (npcComponent == null) continue;
+
+                GameEntity targetEntity = null;
             if (npcComponent.targetEntityId != -1)
             {
                 world.EntityRepo.TryGetEntity(npcComponent.targetEntityId, out targetEntity);
@@ -46,7 +48,7 @@ namespace ServerGame.Systems
                 }
             }
 
-            if (targetEntity == null) return;
+            if (targetEntity == null) continue;
 
             float dx2 = targetEntity.Transform.posX - npcEntity.Transform.posX;
             float dy2 = targetEntity.Transform.posY - npcEntity.Transform.posY;
@@ -55,6 +57,7 @@ namespace ServerGame.Systems
             {
                 npcEntity.Transform.posX += dx2 / dist * npcEntity.Movement.moveSpeed * dt;
                 npcEntity.Transform.posY += dy2 / dist * npcEntity.Movement.moveSpeed * dt;
+            }
             }
         }
     }

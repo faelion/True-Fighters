@@ -32,7 +32,8 @@ namespace ServerGame
             playerIdToEndpoint[assigned] = endpoint;
             playerIdToHero[assigned] = heroId;
 
-            world.EnsurePlayer(assigned, jr.playerName, heroId);
+            if (world != null)
+                world.EnsurePlayer(assigned, jr.playerName, heroId);
             return assigned;
         }
     }
