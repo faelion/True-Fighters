@@ -15,14 +15,12 @@ public class ServerNetwork : MonoBehaviour
     private INetworkTransport transport;
     private ServerWorld world;
     private ServerGame.Systems.SimulationRunner simulation;
-
     private ServerGame.ConnectionRegistry connections;
-    private ServerGame.ServerSnapshotBuilder snapshotBuilder;
-    private readonly System.Collections.Generic.List<StateMessage> stateBuffer = new System.Collections.Generic.List<StateMessage>(32);
-    private readonly System.Collections.Generic.List<IGameEvent> eventBuffer = new System.Collections.Generic.List<IGameEvent>(64);
-
     private bool gameStarted = false;
     private string currentSceneName;
+
+    private ServerGame.Managers.ReplicationManager replicationManager;
+    private readonly System.Collections.Generic.List<IGameEvent> frameEvents = new System.Collections.Generic.List<IGameEvent>();
 
     void Start()
     {
@@ -36,7 +34,7 @@ public class ServerNetwork : MonoBehaviour
         
         ClientContent.ContentAssetRegistry.EnsureLoaded();
         connections = new ServerGame.ConnectionRegistry();
-        snapshotBuilder = new ServerGame.ServerSnapshotBuilder();
+        replicationManager = new ServerGame.Managers.ReplicationManager();
         transport = new UdpTransport();
         transport.Start(new IPEndPoint(IPAddress.Any, listenPort));
         transport.OnReceive += OnReceiveMessage;
@@ -78,6 +76,7 @@ public class ServerNetwork : MonoBehaviour
             int pid = kv.Key;
             string heroId = connections.GetHeroId(pid);
             world.EnsurePlayer(pid, $"Player{pid}", heroId);
+            replicationManager.RegisterClient(pid);
         }
 
         gameStarted = true;
@@ -98,23 +97,41 @@ public class ServerNetwork : MonoBehaviour
             simulation.Tick(Time.deltaTime);
 
             int tickNow = Environment.TickCount;
-            stateBuffer.Clear();
-            eventBuffer.Clear();
-            snapshotBuilder.BuildSnapshot(world, tickNow, stateBuffer, eventBuffer);
+            
+            // Consume events from world
+            frameEvents.Clear();
+            frameEvents.AddRange(world.ConsumePendingEvents());
 
-            int sc = stateBuffer.Count;
-            int ec = eventBuffer.Count;
-            var statesArr = ArrayPool<StateMessage>.Shared.Rent(sc);
-            var eventsArr = ArrayPool<IGameEvent>.Shared.Rent(ec);
-            stateBuffer.CopyTo(0, statesArr, 0, sc);
-            eventBuffer.CopyTo(0, eventsArr, 0, ec);
-            var pkt = new TickPacketMessage { serverTick = tickNow, states = statesArr, events = eventsArr, statesCount = sc, eventsCount = ec };
-            foreach (var endpoint in connections.PlayerEndpoints.Values)
-                SendMessageToClient(pkt, endpoint);
-            pkt.states = null; pkt.events = null;
-            ArrayPool<StateMessage>.Shared.Return(statesArr, clearArray: true);
-            ArrayPool<IGameEvent>.Shared.Return(eventsArr, clearArray: true);
+            // Identify reliable events (e.g. Despawn, ProjectileSpawn) and queue them
+            foreach (var ev in frameEvents)
+            {
+                ev.ServerTick = tickNow; // Assign tick here
+                if (IsReliableEvent(ev))
+                {
+                    replicationManager.EnqueueReliableEvent(ev);
+                }
+            }
+
+            // Build and send packets
+            foreach (var kv in connections.PlayerEndpoints)
+            {
+                int pid = kv.Key;
+                var endpoint = kv.Value;
+                
+                var pkt = replicationManager.BuildPacket(pid, world, tickNow, frameEvents);
+                if (pkt != null)
+                    SendMessageToClient(pkt, endpoint);
+            }
         }
+    }
+
+    private bool IsReliableEvent(IGameEvent ev)
+    {
+        // Define what is reliable
+        return ev.Type == GameEventType.EntityDespawn || 
+               ev.Type == GameEventType.ProjectileSpawn ||
+               ev.Type == GameEventType.ProjectileDespawn; 
+               // Dash might be reliable too depending on design, but visual-only dashes can be unreliable
     }
 
     private void OnReceiveMessage(IPEndPoint remote, object msg)
@@ -135,6 +152,9 @@ public class ServerNetwork : MonoBehaviour
             return;
         }
 
+        // Process ACK
+        replicationManager.ProcessAck(pid, im.lastReceivedTick);
+
         if (im.kind == InputKind.RightClick)
         {
             world.HandleMove(pid, im.targetX, im.targetY);
@@ -143,7 +163,6 @@ public class ServerNetwork : MonoBehaviour
         var key = ServerGame.Systems.AbilitySystem.KeyFromInputKind(im.kind);
         if (key != null)
         {
-            //Debug.Log($"[Server] Player {pid} casts ability '{key}' at ({im.targetX}, {im.targetY})");
             world.EnsurePlayer(pid);
             world.TryCastAbility(pid, key, im.targetX, im.targetY);
         }
@@ -163,9 +182,13 @@ public class ServerNetwork : MonoBehaviour
             return;
         }
 
-        int assigned = connections.EnsurePlayer(remote, jr, world); // world is null here initially, need to fix ConnectionRegistry or pass null
+        int assigned = connections.EnsurePlayer(remote, jr, world); 
         string heroId = connections.GetHeroId(assigned);
         Debug.Log($"Assigned playerId {assigned} to {remote} with name '{jr.playerName}' hero '{heroId}'");
+        
+        // Register with replication manager
+        if (replicationManager != null) replicationManager.RegisterClient(assigned);
+        
         SendJoinResponse(assigned, remote, heroId);
     }
 

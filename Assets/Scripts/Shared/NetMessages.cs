@@ -8,6 +8,7 @@ public class InputMessage
     public InputKind kind;
     public float targetX;
     public float targetY;
+    public int lastReceivedTick; // ACK: The last server tick this client received
     public InputMessage() { }
 }
 

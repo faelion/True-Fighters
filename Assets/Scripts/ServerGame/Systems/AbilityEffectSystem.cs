@@ -20,6 +20,12 @@ namespace ServerGame.Systems
                 if (!ClientContent.ContentAssetRegistry.Abilities.TryGetValue(eff.abilityId, out var asset) || asset == null)
                     continue;
                 bool alive = asset.OnEffectTick(world, eff, dt);
+                
+                // Emit events (Spawn/Update)
+                var evBuffer = new List<IGameEvent>();
+                asset.EmitEvents(world, eff, System.Environment.TickCount, evBuffer);
+                foreach (var ev in evBuffer) world.EnqueueEvent(ev);
+
                 if (!alive)
                 {
                     eff.lifeMs = 0;

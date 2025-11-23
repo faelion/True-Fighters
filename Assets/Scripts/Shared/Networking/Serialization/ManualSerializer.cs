@@ -123,6 +123,7 @@ namespace Networking.Serialization
             bw.Write((int)m.kind);
             bw.Write(m.targetX);
             bw.Write(m.targetY);
+            bw.Write(m.lastReceivedTick);
         }
         private static InputMessage ReadInputMessage(BinaryReader br)
         {
@@ -132,6 +133,7 @@ namespace Networking.Serialization
                 kind = (InputKind)br.ReadInt32(),
                 targetX = br.ReadSingle(),
                 targetY = br.ReadSingle(),
+                lastReceivedTick = br.ReadInt32(),
             };
         }
 
