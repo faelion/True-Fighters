@@ -70,9 +70,35 @@ namespace ServerGame.Managers
             stateBuffer.Clear();
             eventBuffer.Clear();
 
-            // 1. Collect World State (Optimized: could add interest management here)
+            // 1. Collect World State with Interest Management
+            var playerHero = world.GetHeroEntity(playerId);
+            float px = 0f, py = 0f;
+            bool hasHero = playerHero != null;
+            if (hasHero)
+            {
+                px = playerHero.Transform.posX;
+                py = playerHero.Transform.posY;
+            }
+
+            const float InterestRadius = 20f;
+            const float InterestRadiusSq = InterestRadius * InterestRadius;
+
             foreach (var entity in world.EntityRepo.AllEntities)
             {
+                // Always send the player's own entity
+                bool isOwner = entity.Id == playerId;
+                
+                if (!isOwner && hasHero)
+                {
+                    float dx = entity.Transform.posX - px;
+                    float dy = entity.Transform.posY - py;
+                    if (dx * dx + dy * dy > InterestRadiusSq)
+                        continue; // Too far
+                }
+                // If we don't have a hero yet (dead or not spawned), maybe we should see everything? 
+                // Or nothing? Let's default to seeing everything if we are dead/spectating for now, 
+                // or maybe just 0,0. Let's assume if no hero, we see everything (spectator mode fallback).
+                
                 var state = new StateMessage
                 {
                     playerId = entity.Id, // Using playerId field for EntityId as per NetMessages
