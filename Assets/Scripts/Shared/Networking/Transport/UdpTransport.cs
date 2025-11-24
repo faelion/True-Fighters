@@ -19,7 +19,7 @@ namespace Networking.Transport
 
         public UdpTransport(ISerializer serializer = null)
         {
-            this.serializer = serializer ?? new Networking.Serialization.ManualSerializer();
+            this.serializer = serializer ?? new Networking.Serialization.AutoSerializer();
         }
 
         public void Start(IPEndPoint localBind)
