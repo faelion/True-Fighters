@@ -4,10 +4,10 @@ using ClientContent;
 
 namespace ServerGame.Systems
 {
-    // Minimal server-side ability processor: checks cooldown/range and triggers projectile spawns
+
     public class AbilitySystem : ISystem
     {
-        // cooldowns[playerId][key] = seconds remaining
+
         private readonly Dictionary<int, Dictionary<string, float>> cooldowns = new Dictionary<int, Dictionary<string, float>>();
 
         public static string KeyFromInputKind(InputKind kind)
@@ -24,7 +24,7 @@ namespace ServerGame.Systems
 
         public void Tick(ServerWorld world, float dt)
         {
-            // 1) Cooldowns
+
             foreach (var kv in cooldowns)
             {
                 var byKey = kv.Value;
@@ -39,7 +39,7 @@ namespace ServerGame.Systems
                 }
             }
 
-            // Effect simulation moved to AbilityEffectSystem
+
         }
 
         public bool TryCast(ServerWorld world, int playerId, string key, float targetX, float targetY)
@@ -47,9 +47,9 @@ namespace ServerGame.Systems
             var caster = world.GetHeroEntity(playerId) ?? world.EnsurePlayer(playerId);
 
             if (!world.AbilityBooks.TryGetValue(playerId, out var book) || book == null || !book.TryGetValue(key, out var ability))
-                return false; // no such ability
+                return false;
 
-            // Ensure registry knows about this ability id (defensive for missing content load)
+
             if (!ClientContent.ContentAssetRegistry.Abilities.ContainsKey(ability.id))
                 ClientContent.ContentAssetRegistry.Abilities[ability.id] = ability;
 
@@ -60,13 +60,13 @@ namespace ServerGame.Systems
             }
 
             if (cdByKey.TryGetValue(key, out float cd) && cd > 0f)
-                return false; // still on cooldown
+                return false;
 
-            // Delegate behavior to ability asset
+
             if (!ability.ServerTryCast(world, playerId, targetX, targetY))
                 return false;
             
-            // Set cooldown
+
             cdByKey[key] = ability.cooldown;
             return true;
         }

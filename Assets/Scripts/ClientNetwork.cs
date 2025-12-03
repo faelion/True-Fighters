@@ -16,9 +16,8 @@ public class ClientNetwork : MonoBehaviour
 
     private INetworkTransport transport;
     private IPEndPoint serverEndpoint;
-    [SerializeField] private ClientMessageRouter messageRouter;
 
-    // Presentation is handled by replicators; ClientNetwork keeps no scene GameObjects
+
 
     private volatile bool hasAssignedId = false;
     private int assignedPlayerId = 0;
@@ -33,15 +32,10 @@ public class ClientNetwork : MonoBehaviour
     void Start()
     {
         DontDestroyOnLoad(gameObject);
-        // messageRouter will be null here if scene is not loaded yet or if it's in another scene
         // We need to find it dynamically or have it register itself
     }
 
-    private void EnsureRouter()
-    {
-        if (messageRouter == null)
-            messageRouter = FindFirstObjectByType<ClientMessageRouter>();
-    }
+
 
     public void Connect(string host, int port)
     {
@@ -68,7 +62,8 @@ public class ClientNetwork : MonoBehaviour
     }
 
     private int lastReceivedServerTick = -1;
-    private readonly HashSet<int> processedReliableEvents = new HashSet<int>(); // Simple idempotency check if needed, though strict ordering usually suffices
+    private readonly HashSet<int> processedReliableEvents = new HashSet<int>();
+    private int lastProcessedEventId = 0;
 
     public void SendInput(InputMessage input)
     {
@@ -122,14 +117,13 @@ public class ClientNetwork : MonoBehaviour
 
     private void OnReceiveMessage(IPEndPoint remote, object msg)
     {
-        EnsureRouter();
         if (msg is JoinResponseMessage jr)
         {
             assignedPlayerId = jr.assignedPlayerId;
             hasAssignedId = true;
             clientPlayerId = assignedPlayerId;
             Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
-            messageRouter?.RaiseJoinResponse(jr);
+            ClientMessageRouter.RaiseJoinResponse(jr);
         }
         else if (msg is StartGameMessage sgm)
         {
@@ -142,28 +136,18 @@ public class ClientNetwork : MonoBehaviour
                 lastReceivedServerTick = tpm.serverTick;
 
             if (tpm.states != null)
-                foreach (var state in tpm.states) messageRouter?.RaiseEntityState(state);
+                foreach (var state in tpm.states) ClientMessageRouter.RaiseEntityState(state);
             
             if (tpm.events != null)
             {
                 foreach (var ev in tpm.events)
                 {
-                    // Simple deduplication for reliable events based on tick + type + caster? 
-                    // For now, we trust the server only sends un-acked events.
-                    // Ideally, we'd check if we already processed this specific event ID.
-                    // But since we don't have unique EventIDs, we rely on the fact that 
-                    // the server stops sending it once we ACK.
-                    // However, we might receive the same event in multiple packets BEFORE our ACK reaches the server.
-                    // So we should deduplicate based on (Type, Caster, Tick).
+                    if (ev.EventId <= lastProcessedEventId) continue;
+                    lastProcessedEventId = ev.EventId;
                     
-                    // Optimization: Only process if we haven't seen this exact event signature this frame?
-                    // Or better: The server sends it until ACK. We might process it multiple times if we don't check.
-                    // Let's implement a simple "processed events" buffer or just process it.
-                    // For visual effects, processing twice is bad.
-                    
-                    // For this assignment, let's assume "at least once" delivery is acceptable or add a unique ID to events later.
-                    // We'll just pass it through for now.
-                    messageRouter?.RaiseServerEvent(ev);
+                    // TODO: Implement proper event deduplication using unique EventIDs.
+                    // Currently assuming "at least once" delivery is acceptable.
+                    ClientMessageRouter.RaiseServerEvent(ev);
                 }
             }
         }
@@ -173,5 +157,5 @@ public class ClientNetwork : MonoBehaviour
         }
     }
 
-    // All inputs (move + abilities) are unified via SendInput(InputMessage)
+
 }

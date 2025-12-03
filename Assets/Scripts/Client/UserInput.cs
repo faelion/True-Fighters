@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-public class PlayerInput : MonoBehaviour
+public class UserInput : MonoBehaviour
 {
     public int playerId = 1;
     private ClientNetwork net;
@@ -32,7 +32,7 @@ public class PlayerInput : MonoBehaviour
         }
 
         if (kind == InputKind.None) return;
-        if (mouse == null) return; // need mouse position for world target
+        if (mouse == null) return;
 
         Vector2 screenPos = mouse.position.ReadValue();
         Ray r = Camera.main.ScreenPointToRay(screenPos);

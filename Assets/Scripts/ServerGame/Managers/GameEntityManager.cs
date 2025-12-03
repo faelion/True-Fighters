@@ -10,7 +10,15 @@ namespace ServerGame.Managers
         public readonly EntityRepository Repo = new EntityRepository();
         private readonly Dictionary<int, GameEntity> heroEntities = new Dictionary<int, GameEntity>();
         
-        // Accessor for all entities (forwarded from Repo)
+        private class SpawnerTracker
+        {
+            public Shared.NetworkSpawner Config;
+            public int CurrentEntityId = -1;
+            public float RespawnTimer = 0f;
+        }
+        private readonly List<SpawnerTracker> spawnerTrackers = new List<SpawnerTracker>();
+        
+
         public IEnumerable<GameEntity> AllEntities => Repo.AllEntities;
         public IEnumerable<GameEntity> HeroEntities => heroEntities.Values;
 
@@ -20,7 +28,7 @@ namespace ServerGame.Managers
 
         public void InitializeMapSpawners(ServerWorld world)
         {
-            // FindObjectsByType is the modern API. We include inactive objects just in case.
+
             var spawners = UnityEngine.Object.FindObjectsByType<Shared.NetworkSpawner>(UnityEngine.FindObjectsInactive.Include, UnityEngine.FindObjectsSortMode.None);
             
             UnityEngine.Debug.Log($"[GameEntityManager] Found {spawners.Length} NetworkSpawners in scene.");
@@ -34,10 +42,56 @@ namespace ServerGame.Managers
 
             foreach (var spawner in spawners)
             {
+                var tracker = new SpawnerTracker { Config = spawner };
+                spawnerTrackers.Add(tracker);
+
                 if (spawner.entityType == EntityType.Neutral)
                 {
                     UnityEngine.Debug.Log($"[GameEntityManager] Spawning Neutral '{spawner.archetypeId}' at {spawner.transform.position}");
-                    CreateNeutralNpc(spawner.archetypeId, spawner.transform.position.x, spawner.transform.position.z);
+                    var npc = CreateNeutralNpc(spawner.archetypeId, spawner.transform.position.x, spawner.transform.position.z);
+                    tracker.CurrentEntityId = npc.Id;
+                }
+            }
+        }
+
+        public void Tick(ServerWorld world, float dt)
+        {
+            foreach (var tracker in spawnerTrackers)
+            {
+                // If we have an entity, check if it's still alive
+                if (tracker.CurrentEntityId != -1)
+                {
+                    if (!Repo.TryGetEntity(tracker.CurrentEntityId, out var entity) || !entity.Health.IsAlive)
+                    {
+                        // Entity is dead or despawned
+                        tracker.CurrentEntityId = -1;
+                        tracker.RespawnTimer = tracker.Config.respawnTime;
+                    }
+                }
+                else if (tracker.Config.respawnTime > 0f)
+                {
+                    // Waiting for respawn
+                    tracker.RespawnTimer -= dt;
+                    if (tracker.RespawnTimer <= 0f)
+                    {
+                        // Respawn!
+                        var spawner = tracker.Config;
+                        if (spawner.entityType == EntityType.Neutral)
+                        {
+                            var npc = CreateNeutralNpc(spawner.archetypeId, spawner.transform.position.x, spawner.transform.position.z);
+                            tracker.CurrentEntityId = npc.Id;
+                            
+                            // Broadcast spawn event
+                            world.EnqueueEvent(new EntitySpawnEvent
+                            {
+                                CasterId = npc.Id,
+                                PosX = npc.Transform.posX,
+                                PosY = npc.Transform.posY,
+                                ArchetypeId = npc.ArchetypeId,
+                                TeamId = npc.Team.teamId
+                            });
+                        }
+                    }
                 }
             }
         }
@@ -58,10 +112,10 @@ namespace ServerGame.Managers
                 float spawnX = 0f, spawnY = 0f;
                 foreach (var sp in spawners)
                 {
-                    if (sp.entityType == EntityType.Hero) // Could check teamId here
+                    if (sp.entityType == EntityType.Hero && sp.teamId == id)
                     {
                         spawnX = sp.transform.position.x;
-                        spawnY = sp.transform.position.z; // Using Z as Y in 2D logic
+                        spawnY = sp.transform.position.z;
                         break;
                     }
                 }
@@ -69,7 +123,7 @@ namespace ServerGame.Managers
                 var hero = ContentAssetRegistry.Heroes != null && !string.IsNullOrEmpty(resolvedHeroId) && ContentAssetRegistry.Heroes.TryGetValue(resolvedHeroId, out var heroSo)
                     ? heroSo : null;
                 float hp = hero != null ? hero.baseHp : 500f;
-                float moveSpeed = hero != null ? hero.baseMoveSpeed : 3.5f;
+                float moveSpeed = hero != null ? hero.moveSpeed : 3.5f;
                 entity.Health.Reset(hp);
                 entity.Movement.moveSpeed = moveSpeed;
                 entity.Transform.posX = spawnX;
@@ -77,7 +131,7 @@ namespace ServerGame.Managers
 
                 heroEntities[id] = entity;
                 
-                // Initialize abilities in World (or AbilityManager if we had one)
+
                 if (!world.AbilityBooks.ContainsKey(id))
                     world.AbilityBooks[id] = ContentAssetRegistry.GetBindingsForHero(resolvedHeroId);
             }

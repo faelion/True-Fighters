@@ -1,6 +1,6 @@
 namespace ServerGame.Systems
 {
-    // Orchestrates ticking the simulation systems over a ServerWorld.
+
     public class SimulationRunner
     {
         private readonly ISystem[] systems;
@@ -25,6 +25,8 @@ namespace ServerGame.Systems
         {
             for (int i = 0; i < systems.Length; i++)
                 systems[i].Tick(world, dt);
+            
+            world.EntityManager.Tick(world, dt);
         }
     }
 }

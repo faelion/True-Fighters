@@ -10,18 +10,19 @@ namespace ServerGame
     {
         public const float HitFlashDuration = 0.2f;
         
-        // Managers
+
         public readonly GameEntityManager EntityManager = new GameEntityManager();
         
         public readonly Dictionary<int, AbilityEffect> AbilityEffects = new Dictionary<int, AbilityEffect>();
         
-        // Expose EntityRepo via Manager for compatibility if needed, or just use Manager
+
         public EntityRepository EntityRepo => EntityManager.Repo;
 
         private readonly List<IGameEvent> pendingEvents = new List<IGameEvent>();
         private int nextEffectId = 1;
+        private int nextEventId = 1;
 
-        // Per-player ability book: key (Q,W,E,R) -> AbilityAsset
+
         public readonly Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>> AbilityBooks = new Dictionary<int, Dictionary<string, ClientContent.AbilityAsset>>();
 
         private Systems.AbilitySystem abilitySystem;
@@ -73,8 +74,12 @@ namespace ServerGame
             return id;
         }
 
-        // Instant (non-persistent) ability events queue
-        public void EnqueueEvent(IGameEvent ev) => pendingEvents.Add(ev);
+
+        public void EnqueueEvent(IGameEvent ev)
+        {
+            ev.EventId = nextEventId++;
+            pendingEvents.Add(ev);
+        }
         public List<IGameEvent> ConsumePendingEvents()
         {
             var copy = new List<IGameEvent>(pendingEvents);
@@ -82,7 +87,7 @@ namespace ServerGame
             return copy;
         }
 
-        // Convenience entrypoint for server to request a cast immediately
+
         public bool TryCastAbility(int playerId, string key, float targetX, float targetY)
         {
             if (abilitySystem == null) return false;

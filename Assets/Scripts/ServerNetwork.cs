@@ -53,24 +53,24 @@ public class ServerNetwork : MonoBehaviour
         Debug.Log($"[ServerNetwork] Loading scene '{sceneName}'...");
         currentSceneName = sceneName;
         
-        // Notify clients to load scene
+
         var startMsg = new StartGameMessage { sceneName = sceneName };
         foreach (var ep in connections.PlayerEndpoints.Values)
         {
             SendMessageToClient(startMsg, ep);
         }
 
-        // Load scene on server
+
         var op = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
         while (!op.isDone) yield return null;
 
         Debug.Log("[ServerNetwork] Scene loaded. Initializing ServerWorld...");
         
-        // Initialize world
+
         world = new ServerWorld();
         simulation = new ServerGame.Systems.SimulationRunner(world);
 
-        // Spawn already connected players
+
         foreach (var kv in connections.PlayerEndpoints)
         {
             int pid = kv.Key;
@@ -98,21 +98,21 @@ public class ServerNetwork : MonoBehaviour
 
             int tickNow = Environment.TickCount;
             
-            // Consume events from world
+
             frameEvents.Clear();
             frameEvents.AddRange(world.ConsumePendingEvents());
 
-            // Identify reliable events (e.g. Despawn, ProjectileSpawn) and queue them
+
             foreach (var ev in frameEvents)
             {
-                ev.ServerTick = tickNow; // Assign tick here
+                ev.ServerTick = tickNow;
                 if (IsReliableEvent(ev))
                 {
                     replicationManager.EnqueueReliableEvent(ev);
                 }
             }
 
-            // Build and send packets
+
             foreach (var kv in connections.PlayerEndpoints)
             {
                 int pid = kv.Key;
@@ -127,11 +127,7 @@ public class ServerNetwork : MonoBehaviour
 
     private bool IsReliableEvent(IGameEvent ev)
     {
-        // Define what is reliable
-        return ev.Type == GameEventType.EntityDespawn || 
-               ev.Type == GameEventType.ProjectileSpawn ||
-               ev.Type == GameEventType.ProjectileDespawn; 
-               // Dash might be reliable too depending on design, but visual-only dashes can be unreliable
+        return ev.IsReliable;
     }
 
     private void OnReceiveMessage(IPEndPoint remote, object msg)
@@ -152,7 +148,7 @@ public class ServerNetwork : MonoBehaviour
             return;
         }
 
-        // Process ACK
+
         replicationManager.ProcessAck(pid, im.lastReceivedTick);
 
         if (im.kind == InputKind.RightClick)
@@ -186,7 +182,7 @@ public class ServerNetwork : MonoBehaviour
         string heroId = connections.GetHeroId(assigned);
         Debug.Log($"Assigned playerId {assigned} to {remote} with name '{jr.playerName}' hero '{heroId}'");
         
-        // Register with replication manager
+
         if (replicationManager != null) replicationManager.RegisterClient(assigned);
         
         SendJoinResponse(assigned, remote, heroId);

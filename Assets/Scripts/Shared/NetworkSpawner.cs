@@ -10,7 +10,6 @@ namespace Shared
         public string archetypeId; // e.g. "MinionMelee", "JungleCreep"
         public float respawnTime = 0f; // 0 = no respawn
         
-        // Optional: Gizmos to visualize in editor
         void OnDrawGizmos()
         {
             Gizmos.color = teamId == -1 ? Color.yellow : (teamId == 0 ? Color.blue : Color.red);

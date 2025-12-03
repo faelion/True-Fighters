@@ -6,7 +6,6 @@ public class CameraFollow : MonoBehaviour
     public Vector3 offset = new Vector3(0f, 10f, -6f);
     public float smooth = 6f;
     Transform target;
-    [SerializeField] private ClientMessageRouter router;
 
     void Start()
     {
@@ -16,16 +15,12 @@ public class CameraFollow : MonoBehaviour
 
     void OnEnable()
     {
-        if (router == null)
-            router = FindFirstObjectByType<ClientMessageRouter>();
-        if (router != null)
-            router.OnJoinResponse += OnJoinResponse;
+        ClientMessageRouter.OnJoinResponse += OnJoinResponse;
     }
 
     void OnDisable()
     {
-        if (router != null)
-            router.OnJoinResponse -= OnJoinResponse;
+        ClientMessageRouter.OnJoinResponse -= OnJoinResponse;
     }
 
     void OnJoinResponse(JoinResponseMessage _)

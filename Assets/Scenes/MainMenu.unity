@@ -119,6 +119,52 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &1860875
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1860877}
+  - component: {fileID: 1860876}
+  m_Layer: 0
+  m_Name: GameLauncherManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1860876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1860875}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c4ef9bc5676174baf81ca313e11e57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameLauncherManager
+  serverNetworkPrefab: {fileID: 2197465284310659323, guid: d8cd837cfb96a264db1e6e16df9095fa, type: 3}
+  clientNetworkPrefab: {fileID: 1943563648080950639, guid: aba615395eb0109499c4241eb12ab160, type: 3}
+--- !u!4 &1860877
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1860875}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &146451400
 GameObject:
   m_ObjectHideFlags: 0
@@ -1367,7 +1413,7 @@ GameObject:
   - component: {fileID: 566518797}
   - component: {fileID: 566518796}
   m_Layer: 0
-  m_Name: GameLauncher
+  m_Name: GameLauncherUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1385,6 +1431,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 316efae428d22504d9a8dd5c06d873a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameLauncher
+  manager: {fileID: 1860876}
   mainMenuPanel: {fileID: 1774020499}
   clientPanel: {fileID: 374634015}
   hostPanel: {fileID: 922567613}
@@ -1397,8 +1444,6 @@ MonoBehaviour:
   hostIpDisplay: {fileID: 1990244052}
   serverMapInput: {fileID: 965506888}
   serverIpDisplay: {fileID: 1846833023}
-  serverNetworkPrefab: {fileID: 2197465284310659323, guid: d8cd837cfb96a264db1e6e16df9095fa, type: 3}
-  clientNetworkPrefab: {fileID: 1943563648080950639, guid: aba615395eb0109499c4241eb12ab160, type: 3}
 --- !u!4 &566518797
 Transform:
   m_ObjectHideFlags: 0
@@ -6589,6 +6634,7 @@ SceneRoots:
   - {fileID: 1856241305}
   - {fileID: 1033784048}
   - {fileID: 1728655565}
+  - {fileID: 1860877}
   - {fileID: 566518797}
   - {fileID: 1192779791}
   - {fileID: 972850669}

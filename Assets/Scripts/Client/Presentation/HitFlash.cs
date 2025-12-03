@@ -2,35 +2,31 @@ using UnityEngine;
 
 public class HitFlash : MonoBehaviour
 {
-    public Color normalColor = Color.blue;
+    private Color normalColor = Color.blue;
     public Color hitColor = Color.red;
     public float flashDuration = 0.2f;
 
     private Renderer cachedRenderer;
     private NetEntityView view;
-    [SerializeField] private ClientMessageRouter router;
     private float lastHp = -1f;
     private bool flashing = false;
     private float flashTimer = 0f;
 
-    void Awake()
+    private void Start()
     {
         view = GetComponent<NetEntityView>();
         cachedRenderer = GetComponentInChildren<Renderer>();
+        normalColor = cachedRenderer.material.color;
     }
 
     void OnEnable()
     {
-        if (router == null)
-            router = FindFirstObjectByType<ClientMessageRouter>();
-        if (router != null)
-            router.OnEntityState += OnEntityState;
+        ClientMessageRouter.OnEntityState += OnEntityState;
     }
 
     void OnDisable()
     {
-        if (router != null)
-            router.OnEntityState -= OnEntityState;
+        ClientMessageRouter.OnEntityState -= OnEntityState;
         flashing = false;
         lastHp = -1f;
         SetHit(false);
@@ -50,7 +46,7 @@ public class HitFlash : MonoBehaviour
     private void OnEntityState(StateMessage m)
     {
         if (view == null) return;
-        if (m.playerId != view.entityId) return;
+        if (m.entityId != view.entityId) return;
         if (lastHp < 0f)
         {
             lastHp = m.hp;

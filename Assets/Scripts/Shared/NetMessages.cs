@@ -14,7 +14,7 @@ public class InputMessage
 
 public class StateMessage
 {
-    public int playerId; // now represents entityId
+    public int entityId;
     public float hp;
     public float maxHp;
     public float posX;
@@ -51,7 +51,8 @@ public class StartGameMessage
 public enum AbilityTargetType { None, Point, Unit, Direction }
 
 // Game events are now strongly typed payloads identified by GameEventType.
-public enum GameEventType { ProjectileSpawn = 1, ProjectileUpdate = 2, ProjectileDespawn = 3, Dash = 4, EntityDespawn = 5 }
+public enum ProjectileAction { Spawn, Update, Despawn }
+public enum GameEventType { Projectile = 1, Dash = 4, EntityDespawn = 5, EntitySpawn = 6 }
 
 public interface IGameEvent
 {
@@ -59,6 +60,8 @@ public interface IGameEvent
     string SourceId { get; }
     int CasterId { get; }
     int ServerTick { get; set; }
+    int EventId { get; set; }
+    bool IsReliable { get; }
 }
 
 public class EntityDespawnEvent : IGameEvent
@@ -66,11 +69,28 @@ public class EntityDespawnEvent : IGameEvent
     public string SourceId => "";
     public int CasterId { get; set; } // The entity being despawned
     public int ServerTick { get; set; }
+    public int EventId { get; set; }
     public GameEventType Type => GameEventType.EntityDespawn;
+    public bool IsReliable => true;
 }
 
-public class ProjectileSpawnEvent : IGameEvent
+public class EntitySpawnEvent : IGameEvent
 {
+    public string SourceId => "";
+    public int CasterId { get; set; }
+    public int ServerTick { get; set; }
+    public int EventId { get; set; }
+    public float PosX { get; set; }
+    public float PosY { get; set; }
+    public string ArchetypeId { get; set; }
+    public int TeamId { get; set; }
+    public GameEventType Type => GameEventType.EntitySpawn;
+    public bool IsReliable => true;
+}
+
+public class ProjectileEvent : IGameEvent
+{
+    public ProjectileAction Action;
     public string SourceId { get; set; }
     public int CasterId { get; set; }
     public int ServerTick { get; set; }
@@ -81,31 +101,9 @@ public class ProjectileSpawnEvent : IGameEvent
     public float DirY { get; set; }
     public float Speed { get; set; }
     public int LifeMs { get; set; }
-    public GameEventType Type => GameEventType.ProjectileSpawn;
-}
-
-public class ProjectileUpdateEvent : IGameEvent
-{
-    public string SourceId { get; set; }
-    public int CasterId { get; set; }
-    public int ServerTick { get; set; }
-    public int ProjectileId { get; set; }
-    public float PosX { get; set; }
-    public float PosY { get; set; }
-    public float DirX { get; set; }
-    public float DirY { get; set; }
-    public float Speed { get; set; }
-    public int LifeMs { get; set; }
-    public GameEventType Type => GameEventType.ProjectileUpdate;
-}
-
-public class ProjectileDespawnEvent : IGameEvent
-{
-    public string SourceId { get; set; }
-    public int CasterId { get; set; }
-    public int ServerTick { get; set; }
-    public int ProjectileId { get; set; }
-    public GameEventType Type => GameEventType.ProjectileDespawn;
+    public int EventId { get; set; }
+    public GameEventType Type => GameEventType.Projectile;
+    public bool IsReliable => Action == ProjectileAction.Spawn || Action == ProjectileAction.Despawn;
 }
 
 public class DashEvent : IGameEvent
@@ -118,7 +116,9 @@ public class DashEvent : IGameEvent
     public float DirX { get; set; }
     public float DirY { get; set; }
     public float Speed { get; set; }
+    public int EventId { get; set; }
     public GameEventType Type => GameEventType.Dash;
+    public bool IsReliable => true;
 }
 
 public class TickPacketMessage

@@ -3,49 +3,25 @@ using UnityEngine;
 using ServerGame.Entities;
 using ClientContent;
 
-// Spawns and updates net entity views based on StateMessage stream.
+
 public class NetEntitySpawner : MonoBehaviour
 {
-    [SerializeField] private ClientMessageRouter router;
     [SerializeField] private GameObject defaultHeroPrefab;
 
     private readonly Dictionary<int, NetEntityView> views = new Dictionary<int, NetEntityView>();
 
     void OnEnable()
     {
-        // Try to find router, but also retry in Update if not found yet (e.g. scene load race condition)
-        if (router == null)
-            router = FindFirstObjectByType<ClientMessageRouter>();
-        
-        if (router != null)
-        {
-            router.OnEntityState += OnEntityState;
-            router.OnServerEvent += OnServerEvent;
-        }
+        ClientMessageRouter.OnEntityState += OnEntityState;
+        ClientMessageRouter.OnServerEvent += OnServerEvent;
 
         ClientContent.ContentAssetRegistry.EnsureLoaded();
     }
 
-    void Update()
-    {
-        if (router == null)
-        {
-            router = FindFirstObjectByType<ClientMessageRouter>();
-            if (router != null)
-            {
-                router.OnEntityState += OnEntityState;
-                router.OnServerEvent += OnServerEvent;
-            }
-        }
-    }
-
     void OnDisable()
     {
-        if (router != null)
-        {
-            router.OnEntityState -= OnEntityState;
-            router.OnServerEvent -= OnServerEvent;
-        }
+        ClientMessageRouter.OnEntityState -= OnEntityState;
+        ClientMessageRouter.OnServerEvent -= OnServerEvent;
     }
 
     private void OnServerEvent(IGameEvent ev)
@@ -58,13 +34,18 @@ public class NetEntitySpawner : MonoBehaviour
                 views.Remove(ev.CasterId);
             }
         }
+        else if (ev.Type == GameEventType.EntitySpawn)
+        {
+            // Optional: Play spawn effect
+            Debug.Log($"[NetEntitySpawner] Spawn event for entity {ev.CasterId}");
+        }
     }
 
     private void OnEntityState(StateMessage m)
     {
         if (m == null) return;
 
-        if (!views.TryGetValue(m.playerId, out var view) || view == null)
+        if (!views.TryGetValue(m.entityId, out var view) || view == null)
         {
             var prefab = GetPrefabForMessage(m);
             GameObject go;
@@ -76,13 +57,9 @@ public class NetEntitySpawner : MonoBehaviour
                 go.transform.localScale = Vector3.one * 0.9f;
             }
             view = go.GetComponent<NetEntityView>() ?? go.AddComponent<NetEntityView>();
-            view.entityId = m.playerId;
-            views[m.playerId] = view;
+            view.Initialize(m);
+            views[m.entityId] = view;
         }
-
-        var t = view.transform;
-        t.position = new Vector3(m.posX, t.position.y, m.posY);
-        t.rotation = Quaternion.Euler(0f, m.rotZ, 0f);
     }
 
     private GameObject GetPrefabForMessage(StateMessage m)
@@ -102,7 +79,7 @@ public class NetEntitySpawner : MonoBehaviour
             default:
                 break;
         }
-        // fallback
+
         ClientContent.ContentAssetRegistry.Heroes.TryGetValue(ClientContent.ContentAssetRegistry.DefaultHeroId, out var defHero);
         if (defHero != null && defHero.heroPrefab)
             return defHero.heroPrefab;

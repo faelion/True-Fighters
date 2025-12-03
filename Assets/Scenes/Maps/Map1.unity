@@ -164,55 +164,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AbilityAssetEventRouter
   databaseResourcePath: Resources/ContentDatabase
-  router: {fileID: 596855448}
---- !u!1 &102633356
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 102633358}
-  - component: {fileID: 102633357}
-  m_Layer: 0
-  m_Name: HitFlash
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &102633357
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 102633356}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebcbd85e6096ece4c8604fdcdaae2c9f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HitFlash
-  normalColor: {r: 0, g: 0, b: 1, a: 1}
-  hitColor: {r: 1, g: 0, b: 0, a: 1}
-  flashDuration: 0.2
-  router: {fileID: 596855448}
---- !u!4 &102633358
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 102633356}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.00001}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &290843874
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,7 +308,6 @@ MonoBehaviour:
   playerTag: Player
   offset: {x: 0, y: 10, z: -6}
   smooth: 6
-  router: {fileID: 596855448}
 --- !u!1 &471818397
 GameObject:
   m_ObjectHideFlags: 0
@@ -485,50 +435,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!1 &596855447
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 596855449}
-  - component: {fileID: 596855448}
-  m_Layer: 0
-  m_Name: ClientMessageRouter
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &596855448
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 596855447}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d940902362c44f4a8bf11fe5684a5bc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ClientMessageRouter
---- !u!4 &596855449
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 596855447}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &745246660
 GameObject:
   m_ObjectHideFlags: 0
@@ -558,7 +464,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38f3b99eef4cf6341824d294a3071d24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetEntitySpawner
-  router: {fileID: 596855448}
   defaultHeroPrefab: {fileID: 1337953931877890789, guid: eebc8d124180f964b8ba4eec51299666, type: 3}
 --- !u!4 &745246662
 Transform:
@@ -736,8 +641,6 @@ SceneRoots:
   - {fileID: 471818399}
   - {fileID: 75406382}
   - {fileID: 762417320}
-  - {fileID: 596855449}
-  - {fileID: 102633358}
   - {fileID: 745246662}
   - {fileID: 901208212}
   - {fileID: 2006970551}

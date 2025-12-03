@@ -16,15 +16,8 @@ namespace ClientContent
 
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
+            if (!ValidateCastRange(world, playerId, targetX, targetY, out var dir)) return false;
             var caster = world.EnsurePlayer(playerId);
-            float dx = targetX - caster.Transform.posX;
-            float dy = targetY - caster.Transform.posY;
-            float dist2 = dx * dx + dy * dy;
-            if (dist2 > range * range) return false;
-
-            Vector2 dir = new Vector2(dx, dy);
-            if (dir.sqrMagnitude <= 0.0001f) dir = Vector2.right;
-            dir.Normalize();
             world.EnqueueEvent(new DashEvent
             {
                 SourceId = id,
