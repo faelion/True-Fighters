@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ClientContent
 {
-    public abstract class AbilityAsset : ScriptableObject
+    public abstract class AbilityAsset : ScriptableObject, Shared.ScriptableObjects.IEntityLogic
     {
         [Header("Identity")]
         public string id;

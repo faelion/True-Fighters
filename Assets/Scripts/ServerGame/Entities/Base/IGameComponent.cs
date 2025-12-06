@@ -6,21 +6,18 @@ namespace ServerGame.Entities
     {
         None = 0,
         Transform = 1,
-        Movement = 2, // Player/Generic movement with input
+        Movement = 2,
         Health = 3,
         Combat = 4,
         Team = 5,
-        AIBehavior = 6, // Was NpcComponent
-        Collision = 7,  // New
-        ProjectileMovement = 8, // New
-        // ImpactEffect = 9
+        AIBehavior = 6,
+        Collision = 7,
+        Lifetime = 8
     }
 
     public interface IGameComponent
     {
         ComponentType Type { get; }
-        // We will add Serialization methods here in the Networking phase or now if convenient.
-        // Let's add them now to prepare.
         void Serialize(BinaryWriter writer);
         void Deserialize(BinaryReader reader);
     }

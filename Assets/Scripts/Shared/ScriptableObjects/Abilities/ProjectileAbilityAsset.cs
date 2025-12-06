@@ -7,13 +7,23 @@ namespace ClientContent
     [CreateAssetMenu(menuName = "Content/Ability Assets/Projectile", fileName = "ProjectileAbilityAsset")]
     public class ProjectileAbilityAsset : AbilityAsset
     {
-        [Header("Projectile Data")]
+        [Header("Movement")]
+        public Shared.ScriptableObjects.MovementStrategySO movementStrategy;
         public float projectileSpeed = 8f;
+
+        [Header("Lifetime")]
         public int projectileLifeMs = 1500;
+
+        [Header("Combat")]
         public float damage = 0f;
+
+        [Header("Collision")]
+        public float collisionRadius = 0.25f;
+        public bool isTrigger = true;
 
         [Header("View")]
         public GameObject projectilePrefab;
+
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
             if (!ValidateCastRange(world, playerId, targetX, targetY, out var dir)) return false;
@@ -21,12 +31,10 @@ namespace ClientContent
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent casterTransform)) return false;
 
-            // Create Entity
             var projectile = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.Projectile); 
             projectile.OwnerPlayerId = playerId;
-            projectile.ArchetypeId = id; // Identify which AbilityAsset defines this entity
+            projectile.ArchetypeId = id; 
             
-            // Add Components
             var t = new ServerGame.Entities.TransformComponent 
             { 
                 posX = casterTransform.posX, 
@@ -35,22 +43,27 @@ namespace ClientContent
             };
             projectile.AddComponent(t);
 
-            projectile.AddComponent(new ServerGame.Entities.ProjectileMovementComponent
+            var movement = new ServerGame.Entities.MovementComponent
             {
-                speed = projectileSpeed,
-                dirX = dir.x,
-                dirY = dir.y,
-                lifeMs = projectileLifeMs
+                strategy = movementStrategy, 
+                moveSpeed = projectileSpeed,
+                velX = dir.x * projectileSpeed,
+                velY = dir.y * projectileSpeed
+            };
+            projectile.AddComponent(movement);
+
+            projectile.AddComponent(new ServerGame.Entities.LifetimeComponent 
+            { 
+                remainingTime = projectileLifeMs / 1000f 
             });
 
-            projectile.AddComponent(new ServerGame.Entities.CollisionComponent { radius = 0.25f, isTrigger = true });
+            projectile.AddComponent(new ServerGame.Entities.CollisionComponent { radius = collisionRadius, isTrigger = isTrigger });
             
             if (caster.TryGetComponent(out ServerGame.Entities.TeamComponent team))
             {
                 projectile.AddComponent(new ServerGame.Entities.TeamComponent { teamId = team.teamId, friendlyFire = team.friendlyFire });
             }
 
-            // Broadcast Spawn
             world.EnqueueEvent(new EntitySpawnEvent
             {
                 CasterId = projectile.Id,

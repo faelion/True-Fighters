@@ -59,7 +59,7 @@ namespace ServerGame
         public void HandleMove(int playerId, float targetX, float targetY)
         {
             var entity = EnsurePlayer(playerId);
-            if (entity.TryGetComponent(out PlayerMovementComponent movement))
+            if (entity.TryGetComponent(out MovementComponent movement))
             {
                 movement.destX = targetX;
                 movement.destY = targetY;

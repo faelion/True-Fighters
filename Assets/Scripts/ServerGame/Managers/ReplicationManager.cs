@@ -83,12 +83,8 @@ namespace ServerGame.Managers
                 // Interest Management
                 if (hasHero && !isOwner)
                 {
-                    // If entity has transform, check distance
                     if (entity.TryGetComponent(out TransformComponent t))
                     {
-                        // Logic from GameMath inline or usage if available.
-                        // Ideally reused GameMath but I deleted it per user request.
-                        // Manual calc:
                         float dx = t.posX - px;
                         float dy = t.posY - py;
                         if (dx * dx + dy * dy > InterestRadiusSq)

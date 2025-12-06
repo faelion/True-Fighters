@@ -11,6 +11,19 @@ namespace ClientContent
         public static readonly Dictionary<string, NeutralEntitySO> Neutrals = new Dictionary<string, NeutralEntitySO>();
         public static string DefaultHeroId = "default";
         public static string DefaultNeutralId = "neutral_default";
+        
+        public static Shared.ScriptableObjects.MovementStrategySO DefaultMovementStrategy
+        {
+            get
+            {
+                if (_defaultMovementStrategy == null)
+                {
+                    _defaultMovementStrategy = ScriptableObject.CreateInstance<Shared.ScriptableObjects.DestinationMovementSO>();
+                }
+                return _defaultMovementStrategy;
+            }
+        }
+        private static Shared.ScriptableObjects.MovementStrategySO _defaultMovementStrategy;
 
         public static void EnsureLoaded(string databaseResourcePath = "ContentDatabase")
         {
@@ -86,6 +99,17 @@ namespace ClientContent
             if (string.IsNullOrEmpty(id)) id = DefaultNeutralId;
             if (Neutrals.TryGetValue(id, out var n) && n != null) return n;
             if (Neutrals.TryGetValue(DefaultNeutralId, out var def)) return def;
+            return null;
+        }
+        public static Shared.ScriptableObjects.IEntityLogic GetEntityLogic(string id)
+        {
+            EnsureLoaded();
+            if (string.IsNullOrEmpty(id)) return null;
+
+            if (Abilities.TryGetValue(id, out var ability)) return ability;
+            if (Heroes.TryGetValue(id, out var hero)) return hero;
+            if (Neutrals.TryGetValue(id, out var neutral)) return neutral;
+            
             return null;
         }
     }

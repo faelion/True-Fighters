@@ -1,21 +1,30 @@
 using System.IO;
+using Shared.ScriptableObjects;
 
 namespace ServerGame.Entities
 {
-    public class PlayerMovementComponent : IGameComponent
+    public class MovementComponent : IGameComponent
     {
         public ComponentType Type => ComponentType.Movement;
 
-        public float moveSpeed = 3.5f;
-        
-        // This seems to be click-to-move destination
-        public bool hasDestination;
+        // Configuration (can be set from SO)
+        public MovementStrategySO strategy;
+        public float moveSpeed;
+
+        // State
+        public float velX;
+        public float velY;
         public float destX;
         public float destY;
+        public bool hasDestination;
 
         public void Serialize(BinaryWriter writer)
         {
-            writer.Write(moveSpeed);
+            // Sync velocity for client prediction/interpolation? 
+            // Or just pos (via Transform) + dest?
+            // Usually syncing velocity is good for linear extrapolation.
+            writer.Write(velX);
+            writer.Write(velY);
             writer.Write(hasDestination);
             if (hasDestination)
             {
@@ -26,7 +35,8 @@ namespace ServerGame.Entities
 
         public void Deserialize(BinaryReader reader)
         {
-            moveSpeed = reader.ReadSingle();
+            velX = reader.ReadSingle();
+            velY = reader.ReadSingle();
             hasDestination = reader.ReadBoolean();
             if (hasDestination)
             {

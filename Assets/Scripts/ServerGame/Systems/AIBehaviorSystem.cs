@@ -13,7 +13,7 @@ namespace ServerGame.Systems
                 if (!npcEntity.TryGetComponent(out HealthComponent health) || !health.IsAlive) continue;
                 if (!npcEntity.TryGetComponent(out AIBehaviorComponent npcComponent)) continue;
                 if (!npcEntity.TryGetComponent(out TransformComponent npcTransform)) continue;
-                if (!npcEntity.TryGetComponent(out PlayerMovementComponent npcMovement)) continue;
+                if (!npcEntity.TryGetComponent(out MovementComponent npcMovement)) continue;
 
                 GameEntity targetEntity = null;
                 if (npcComponent.targetEntityId != -1)
