@@ -16,4 +16,5 @@ MonoBehaviour:
   displayName: El pana roberto
   baseHp: 400
   moveSpeed: 2
+  movementStrategy: {fileID: 11400000, guid: fdfe982f7bc0a684696addb7ff550fdd, type: 2}
   prefab: {fileID: 831982934189301797, guid: 5f92ceeebb2dbb44e9d6d7355d4eb0c9, type: 3}

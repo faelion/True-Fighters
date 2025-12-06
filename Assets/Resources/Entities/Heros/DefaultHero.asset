@@ -15,7 +15,8 @@ MonoBehaviour:
   id: default
   displayName: PanaEvaristo
   baseHp: 500
-  baseMoveSpeed: 3.5
+  moveSpeed: 4
+  movementStrategy: {fileID: 11400000, guid: fdfe982f7bc0a684696addb7ff550fdd, type: 2}
   bindings:
   - key: Q
     ability: {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}

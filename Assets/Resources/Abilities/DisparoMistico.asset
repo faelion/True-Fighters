@@ -18,7 +18,10 @@ MonoBehaviour:
   range: 12
   castTime: 0
   cooldown: 2
+  movementStrategy: {fileID: 11400000, guid: 5a98ccce66e943f468f26598c2e0c946, type: 2}
   projectileSpeed: 8
   projectileLifeMs: 1500
   damage: 200
+  collisionRadius: 0.25
+  isTrigger: 1
   projectilePrefab: {fileID: 2603975711762807716, guid: 4fbea7c813015c143ac88b98a76686f7, type: 3}
