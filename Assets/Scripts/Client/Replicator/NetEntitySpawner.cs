@@ -41,7 +41,7 @@ public class NetEntitySpawner : MonoBehaviour
         }
     }
 
-    private void OnEntityState(StateMessage m)
+    private void OnEntityState(EntityStateData m)
     {
         if (m == null) return;
 
@@ -62,7 +62,7 @@ public class NetEntitySpawner : MonoBehaviour
         }
     }
 
-    private GameObject GetPrefabForMessage(StateMessage m)
+    private GameObject GetPrefabForMessage(EntityStateData m)
     {
         var type = (ServerGame.Entities.EntityType)m.entityType;
         switch (type)
@@ -75,6 +75,12 @@ public class NetEntitySpawner : MonoBehaviour
                 var neutral = ClientContent.ContentAssetRegistry.GetNeutral(m.archetypeId);
                 if (neutral != null && neutral.prefab)
                     return neutral.prefab;
+                break;
+            case ServerGame.Entities.EntityType.Projectile:
+                if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.ProjectileAbilityAsset projAbility)
+                {
+                    return projAbility.projectilePrefab;
+                }
                 break;
             default:
                 break;

@@ -1,8 +1,13 @@
+using ServerGame.Entities;
+using System.IO;
 using UnityEngine;
 
 public class NetEntityView : MonoBehaviour
 {
     public int entityId;
+    
+    // Reuse server component DTOs for deserialization
+    private readonly TransformComponent transformComp = new TransformComponent();
 
     void OnEnable()
     {
@@ -14,21 +19,34 @@ public class NetEntityView : MonoBehaviour
         ClientMessageRouter.OnEntityState -= OnEntityState;
     }
 
-    public void Initialize(StateMessage m)
+    public void Initialize(EntityStateData m)
     {
         entityId = m.entityId;
-        UpdateTransform(m);
+        UpdateState(m);
     }
 
-    private void OnEntityState(StateMessage m)
+    private void OnEntityState(EntityStateData m)
     {
         if (m.entityId != entityId) return;
-        UpdateTransform(m);
+        UpdateState(m);
     }
 
-    private void UpdateTransform(StateMessage m)
+    private void UpdateState(EntityStateData m)
     {
-        transform.position = new Vector3(m.posX, transform.position.y, m.posY);
-        transform.rotation = Quaternion.Euler(0f, m.rotZ, 0f);
+        if (m.components == null) return;
+
+        foreach (var compData in m.components)
+        {
+            if (compData.type == (int)ComponentType.Transform)
+            {
+                using (var ms = new MemoryStream(compData.data))
+                using (var reader = new BinaryReader(ms))
+                {
+                    transformComp.Deserialize(reader);
+                }
+                transform.position = new Vector3(transformComp.posX, transform.position.y, transformComp.posY);
+                transform.rotation = Quaternion.Euler(0f, transformComp.rotZ, 0f);
+            }
+        }
     }
 }

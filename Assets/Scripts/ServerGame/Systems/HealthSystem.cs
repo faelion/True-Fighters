@@ -1,3 +1,5 @@
+using ServerGame.Entities;
+
 namespace ServerGame.Systems
 {
     public class HealthSystem : ISystem
@@ -9,7 +11,7 @@ namespace ServerGame.Systems
 
             foreach (var entity in world.EntityRepo.AllEntities)
             {
-                var health = entity.Health;
+                if (!entity.TryGetComponent(out HealthComponent health)) continue;
                 
                 if (!health.IsAlive)
                 {

@@ -13,13 +13,13 @@ namespace ServerGame
 
         public readonly GameEntityManager EntityManager = new GameEntityManager();
         
-        public readonly Dictionary<int, AbilityEffect> AbilityEffects = new Dictionary<int, AbilityEffect>();
+        // public readonly Dictionary<int, AbilityEffect> AbilityEffects = new Dictionary<int, AbilityEffect>();
         
 
         public EntityRepository EntityRepo => EntityManager.Repo;
 
         private readonly List<IGameEvent> pendingEvents = new List<IGameEvent>();
-        private int nextEffectId = 1;
+        // private int nextEffectId = 1; // Unused
         private int nextEventId = 1;
 
 
@@ -59,19 +59,17 @@ namespace ServerGame
         public void HandleMove(int playerId, float targetX, float targetY)
         {
             var entity = EnsurePlayer(playerId);
-            entity.Movement.destX = targetX;
-            entity.Movement.destY = targetY;
-            entity.Movement.hasDestination = true;
+            if (entity.TryGetComponent(out PlayerMovementComponent movement))
+            {
+                movement.destX = targetX;
+                movement.destY = targetY;
+                movement.hasDestination = true;
+            }
         }
 
-        public int RegisterAbilityEffect(AbilityEffect effect, ClientContent.AbilityAsset sourceAsset = null)
+        public int RegisterAbilityEffect(object effect, ClientContent.AbilityAsset sourceAsset = null)
         {
-            int id = effect.id;
-            if (id == 0) id = nextEffectId++;
-            effect.id = id;
-            AbilityEffects[id] = effect;
-            sourceAsset?.OnEffectSpawn(this, effect);
-            return id;
+            return 0; // Legacy
         }
 
 

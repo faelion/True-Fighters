@@ -12,19 +12,21 @@ public class InputMessage
     public InputMessage() { }
 }
 
-public class StateMessage
+public class ComponentData
+{
+    public int type; // ComponentType enum
+    public byte[] data;
+    public ComponentData() { }
+}
+
+public class EntityStateData
 {
     public int entityId;
-    public float hp;
-    public float maxHp;
-    public float posX;
-    public float posY;
-    public float rotZ;
-    public int teamId;
-    public int entityType;
+    public int entityType; // Keep for now for identification (e.g. initial spawn)
     public string archetypeId;
     public int tick;
-    public StateMessage() { }
+    public ComponentData[] components;
+    public EntityStateData() { }
 }
 
 public class JoinRequestMessage
@@ -47,12 +49,7 @@ public class StartGameMessage
     public string sceneName;
     public StartGameMessage() { }
 }
-
-public enum AbilityTargetType { None, Point, Unit, Direction }
-
-// Game events are now strongly typed payloads identified by GameEventType.
-public enum ProjectileAction { Spawn, Update, Despawn }
-public enum GameEventType { Projectile = 1, Dash = 4, EntityDespawn = 5, EntitySpawn = 6 }
+public enum GameEventType { EntityDespawn = 1, EntitySpawn = 2 }
 
 public interface IGameEvent
 {
@@ -88,43 +85,10 @@ public class EntitySpawnEvent : IGameEvent
     public bool IsReliable => true;
 }
 
-public class ProjectileEvent : IGameEvent
-{
-    public ProjectileAction Action;
-    public string SourceId { get; set; }
-    public int CasterId { get; set; }
-    public int ServerTick { get; set; }
-    public int ProjectileId { get; set; }
-    public float PosX { get; set; }
-    public float PosY { get; set; }
-    public float DirX { get; set; }
-    public float DirY { get; set; }
-    public float Speed { get; set; }
-    public int LifeMs { get; set; }
-    public int EventId { get; set; }
-    public GameEventType Type => GameEventType.Projectile;
-    public bool IsReliable => Action == ProjectileAction.Spawn || Action == ProjectileAction.Despawn;
-}
-
-public class DashEvent : IGameEvent
-{
-    public string SourceId { get; set; }
-    public int CasterId { get; set; }
-    public int ServerTick { get; set; }
-    public float PosX { get; set; }
-    public float PosY { get; set; }
-    public float DirX { get; set; }
-    public float DirY { get; set; }
-    public float Speed { get; set; }
-    public int EventId { get; set; }
-    public GameEventType Type => GameEventType.Dash;
-    public bool IsReliable => true;
-}
-
 public class TickPacketMessage
 {
     public int serverTick;
-    public StateMessage[] states;
+    public EntityStateData[] states;
     public IGameEvent[] events;
     public int statesCount;
     public int eventsCount;

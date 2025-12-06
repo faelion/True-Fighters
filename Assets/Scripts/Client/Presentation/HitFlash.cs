@@ -43,22 +43,46 @@ public class HitFlash : MonoBehaviour
         }
     }
 
-    private void OnEntityState(StateMessage m)
+    private void OnEntityState(EntityStateData m)
     {
         if (view == null) return;
         if (m.entityId != view.entityId) return;
+
+        // Extract HP from component if available
+        float currentHp = -1f;
+        if (m.components != null)
+        {
+            foreach (var comp in m.components)
+            {
+                if (comp.type == (int)ServerGame.Entities.ComponentType.Health)
+                {
+                    // Manual deserialization of HealthComponent
+                    // Format: maxHp(float), currentHp(float), invunerable(bool)
+                    using (var ms = new System.IO.MemoryStream(comp.data))
+                    using (var br = new System.IO.BinaryReader(ms))
+                    {
+                        br.ReadSingle(); // maxHp
+                        currentHp = br.ReadSingle();
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (currentHp < 0f) return; // No health update this tick
+
         if (lastHp < 0f)
         {
-            lastHp = m.hp;
+            lastHp = currentHp;
             return;
         }
-        if (m.hp < lastHp - 0.01f)
+        if (currentHp < lastHp - 0.01f)
         {
             flashing = true;
             flashTimer = flashDuration;
             SetHit(true);
         }
-        lastHp = m.hp;
+        lastHp = currentHp;
     }
 
     public void SetHit(bool isHit)

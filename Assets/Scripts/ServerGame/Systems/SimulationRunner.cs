@@ -15,9 +15,9 @@ namespace ServerGame.Systems
             {
                 new MovementSystem(),
                 new HealthSystem(),
-                new NpcSystem(),
-                abilitySystem,
-                new AbilityEffectSystem()
+                new AIBehaviorSystem(),
+                new CollisionSystem(),
+                abilitySystem
             };
         }
 

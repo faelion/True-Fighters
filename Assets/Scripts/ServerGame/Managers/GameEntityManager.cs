@@ -61,7 +61,7 @@ namespace ServerGame.Managers
                 // If we have an entity, check if it's still alive
                 if (tracker.CurrentEntityId != -1)
                 {
-                    if (!Repo.TryGetEntity(tracker.CurrentEntityId, out var entity) || !entity.Health.IsAlive)
+                    if (!Repo.TryGetEntity(tracker.CurrentEntityId, out var entity) || !IsAlive(entity))
                     {
                         // Entity is dead or despawned
                         tracker.CurrentEntityId = -1;
@@ -82,18 +82,27 @@ namespace ServerGame.Managers
                             tracker.CurrentEntityId = npc.Id;
                             
                             // Broadcast spawn event
+                            // Need access to components
+                            var t = npc.GetComponent<TransformComponent>();
+                            var team = npc.GetComponent<TeamComponent>();
                             world.EnqueueEvent(new EntitySpawnEvent
                             {
                                 CasterId = npc.Id,
-                                PosX = npc.Transform.posX,
-                                PosY = npc.Transform.posY,
+                                PosX = t.posX,
+                                PosY = t.posY,
                                 ArchetypeId = npc.ArchetypeId,
-                                TeamId = npc.Team.teamId
+                                TeamId = team != null ? team.teamId : -1
                             });
                         }
                     }
                 }
             }
+        }
+        
+        private bool IsAlive(GameEntity entity)
+        {
+            if (entity.TryGetComponent(out HealthComponent h)) return h.IsAlive;
+            return true; // No health means immortal?
         }
 
         public GameEntity EnsurePlayer(int id, string name, string heroId, ServerWorld world)
@@ -104,9 +113,10 @@ namespace ServerGame.Managers
                 entity = Repo.CreateEntity(EntityType.Hero, forcedId: id);
                 entity.OwnerPlayerId = id;
                 entity.Name = name ?? $"Player{id}";
-                entity.Team.teamId = id;
                 entity.ArchetypeId = resolvedHeroId;
                 
+                // Add Components
+                var transform = new TransformComponent();
                 // Find spawn point
                 var spawners = UnityEngine.Object.FindObjectsByType<Shared.NetworkSpawner>(UnityEngine.FindObjectsSortMode.None);
                 float spawnX = 0f, spawnY = 0f;
@@ -119,19 +129,32 @@ namespace ServerGame.Managers
                         break;
                     }
                 }
+                transform.posX = spawnX; transform.posY = spawnY;
+                entity.AddComponent(transform);
 
                 var hero = ContentAssetRegistry.Heroes != null && !string.IsNullOrEmpty(resolvedHeroId) && ContentAssetRegistry.Heroes.TryGetValue(resolvedHeroId, out var heroSo)
                     ? heroSo : null;
-                float hp = hero != null ? hero.baseHp : 500f;
+                
                 float moveSpeed = hero != null ? hero.moveSpeed : 3.5f;
-                entity.Health.Reset(hp);
-                entity.Movement.moveSpeed = moveSpeed;
-                entity.Transform.posX = spawnX;
-                entity.Transform.posY = spawnY;
+
+                var movement = new PlayerMovementComponent();
+                movement.moveSpeed = moveSpeed;
+                entity.AddComponent(movement);
+
+                float hp = hero != null ? hero.baseHp : 500f;
+                var health = new HealthComponent();
+                health.Reset(hp);
+                entity.AddComponent(health);
+
+                var team = new TeamComponent();
+                team.teamId = id;
+                entity.AddComponent(team);
+                
+                entity.AddComponent(new CombatComponent());
+                entity.AddComponent(new CollisionComponent { radius = 0.5f });
 
                 heroEntities[id] = entity;
                 
-
                 if (!world.AbilityBooks.ContainsKey(id))
                     world.AbilityBooks[id] = ContentAssetRegistry.GetBindingsForHero(resolvedHeroId);
             }
@@ -154,12 +177,22 @@ namespace ServerGame.Managers
             var config = ContentAssetRegistry.GetNeutral(neutralId);
             var npc = Repo.CreateEntity(EntityType.Neutral);
             npc.ArchetypeId = config != null ? config.id : neutralId;
-            npc.Transform.posX = posX;
-            npc.Transform.posY = posY;
-            npc.Movement.moveSpeed = config != null ? config.moveSpeed : 2f;
-            npc.Health.Reset(config != null ? config.baseHp : 400f);
-            npc.Team.teamId = -1;
-            npc.Npc = new NpcComponent();
+            
+            var t = new TransformComponent { posX = posX, posY = posY };
+            npc.AddComponent(t);
+
+            float speed = config != null ? config.moveSpeed : 2f;
+            npc.AddComponent(new PlayerMovementComponent { moveSpeed = speed });
+            
+            float hp = config != null ? config.baseHp : 400f;
+            var h = new HealthComponent();
+            h.Reset(hp);
+            npc.AddComponent(h);
+
+            npc.AddComponent(new TeamComponent { teamId = -1 });
+            npc.AddComponent(new AIBehaviorComponent());
+            npc.AddComponent(new CollisionComponent { radius = 0.5f });
+
             return npc;
         }
 

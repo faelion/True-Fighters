@@ -18,29 +18,18 @@ namespace ClientContent
         {
             if (!ValidateCastRange(world, playerId, targetX, targetY, out var dir)) return false;
             var caster = world.EnsurePlayer(playerId);
-            world.EnqueueEvent(new DashEvent
-            {
-                SourceId = id,
-                CasterId = playerId,
-                PosX = caster.Transform.posX,
-                PosY = caster.Transform.posY,
-                DirX = dir.x,
-                DirY = dir.y,
-                Speed = speed,
-                ServerTick = 0
-            });
+            if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent t)) return false;
+            // User requested removal of custom events.
+            // visual effects for dash should be handled via State updates (e.g. high velocity) or EntitySpawn of a generic VF effect.
+            // For now, removing the event.
+            // world.EnqueueEvent(...)
             return true;
         }
 
         public override void ClientHandleEvent(IGameEvent evt, GameObject contextRoot)
         {
-            if (evt == null || evt.Type != GameEventType.Dash || evt.SourceId != id) return;
-            var dash = (DashEvent)evt;
-            GameObject prefab = dashVfx;
-            if (!prefab) return;
-            var go = Object.Instantiate(prefab, new Vector3(dash.PosX, 0f, dash.PosY), Quaternion.LookRotation(new Vector3(dash.DirX, 0f, dash.DirY)));
-            SceneManager.MoveGameObjectToScene(go, contextRoot.scene);
-            Object.Destroy(go, 1.0f);
+            // DashEvent removed.
+            // Visuals to be handled by spotting velocity change or specific Component state if needed.
         }
     }
 }

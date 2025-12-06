@@ -14,11 +14,8 @@ namespace Networking.Serialization
         private const byte TYPE_JoinResponseMessage = 4;
         private const byte TYPE_StartGameMessage = 5;
         private const byte TYPE_TickPacketMessage = 6;
-
-        // Event payloads (embedded inside TickPacket or standalone)
-        private const byte TYPE_ProjectileEvent = 11;
-        // 12, 13 unused now
-        private const byte TYPE_DashEvent = 14;
+        
+        // Event payloads
         private const byte TYPE_EntityDespawnEvent = 15;
         private const byte TYPE_EntitySpawnEvent = 16;
 
@@ -33,10 +30,10 @@ namespace Networking.Serialization
                     bw.Write(TYPE_InputMessage);
                     WriteInputMessage(bw, im);
                 }
-                else if (obj is StateMessage sm)
+                else if (obj is EntityStateData sm)
                 {
-                    bw.Write(TYPE_StateMessage);
-                    WriteStateMessage(bw, sm);
+                    bw.Write(TYPE_StateMessage); // reusing op code
+                    WriteEntityStateData(bw, sm);
                 }
                 else if (obj is JoinRequestMessage jr)
                 {
@@ -89,13 +86,11 @@ namespace Networking.Serialization
                 switch (type)
                 {
                     case TYPE_InputMessage: return ReadInputMessage(br);
-                    case TYPE_StateMessage: return ReadStateMessage(br);
+                    case TYPE_StateMessage: return ReadEntityStateData(br);
                     case TYPE_JoinRequestMessage: return ReadJoinRequest(br);
                     case TYPE_JoinResponseMessage: return ReadJoinResponse(br);
                     case TYPE_StartGameMessage: return ReadStartGame(br);
                     case TYPE_TickPacketMessage: return ReadTickPacket(br);
-                    case TYPE_ProjectileEvent: return ReadProjectileEvent(br);
-                    case TYPE_DashEvent: return ReadDashEvent(br);
                     case TYPE_EntityDespawnEvent: return ReadEntityDespawnEvent(br);
                     case TYPE_EntitySpawnEvent: return ReadEntitySpawnEvent(br);
                     default:
@@ -136,34 +131,47 @@ namespace Networking.Serialization
             };
         }
 
-        private static void WriteStateMessage(BinaryWriter bw, StateMessage m)
+        private static void WriteEntityStateData(BinaryWriter bw, EntityStateData m)
         {
             bw.Write(m.entityId);
-            bw.Write(m.hp);
-            bw.Write(m.maxHp);
-            bw.Write(m.posX);
-            bw.Write(m.posY);
-            bw.Write(m.rotZ);
-            bw.Write(m.teamId);
             bw.Write(m.entityType);
             WriteString(bw, m.archetypeId);
             bw.Write(m.tick);
-        }
-        private static StateMessage ReadStateMessage(BinaryReader br)
-        {
-            return new StateMessage
+            int count = m.components != null ? m.components.Length : 0;
+            bw.Write(count);
+            if (count > 0)
             {
-                entityId = br.ReadInt32(),
-                hp = br.ReadSingle(),
-                maxHp = br.ReadSingle(),
-                posX = br.ReadSingle(),
-                posY = br.ReadSingle(),
-                rotZ = br.ReadSingle(),
-                teamId = br.ReadInt32(),
-                entityType = br.ReadInt32(),
-                archetypeId = ReadString(br),
-                tick = br.ReadInt32(),
-            };
+                for (int i = 0; i < count; i++)
+                {
+                    var c = m.components[i];
+                    bw.Write(c.type);
+                    int len = c.data != null ? c.data.Length : 0;
+                    bw.Write(len);
+                    if (len > 0) bw.Write(c.data);
+                }
+            }
+        }
+        private static EntityStateData ReadEntityStateData(BinaryReader br)
+        {
+            var m = new EntityStateData();
+            m.entityId = br.ReadInt32();
+            m.entityType = br.ReadInt32();
+            m.archetypeId = ReadString(br);
+            m.tick = br.ReadInt32();
+            int count = br.ReadInt32();
+            if (count > 0)
+            {
+                m.components = new ComponentData[count];
+                for (int i = 0; i < count; i++)
+                {
+                    var c = new ComponentData();
+                    c.type = br.ReadInt32();
+                    int len = br.ReadInt32();
+                    if (len > 0) c.data = br.ReadBytes(len);
+                    m.components[i] = c;
+                }
+            }
+            return m;
         }
 
         private static void WriteJoinRequest(BinaryWriter bw, JoinRequestMessage m)
@@ -200,8 +208,6 @@ namespace Networking.Serialization
         {
             switch (ev.Type)
             {
-                case GameEventType.Projectile: return TYPE_ProjectileEvent;
-                case GameEventType.Dash: return TYPE_DashEvent;
                 case GameEventType.EntityDespawn: return TYPE_EntityDespawnEvent;
                 case GameEventType.EntitySpawn: return TYPE_EntitySpawnEvent;
                 default: throw new NotSupportedException("Unknown event type: " + ev.Type);
@@ -218,39 +224,6 @@ namespace Networking.Serialization
         {
             switch (ev.Type)
             {
-                case GameEventType.Projectile:
-                {
-                    var m = (ProjectileEvent)ev;
-                    bw.Write((int)m.Action);
-                    WriteString(bw, m.SourceId);
-                    bw.Write(m.CasterId);
-                    bw.Write(m.ServerTick);
-                    bw.Write(m.ProjectileId);
-                    // Optimization: Despawn doesn't need pos/motion data
-                    if (m.Action != ProjectileAction.Despawn)
-                    {
-                        bw.Write(m.PosX);
-                        bw.Write(m.PosY);
-                        bw.Write(m.DirX);
-                        bw.Write(m.DirY);
-                        bw.Write(m.Speed);
-                        bw.Write(m.LifeMs);
-                    }
-                    bw.Write(m.EventId);
-                    break;
-                }case GameEventType.Dash:
-                {
-                    var m = (DashEvent)ev;
-                    WriteString(bw, m.SourceId);
-                    bw.Write(m.CasterId);
-                    bw.Write(m.ServerTick);
-                    bw.Write(m.PosX);
-                    bw.Write(m.PosY);
-                    bw.Write(m.DirX);
-                    bw.Write(m.DirY);
-                    bw.Write(m.Speed);
-                    break;
-                }
                 case GameEventType.EntityDespawn:
                 {
                     var m = (EntityDespawnEvent)ev;
@@ -280,51 +253,11 @@ namespace Networking.Serialization
         {
             switch (type)
             {
-                case TYPE_ProjectileEvent: return ReadProjectileEvent(br);
-                case TYPE_DashEvent: return ReadDashEvent(br);
                 case TYPE_EntityDespawnEvent: return ReadEntityDespawnEvent(br);
                 case TYPE_EntitySpawnEvent: return ReadEntitySpawnEvent(br);
                 default:
                     throw new NotSupportedException("Unknown event type id: " + type);
             }
-        }
-
-        private static ProjectileEvent ReadProjectileEvent(BinaryReader br)
-        {
-            var m = new ProjectileEvent();
-            m.Action = (ProjectileAction)br.ReadInt32();
-            m.SourceId = ReadString(br);
-            m.CasterId = br.ReadInt32();
-            m.ServerTick = br.ReadInt32();
-            m.ProjectileId = br.ReadInt32();
-            if (m.Action != ProjectileAction.Despawn)
-            {
-                m.PosX = br.ReadSingle();
-                m.PosY = br.ReadSingle();
-                m.DirX = br.ReadSingle();
-                m.DirY = br.ReadSingle();
-                m.Speed = br.ReadSingle();
-                m.LifeMs = br.ReadInt32();
-            }
-            m.EventId = br.ReadInt32();
-            return m;
-        }
-
-        private static DashEvent ReadDashEvent(BinaryReader br)
-        {
-            return new DashEvent
-            {
-                SourceId = ReadString(br),
-                CasterId = br.ReadInt32(),
-                ServerTick = br.ReadInt32(),
-                PosX = br.ReadSingle(),
-                PosY = br.ReadSingle(),
-                DirX = br.ReadSingle(),
-                DirY = br.ReadSingle(),
-                Speed = br.ReadSingle(),
-
-                EventId = br.ReadInt32(),
-            };
         }
 
         private static EntityDespawnEvent ReadEntityDespawnEvent(BinaryReader br)
@@ -357,7 +290,7 @@ namespace Networking.Serialization
             bw.Write(m.serverTick);
             int sc = m.statesCount > 0 ? m.statesCount : (m.states != null ? m.states.Length : 0);
             bw.Write(sc);
-            for (int i = 0; i < sc; i++) WriteStateMessage(bw, m.states[i]);
+            for (int i = 0; i < sc; i++) WriteEntityStateData(bw, m.states[i]);
             int ec = m.eventsCount > 0 ? m.eventsCount : (m.events != null ? m.events.Length : 0);
             bw.Write(ec);
             for (int i = 0; i < ec; i++) WriteEvent(bw, m.events[i]);
@@ -367,8 +300,8 @@ namespace Networking.Serialization
             var m = new TickPacketMessage();
             m.serverTick = br.ReadInt32();
             int sc = br.ReadInt32();
-            m.states = new StateMessage[sc];
-            for (int i = 0; i < sc; i++) m.states[i] = ReadStateMessage(br);
+            m.states = new EntityStateData[sc];
+            for (int i = 0; i < sc; i++) m.states[i] = ReadEntityStateData(br);
             int ec = br.ReadInt32();
             m.events = new IGameEvent[ec];
             for (int i = 0; i < ec; i++)

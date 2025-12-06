@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Buffers;
+using System.IO;
 using ServerGame.Entities;
 
 namespace ServerGame.Managers
@@ -10,15 +10,12 @@ namespace ServerGame.Managers
         private class ClientState
         {
             public int LastAckedTick = -1;
-
             public List<IGameEvent> ReliableEvents = new List<IGameEvent>();
         }
 
         private readonly Dictionary<int, ClientState> clients = new Dictionary<int, ClientState>();
-        private readonly List<IGameEvent> globalReliableEvents = new List<IGameEvent>();
         
-
-        private readonly List<StateMessage> stateBuffer = new List<StateMessage>(64);
+        private readonly List<EntityStateData> stateBuffer = new List<EntityStateData>(64);
         private readonly List<IGameEvent> eventBuffer = new List<IGameEvent>(64);
 
         public void RegisterClient(int playerId)
@@ -36,10 +33,8 @@ namespace ServerGame.Managers
         {
             if (clients.TryGetValue(playerId, out var client))
             {
-
                 if (ackTick > client.LastAckedTick)
                     client.LastAckedTick = ackTick;
-
 
                 for (int i = client.ReliableEvents.Count - 1; i >= 0; i--)
                 {
@@ -53,13 +48,11 @@ namespace ServerGame.Managers
 
         public void EnqueueReliableEvent(IGameEvent ev)
         {
-
             foreach (var client in clients.Values)
             {
                 client.ReliableEvents.Add(ev);
             }
         }
-
 
         public TickPacketMessage BuildPacket(int playerId, ServerWorld world, int currentTick, List<IGameEvent> frameEvents)
         {
@@ -70,11 +63,14 @@ namespace ServerGame.Managers
 
             var playerHero = world.GetHeroEntity(playerId);
             float px = 0f, py = 0f;
-            bool hasHero = playerHero != null;
+            bool hasHero = playerHero != null && playerHero.TryGetComponent(out TransformComponent heroTransform);
+            
             if (hasHero)
             {
-                px = playerHero.Transform.posX;
-                py = playerHero.Transform.posY;
+                // playerHero.GetComponent would work too since we checked hasHero
+                var t = playerHero.GetComponent<TransformComponent>();
+                px = t.posX;
+                py = t.posY;
             }
 
             const float InterestRadius = 20f;
@@ -84,33 +80,44 @@ namespace ServerGame.Managers
             {
                 bool isOwner = entity.Id == playerId;
                 
-                // Spectator/Dead logic: if no hero, see everything.
-                if (!hasHero)
+                // Interest Management
+                if (hasHero && !isOwner)
                 {
-                    // Fallthrough to add state
-                }
-                else if (!isOwner)
-                {
-                    float dx = entity.Transform.posX - px;
-                    float dy = entity.Transform.posY - py;
-                    if (dx * dx + dy * dy > InterestRadiusSq)
-                        continue;
+                    // If entity has transform, check distance
+                    if (entity.TryGetComponent(out TransformComponent t))
+                    {
+                        // Logic from GameMath inline or usage if available.
+                        // Ideally reused GameMath but I deleted it per user request.
+                        // Manual calc:
+                        float dx = t.posX - px;
+                        float dy = t.posY - py;
+                        if (dx * dx + dy * dy > InterestRadiusSq)
+                            continue;
+                    }
                 }
                 
-                var state = new StateMessage
+                var entityState = new EntityStateData();
+                entityState.entityId = entity.Id;
+                entityState.entityType = (int)entity.Type;
+                entityState.archetypeId = entity.ArchetypeId;
+                entityState.tick = currentTick;
+
+                var compList = new List<ComponentData>();
+                foreach (var comp in entity.AllComponents)
                 {
-                    entityId = entity.Id,
-                    hp = entity.Health.currentHp,
-                    maxHp = entity.Health.maxHp,
-                    posX = entity.Transform.posX,
-                    posY = entity.Transform.posY,
-                    rotZ = entity.Transform.rotZ,
-                    teamId = entity.Team.teamId,
-                    entityType = (int)entity.Type,
-                    archetypeId = entity.ArchetypeId,
-                    tick = currentTick
-                };
-                stateBuffer.Add(state);
+                    using (var ms = new MemoryStream())
+                    using (var writer = new BinaryWriter(ms))
+                    {
+                        comp.Serialize(writer);
+                        compList.Add(new ComponentData
+                        {
+                            type = (int)comp.Type,
+                            data = ms.ToArray()
+                        });
+                    }
+                }
+                entityState.components = compList.ToArray();
+                stateBuffer.Add(entityState);
             }
 
             eventBuffer.AddRange(frameEvents);
@@ -123,22 +130,13 @@ namespace ServerGame.Managers
                 }
             }
 
-            int sc = stateBuffer.Count;
-            int ec = eventBuffer.Count;
-            
-            var statesArr = new StateMessage[sc];
-            stateBuffer.CopyTo(statesArr);
-            
-            var eventsArr = new IGameEvent[ec];
-            eventBuffer.CopyTo(eventsArr);
-
             return new TickPacketMessage
             {
                 serverTick = currentTick,
-                states = statesArr,
-                events = eventsArr,
-                statesCount = sc,
-                eventsCount = ec
+                states = stateBuffer.ToArray(),
+                events = eventBuffer.ToArray(),
+                statesCount = stateBuffer.Count,
+                eventsCount = eventBuffer.Count
             };
         }
     }

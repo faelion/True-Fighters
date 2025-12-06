@@ -13,6 +13,9 @@ namespace ClientContent
         public float range = 12f;
         public float castTime = 0f;
         public float cooldown = 2f;
+        
+        // [Header("Effects")]
+        // public System.Collections.Generic.List<Shared.ScriptableObjects.EffectSO> effects = new System.Collections.Generic.List<Shared.ScriptableObjects.EffectSO>();
 
 
         public abstract bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY);
@@ -21,8 +24,9 @@ namespace ClientContent
         {
             dir = Vector2.right;
             var caster = world.EnsurePlayer(playerId);
-            float dx = targetX - caster.Transform.posX;
-            float dy = targetY - caster.Transform.posY;
+            if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent t)) return false;
+            float dx = targetX - t.posX;
+            float dy = targetY - t.posY;
             float dist2 = dx * dx + dy * dy;
             if (dist2 > range * range) return false;
 
@@ -33,14 +37,11 @@ namespace ClientContent
         }
 
 
-        public virtual void OnEffectSpawn(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff) { }
-        public virtual bool OnEffectTick(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, float dt) { return true; }
-        public virtual void OnEffectHit(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int targetEntityId) { }
-        public virtual void OnEffectExpired(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff) { }
-
-
-        public virtual void EmitEvents(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, int tick, System.Collections.Generic.IList<IGameEvent> buffer) { }
-        public virtual bool EmitDespawnEvent(ServerGame.ServerWorld world, ServerGame.AbilityEffect eff, out IGameEvent evt) { evt = null; return false; }
+        // New Modular Logic hooks
+        public virtual void OnEntitySpawn(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity) { }
+        public virtual void OnEntityTick(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity, float dt) { }
+        public virtual void OnEntityCollision(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity me, ServerGame.Entities.GameEntity other) { }
+        public virtual void OnEntityDespawn(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity) { }
 
 
         public abstract void ClientHandleEvent(IGameEvent evt, GameObject contextRoot);
