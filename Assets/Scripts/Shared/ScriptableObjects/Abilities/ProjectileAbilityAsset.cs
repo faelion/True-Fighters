@@ -14,8 +14,8 @@ namespace ClientContent
         [Header("Lifetime")]
         public int projectileLifeMs = 1500;
 
-        [Header("Combat")]
-        public float damage = 0f;
+        [Header("Effects")]
+        public System.Collections.Generic.List<Shared.Effects.Effect> onHitEffects;
 
         [Header("Collision")]
         public float collisionRadius = 0.25f;
@@ -64,6 +64,10 @@ namespace ClientContent
                 projectile.AddComponent(new ServerGame.Entities.TeamComponent { teamId = team.teamId, friendlyFire = team.friendlyFire });
             }
 
+            // Optimization/Hack: Pass effects to the projectile entity? 
+            // Ideally projectile knows its Archetype which leads back to this Asset, 
+            // so we look up the effects from the Asset when collision happens (which is what we do below).
+            
             world.EnqueueEvent(new EntitySpawnEvent
             {
                 CasterId = projectile.Id,
@@ -78,14 +82,24 @@ namespace ClientContent
 
         public override void OnEntityCollision(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity me, ServerGame.Entities.GameEntity other)
         {
-            // Simple damage logic
-            if (other.TryGetComponent(out ServerGame.Entities.HealthComponent health) && other.TryGetComponent(out ServerGame.Entities.TeamComponent otherTeam))
+            if (other.TryGetComponent(out ServerGame.Entities.TeamComponent otherTeam))
             {
                 if (me.TryGetComponent(out ServerGame.Entities.TeamComponent myTeam))
                 {
                     if (myTeam.IsEnemyTo(otherTeam))
                     {
-                        health.ApplyDamage(damage);
+                        // Apply Effects
+                        if (onHitEffects != null)
+                        {
+                            foreach (var effect in onHitEffects)
+                            {
+                                if (effect != null)
+                                {
+                                    effect.Apply(world, me, other);
+                                }
+                            }
+                        }
+
                         world.DespawnEntity(me.Id); // Destroy projectile on hit
                     }
                 }

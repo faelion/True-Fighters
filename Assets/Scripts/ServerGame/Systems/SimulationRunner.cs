@@ -18,6 +18,7 @@ namespace ServerGame.Systems
                 new LifetimeSystem(),
                 new AIBehaviorSystem(),
                 new CollisionSystem(),
+                new StatusEffectSystem(),
                 abilitySystem
             };
         }

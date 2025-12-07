@@ -161,6 +161,7 @@ namespace ServerGame.Managers
             entity.AddComponent(new TeamComponent { teamId = playerId });
             entity.AddComponent(new CombatComponent());
             entity.AddComponent(new CollisionComponent { radius = 0.5f });
+            entity.AddComponent(new StatusEffectComponent());
         }
 
         private Vector2 GetSpawnPosition(int teamId)
@@ -206,6 +207,7 @@ namespace ServerGame.Managers
             npc.AddComponent(new TeamComponent { teamId = -1 });
             npc.AddComponent(new AIBehaviorComponent());
             npc.AddComponent(new CollisionComponent { radius = 0.5f });
+            npc.AddComponent(new StatusEffectComponent());
 
             return npc;
         }

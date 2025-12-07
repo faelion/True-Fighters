@@ -18,7 +18,6 @@ MonoBehaviour:
   range: 12
   castTime: 0
   cooldown: 2
-  distance: 4
-  speed: 10
-  damageOnHit: 0
+  Effects:
+  - {fileID: 11400000, guid: 733de97f98940bf47b75da630c8b1dd3, type: 2}
   dashVfx: {fileID: 0}

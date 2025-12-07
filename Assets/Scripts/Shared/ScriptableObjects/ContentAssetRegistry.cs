@@ -77,10 +77,12 @@ namespace ClientContent
                 if (hero.bindings != null)
                 {
                     foreach (var b in hero.bindings)
+                    {
                         if (b.ability != null && !string.IsNullOrEmpty(b.ability.id))
                             map[b.key ?? "Q"] = b.ability;
                         else
                             Debug.LogWarning($"[AbilityAssetRegistry] Binding on hero '{hero.id}' has missing ability or id (key '{b.key}').");
+                    }
                 }
                 if (map.Count > 0)
                     return map;
@@ -88,6 +90,12 @@ namespace ClientContent
             // Fallback minimal binding
             var fallback = ScriptableObject.CreateInstance<ProjectileAbilityAsset>();
             fallback.id = "fallback_proj_q"; fallback.defaultKey = "Q"; fallback.range = 20f; fallback.cooldown = 1.0f; fallback.projectileSpeed = 9f; fallback.projectileLifeMs = 1400;
+            
+            // Default damage
+            var dmgEffect = ScriptableObject.CreateInstance<Shared.Effects.InstantDamageEffect>();
+            dmgEffect.Amount = 10f;
+            fallback.onHitEffects = new System.Collections.Generic.List<Shared.Effects.Effect> { dmgEffect };
+
             if (!Abilities.ContainsKey(fallback.id)) Abilities[fallback.id] = fallback;
             Debug.LogWarning("[AbilityAssetRegistry] Using fallback projectile ability on key Q (no valid hero bindings found)." );
             return new Dictionary<string, AbilityAsset> { ["Q"] = fallback };

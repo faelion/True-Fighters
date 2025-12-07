@@ -11,6 +11,11 @@ namespace ServerGame.Entities
         public float attackCooldown = 1.0f;
         public float attackTimer = 0f;
 
+        // Generic "IsActive" logic for Disables (Silences, Stuns)
+        public int DisabledCount;
+        public bool IsActive => DisabledCount <= 0;
+
+
         public void Serialize(BinaryWriter writer)
         {
             writer.Write(attackDamage);

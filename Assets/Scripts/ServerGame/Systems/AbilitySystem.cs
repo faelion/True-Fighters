@@ -59,6 +59,12 @@ namespace ServerGame.Systems
                 cooldowns[playerId] = cdByKey;
             }
 
+            // Check for silence/stun/disable
+            if (caster.TryGetComponent(out ServerGame.Entities.CombatComponent combat) && !combat.IsActive)
+            {
+                return false;
+            }
+
             if (cdByKey.TryGetValue(key, out float cd) && cd > 0f)
                 return false;
 

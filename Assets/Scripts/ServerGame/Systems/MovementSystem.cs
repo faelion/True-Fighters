@@ -13,6 +13,8 @@ namespace ServerGame.Systems
                 if (!entity.TryGetComponent(out MovementComponent movement)) continue;
                 if (!entity.TryGetComponent(out TransformComponent transform)) continue;
 
+                if (!movement.IsActive) continue;
+
                 // Delegate to strategy
                 if (movement.strategy != null)
                 {

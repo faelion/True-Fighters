@@ -12,11 +12,14 @@ namespace ServerGame.Entities
         public float moveSpeed;
 
         // State
-        public float velX;
-        public float velY;
-        public float destX;
-        public float destY;
-        public bool hasDestination;
+        public float velX, velY;
+        public float destX, destY;
+        public bool hasDestination; // For click-to-move
+
+        // Generic "IsActive" logic for Disable effects (Stuns, Roots, etc)
+        public int DisabledCount;
+        public bool IsActive => DisabledCount <= 0;
+
 
         public void Serialize(BinaryWriter writer)
         {
