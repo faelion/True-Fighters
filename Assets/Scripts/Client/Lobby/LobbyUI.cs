@@ -40,19 +40,34 @@ public class LobbyUI : MonoBehaviour
         
         // Host controls visibility check
         bool isHost = NetworkConfig.playerName == "HostPlayer"; // Simple check
-        if (hostControlsPanel) hostControlsPanel.SetActive(isHost);
+        if (hostControlsPanel) 
+        {
+            Debug.Log($"[LobbyUI] Host Controls Panel is assigned to: {hostControlsPanel.name} (Scene: {hostControlsPanel.scene.name})");
+            Debug.Log($"[LobbyUI] Setting Host Controls active: {isHost}");
+            hostControlsPanel.SetActive(isHost);
+        }
+        else Debug.LogWarning("[LobbyUI] Host Controls Panel is NULL");
     }
 
     private void PopulateHeroGrid()
     {
         // Clean existing
         foreach (Transform child in heroGridContent) Destroy(child.gameObject);
+        
+        // Load Registry
+        ContentAssetRegistry.EnsureLoaded();
 
-        // This should come from a Heroes Registry. Using hardcoded for prototype or Registry if possible.
-        var heroes = new string[] { "Warrior", "Mage", "Rogue", "Cleric" }; // Example IDs
-
-        foreach (var heroId in heroes)
+        if (ContentAssetRegistry.Heroes.Count == 0)
         {
+            Debug.LogWarning("[LobbyUI] No heroes found in Registry!");
+            return;
+        }
+
+        foreach (var kvp in ContentAssetRegistry.Heroes)
+        {
+            var heroId = kvp.Key;
+            var heroData = kvp.Value;
+            
             var go = Instantiate(heroButtonPrefab, heroGridContent);
             var btn = go.GetComponent<Button>();
             var txt = go.GetComponentInChildren<TMP_Text>();

@@ -2179,6 +2179,43 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 850339982}
   m_CullTransparentMesh: 1
+--- !u!1 &876766825
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 876766826}
+  m_Layer: 5
+  m_Name: HostControlPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &876766826
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 876766825}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 966222354}
+  - {fileID: 1796811946}
+  m_Father: {fileID: 1105586032}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &904278176
 GameObject:
   m_ObjectHideFlags: 0
@@ -2811,13 +2848,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 966222352}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1241891315}
-  m_Father: {fileID: 1105586032}
+  m_Father: {fileID: 876766826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3531,7 +3568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f3c49279549aba4480ab39da8539c88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyUI
-  hostControlsPanel: {fileID: 922567613}
+  hostControlsPanel: {fileID: 876766825}
   heroButtonPrefab: {fileID: 2153820907880857516, guid: 7503466f36e03c74d84b81889fb1a12b, type: 3}
   playerListEntryPrefab: {fileID: 9200431293471534887, guid: 5413284754d020941bd038610a57da30, type: 3}
   heroGridContent: {fileID: 1284582222}
@@ -3636,8 +3673,7 @@ RectTransform:
   - {fileID: 2101081084}
   - {fileID: 2086426}
   - {fileID: 694547427}
-  - {fileID: 1796811946}
-  - {fileID: 966222354}
+  - {fileID: 876766826}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5978,13 +6014,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1796811942}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 502113294}
-  m_Father: {fileID: 1105586032}
+  m_Father: {fileID: 876766826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}

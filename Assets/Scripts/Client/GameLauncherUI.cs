@@ -89,15 +89,41 @@ public class GameLauncherUI : MonoBehaviour
         
         manager.StartServer(defaultMap);
     }
+    private string GetPath(GameObject go)
+    {
+        if (go == null) return "null";
+        return go.scene.name + "::" + go.transform.parent?.name + "/" + go.name;
+    }
+
     private void ShowPanel(GameObject panel)
     {
-        mainMenuPanel.SetActive(false);
-        clientPanel.SetActive(false);
-        hostPanel.SetActive(false);
-        serverPanel.SetActive(false);
+        Debug.Log($"[UI] Request to show: {GetPath(panel)}");
+        
+        if (mainMenuPanel) mainMenuPanel.SetActive(false);
+        if (clientPanel) clientPanel.SetActive(false);
+        
+        if (hostPanel && hostPanel.activeSelf) 
+        { 
+            Debug.Log($"[UI] Disabling Host Panel: {GetPath(hostPanel)}");
+            hostPanel.SetActive(false); 
+        }
+        
+        // Brute force safety check
+        var rootHost = GameObject.Find("HostCanvas");
+        if (rootHost != null && rootHost.activeSelf)
+        {
+             Debug.LogError($"[UI] BRUTE FORCE: HostCanvas was still active! Disabling {GetPath(rootHost)}");
+             rootHost.SetActive(false);
+        }
+
+        if (serverPanel) serverPanel.SetActive(false);
         if (lobbyPanel) lobbyPanel.SetActive(false);
         
-        if (panel != null) panel.SetActive(true);
+        if (panel != null) 
+        {
+            Debug.Log($"[UI] Enabling Panel: {GetPath(panel)}");
+            panel.SetActive(true);
+        }
     }
 
     public void ShowLobby()
