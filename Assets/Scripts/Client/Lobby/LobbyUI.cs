@@ -62,6 +62,35 @@ public class LobbyUI : MonoBehaviour
             // also clear grid
             foreach (Transform child in heroGridContent) Destroy(child.gameObject);
         }
+
+        // Info Text
+        if (lobbyInfoText)
+        {
+            if (isHost || NetworkConfig.playerName == "Server")
+            {
+                lobbyInfoText.text = $"Local IP: {GetLocalIPAddress()}:9050";
+            }
+            else
+            {
+                if (manager.clientNetwork != null)
+                     lobbyInfoText.text = $"Connected to: {manager.clientNetwork.serverHost}:{manager.clientNetwork.serverPort}";
+                else
+                     lobbyInfoText.text = "Connected";
+            }
+        }
+    }
+
+    private string GetLocalIPAddress()
+    {
+        var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                return ip.ToString();
+            }
+        }
+        return "127.0.0.1";
     }
 
     private void PopulateHeroGrid()
