@@ -17,6 +17,7 @@ public class LobbyUI : MonoBehaviour
     [Header("References")]
     public Transform heroGridContent;
     public Transform playerListContent;
+    public GameObject previewArea; // New Reference for the container
     public Image heroPreviewImage;
     public TMP_Text heroPreviewName;
     public TMP_Text heroPreviewDescription;
@@ -26,20 +27,18 @@ public class LobbyUI : MonoBehaviour
     public TMP_Text lobbyInfoText; // "Waiting for players..." or IP
 
     private LobbyManager manager;
-    private Dictionary<string, AbilityAsset> loadedHeroes; // Using AbilityAsset struct? No, need HeroSO or equivalent. 
-    // ContentAssetRegistry seems to define Hero IDs but maybe not full data yet. 
-    // For now, we simulate hero data or fetch from Registry if available.
+    private Dictionary<string, AbilityAsset> loadedHeroes; 
 
     public void Init(LobbyManager mgr)
     {
         manager = mgr;
-        PopulateHeroGrid();
         
         if (readyToggle) readyToggle.onValueChanged.AddListener(OnReadyToggled);
         if (startGameButton) startGameButton.onClick.AddListener(OnStartGameClicked);
         
         // Host controls visibility check
-        bool isHost = NetworkConfig.playerName == "HostPlayer"; // Simple check
+        bool isHost = NetworkConfig.playerName == "HostPlayer" || NetworkConfig.playerName == "Server"; 
+        
         if (hostControlsPanel) 
         {
             Debug.Log($"[LobbyUI] Host Controls Panel is assigned to: {hostControlsPanel.name} (Scene: {hostControlsPanel.scene.name})");
@@ -47,6 +46,22 @@ public class LobbyUI : MonoBehaviour
             hostControlsPanel.SetActive(isHost);
         }
         else Debug.LogWarning("[LobbyUI] Host Controls Panel is NULL");
+
+        // Server does not select heroes
+        if (NetworkConfig.playerName != "Server")
+        {
+            PopulateHeroGrid();
+            if (readyToggle) readyToggle.gameObject.SetActive(true);
+            if (previewArea) previewArea.SetActive(true);
+        }
+        else
+        {
+            if (readyToggle) readyToggle.gameObject.SetActive(false);
+            if (previewArea) previewArea.SetActive(false);
+            if (heroGridContent) heroGridContent.gameObject.SetActive(false);
+            // also clear grid
+            foreach (Transform child in heroGridContent) Destroy(child.gameObject);
+        }
     }
 
     private void PopulateHeroGrid()

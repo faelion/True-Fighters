@@ -14,6 +14,9 @@ public class ServerLobbyManager : MonoBehaviour
         serverNetwork = net;
         serverNetwork.OnClientMessage += HandleMessage;
         serverNetwork.OnPlayerJoined += HandlePlayerJoined;
+        
+        // Initial empty state for Server UI
+        BroadcastLobbyState();
     }
 
     void OnDestroy()

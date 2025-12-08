@@ -26,16 +26,18 @@ public class GameLauncherManager : MonoBehaviour
 
     public void StartServer(string map)
     {
+        NetworkConfig.playerName = "Server";
         var srvGo = Instantiate(serverNetworkPrefab);
         activeServer = srvGo.GetComponent<ServerNetwork>();
         activeServer.Init();
 
         // Create Server Logic
         var slm = srvGo.AddComponent<ServerLobbyManager>(); // Attach to same GO for simplicity
-        slm.Init(activeServer);
         
         var lobby = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
         if (lobby) lobby.SetServer(slm);
+
+        slm.Init(activeServer);
         
         // Server stays in Lobby Mode until StartGame message
     }

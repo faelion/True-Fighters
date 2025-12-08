@@ -3573,6 +3573,7 @@ MonoBehaviour:
   playerListEntryPrefab: {fileID: 9200431293471534887, guid: 5413284754d020941bd038610a57da30, type: 3}
   heroGridContent: {fileID: 1284582222}
   playerListContent: {fileID: 1059113957}
+  previewArea: {fileID: 418215416}
   heroPreviewImage: {fileID: 512849715}
   heroPreviewName: {fileID: 1422703345}
   heroPreviewDescription: {fileID: 1331716539}
