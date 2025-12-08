@@ -5,6 +5,7 @@ namespace ServerGame.Entities
         Hero = 0,
         Neutral = 1,
         Structure = 2,
-        Projectile = 3
+        Projectile = 3,
+        Melee = 4
     }
 }

@@ -65,14 +65,19 @@ public class NetEntitySpawner : MonoBehaviour
         else if (type == ServerGame.Entities.EntityType.Projectile)
         {
             // Projectiles are currently single prefab
-             if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.ProjectileAbilityAsset projAbility)
-                 go = Instantiate(projAbility.projectilePrefab);
+            if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.ProjectileAbilityAsset projAbility)
+                go = Instantiate(projAbility.projectilePrefab);         
         }
         else if (type == ServerGame.Entities.EntityType.Neutral)
         {
              // Neutrals might also use a BaseNPC prefab in future, for now using direct prefab
              var neutral = ClientContent.ContentAssetRegistry.GetNeutral(m.archetypeId);
              if (neutral) go = Instantiate(neutral.prefab);
+        }
+        else if(type == ServerGame.Entities.EntityType.Melee)
+        {
+            if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.AttackCaCAbilityAsset cacAbility)
+                go = Instantiate(cacAbility.CaCPrefab);
         }
 
         if (go == null) go = new GameObject($"Entity_{m.entityId}");

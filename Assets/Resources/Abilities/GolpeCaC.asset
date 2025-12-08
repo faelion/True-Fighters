@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 990967dc3fd149b4d9989af420eb5bb5, type: 3}
+  m_Name: GolpeCaC
+  m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AttackCaCAbilityAsset
+  id: 3
+  displayName: AttackCaC
+  defaultKey: E
+  range: 2
+  castTime: 0
+  cooldown: 2
+  projectileLifeMs: 1000
+  onHitEffects:
+  - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}
+  collisionRadius: 1
+  isTrigger: 1
+  CaCPrefab: {fileID: 0}
+  spawnDistance: 1.5
