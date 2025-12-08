@@ -12,17 +12,17 @@ public class GameLauncherUI : MonoBehaviour
     public GameObject clientPanel;
     public GameObject hostPanel;
     public GameObject serverPanel;
+    public GameObject lobbyPanel; // New Reference
 
     [Header("Client Inputs")]
     public TMP_InputField clientIpInput;
     public TMP_InputField clientNameInput;
-    public TMP_InputField clientHeroInput;
+    // Hero input removed (handled in Lobby)
 
     [Header("Host/Server Inputs")]
-    public TMP_InputField hostMapInput;
-    public TMP_InputField hostHeroInput;
+    // Map/Hero inputs removed (handled in Lobby)
+    public TMP_InputField hostNameInput; // New
     public TMP_Text hostIpDisplay;
-    public TMP_InputField serverMapInput;
     public TMP_Text serverIpDisplay;
 
     void Start()
@@ -60,36 +60,49 @@ public class GameLauncherUI : MonoBehaviour
     {
         string ip = string.IsNullOrEmpty(clientIpInput.text) ? "127.0.0.1" : clientIpInput.text;
         string name = string.IsNullOrEmpty(clientNameInput.text) ? "Player" : clientNameInput.text;
-        string hero = string.IsNullOrEmpty(clientHeroInput.text) ? NetworkConfig.heroId : clientHeroInput.text;
+        
+        // Hero defaults to "Warrior" or similar until selected in Lobby
+        string defaultHero = NetworkConfig.heroId ?? "Warrior";
 
-        manager.JoinGame(ip, name, hero);
+        manager.JoinGame(ip, name, defaultHero);
         clientPanel.SetActive(false);
     }
 
 
     public void OnClickStartHost()
     {
-        string map = string.IsNullOrEmpty(hostMapInput.text) ? "Map1" : hostMapInput.text;
-        string hero = string.IsNullOrEmpty(hostHeroInput.text) ? NetworkConfig.heroId : hostHeroInput.text;
+        // Manager starts Server in Lobby Mode. Map is selected later in Lobby UI.
+        string defaultMap = "Map1"; 
+        string defaultHero = "Warrior";
         
-        manager.StartHost(map, hero);
+        // Update player name for Host
+        string hostName = (hostNameInput != null && !string.IsNullOrEmpty(hostNameInput.text)) ? hostNameInput.text : "Host";
+        NetworkConfig.playerName = hostName;
+        
+        manager.StartHost(defaultMap, defaultHero);
     }
 
 
     public void OnClickStartServer()
     {
-        string map = string.IsNullOrEmpty(serverMapInput.text) ? "Map1" : serverMapInput.text;
+        string defaultMap = "Map1";
         
-        manager.StartServer(map);
+        manager.StartServer(defaultMap);
     }
-
     private void ShowPanel(GameObject panel)
     {
         mainMenuPanel.SetActive(false);
         clientPanel.SetActive(false);
         hostPanel.SetActive(false);
         serverPanel.SetActive(false);
-        panel.SetActive(true);
+        if (lobbyPanel) lobbyPanel.SetActive(false);
+        
+        if (panel != null) panel.SetActive(true);
+    }
+
+    public void ShowLobby()
+    {
+        ShowPanel(lobbyPanel);
     }
 
     private string GetLocalIPAddress()

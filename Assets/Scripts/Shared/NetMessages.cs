@@ -49,6 +49,20 @@ public class StartGameMessage
     public string sceneName;
     public StartGameMessage() { }
 }
+
+public class LobbyUpdateMessage
+{
+    public Shared.LobbyStateData data;
+    public LobbyUpdateMessage() { }
+}
+
+public class LobbyActionMessage
+{
+    public int actionType; // 0=None, 1=SelectHero, 2=ToggleReady, 3=ChangeTeam
+    public string payload; // HeroId, "1"/"0", or TeamId string
+    public LobbyActionMessage() { }
+}
+
 public enum GameEventType { EntityDespawn = 1, EntitySpawn = 2 }
 
 public interface IGameEvent

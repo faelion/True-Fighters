@@ -67,6 +67,16 @@ namespace ServerGame
             }
         }
 
+        public void SetTeam(int playerId, int teamId)
+        {
+            var entity = EnsurePlayer(playerId);
+            var teamComp = entity.GetComponent<TeamComponent>();
+            if (teamComp != null)
+            {
+                teamComp.teamId = teamId;
+            }
+        }
+
         public int RegisterAbilityEffect(object effect, ClientContent.AbilityAsset sourceAsset = null)
         {
             return 0; // Legacy

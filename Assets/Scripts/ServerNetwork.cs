@@ -7,6 +7,7 @@ using UnityEngine;
 using System.Buffers;
 using Networking.Transport;
 using ServerGame;
+using Shared; // Added for LobbyActionMessage validation if needed, though mostly passed through
 
 public class ServerNetwork : MonoBehaviour
 {
@@ -21,6 +22,11 @@ public class ServerNetwork : MonoBehaviour
 
     private ServerGame.Managers.ReplicationManager replicationManager;
     private readonly System.Collections.Generic.List<IGameEvent> frameEvents = new System.Collections.Generic.List<IGameEvent>();
+
+    // Public API for External Managers (like ServerLobbyManager)
+    public ServerGame.ConnectionRegistry Connections => connections;
+    public event Action<IPEndPoint, object> OnClientMessage;
+    public event Action<int> OnPlayerJoined;
 
     void Start()
     {
@@ -53,29 +59,33 @@ public class ServerNetwork : MonoBehaviour
         Debug.Log($"[ServerNetwork] Loading scene '{sceneName}'...");
         currentSceneName = sceneName;
         
-
         var startMsg = new StartGameMessage { sceneName = sceneName };
         foreach (var ep in connections.PlayerEndpoints.Values)
         {
             SendMessageToClient(startMsg, ep);
         }
 
-
         var op = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
         while (!op.isDone) yield return null;
 
         Debug.Log("[ServerNetwork] Scene loaded. Initializing ServerWorld...");
         
-
         world = new ServerWorld();
         simulation = new ServerGame.Systems.SimulationRunner(world);
-
 
         foreach (var kv in connections.PlayerEndpoints)
         {
             int pid = kv.Key;
             string heroId = connections.GetHeroId(pid);
-            world.EnsurePlayer(pid, $"Player{pid}", heroId);
+            
+            // Create Entity
+            var entity = world.EnsurePlayer(pid, connections.GetPlayerName(pid), heroId);
+            
+            // Set Team - Requires accessing component directly without ref in iterator
+            // Cannot use 'ref' locals inside iterator block
+            // Direct component access for initialization:
+            world.SetTeam(pid, connections.GetTeam(pid));
+
             replicationManager.RegisterClient(pid);
         }
 
@@ -98,10 +108,8 @@ public class ServerNetwork : MonoBehaviour
 
             int tickNow = Environment.TickCount;
             
-
             frameEvents.Clear();
             frameEvents.AddRange(world.ConsumePendingEvents());
-
 
             foreach (var ev in frameEvents)
             {
@@ -111,7 +119,6 @@ public class ServerNetwork : MonoBehaviour
                     replicationManager.EnqueueReliableEvent(ev);
                 }
             }
-
 
             foreach (var kv in connections.PlayerEndpoints)
             {
@@ -132,6 +139,9 @@ public class ServerNetwork : MonoBehaviour
 
     private void OnReceiveMessage(IPEndPoint remote, object msg)
     {
+        // Raise event for external managers first
+        OnClientMessage?.Invoke(remote, msg);
+
         if (msg is JoinRequestMessage jr)
             HandleJoinRequest(jr, remote);
         else if (msg is InputMessage im)
@@ -148,7 +158,6 @@ public class ServerNetwork : MonoBehaviour
             return;
         }
 
-
         replicationManager.ProcessAck(pid, im.lastReceivedTick);
 
         if (im.kind == InputKind.RightClick)
@@ -161,6 +170,14 @@ public class ServerNetwork : MonoBehaviour
         {
             world.EnsurePlayer(pid);
             world.TryCastAbility(pid, key, im.targetX, im.targetY);
+        }
+    }
+
+    public void SendToAll(object msg)
+    {
+        foreach (var ep in connections.PlayerEndpoints.Values)
+        {
+            SendMessageToClient(msg, ep);
         }
     }
 
@@ -182,10 +199,11 @@ public class ServerNetwork : MonoBehaviour
         string heroId = connections.GetHeroId(assigned);
         Debug.Log($"Assigned playerId {assigned} to {remote} with name '{jr.playerName}' hero '{heroId}'");
         
-
         if (replicationManager != null) replicationManager.RegisterClient(assigned);
         
         SendJoinResponse(assigned, remote, heroId);
+        
+        OnPlayerJoined?.Invoke(assigned);
     }
 
     private void SendJoinResponse(int assignedId, IPEndPoint remote, string heroId)
@@ -195,10 +213,3 @@ public class ServerNetwork : MonoBehaviour
         catch (Exception e) { Debug.LogError("Failed to send JoinResponse: " + e); }
     }
 }
-
-
-
-
-
-
-

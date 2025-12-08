@@ -115,6 +115,16 @@ public class ClientNetwork : MonoBehaviour
         }
     }
 
+    public event Action<Shared.LobbyStateData> OnLobbyUpdate;
+    public Shared.LobbyStateData LastLobbyState { get; private set; }
+
+    public void SendLobbyAction(int actionType, string payload)
+    {
+        if (!hasAssignedId) return;
+        var msg = new LobbyActionMessage { actionType = actionType, payload = payload };
+        SendToServer(msg);
+    }
+
     private void OnReceiveMessage(IPEndPoint remote, object msg)
     {
         if (msg is JoinResponseMessage jr)
@@ -124,6 +134,12 @@ public class ClientNetwork : MonoBehaviour
             clientPlayerId = assignedPlayerId;
             Debug.Log($"Client: Received JoinResponse -> assigned id {assignedPlayerId}");
             ClientMessageRouter.RaiseJoinResponse(jr);
+        }
+        else if (msg is LobbyUpdateMessage lum)
+        {
+            Debug.Log($"Client: Received LobbyUpdateMessage. Players: {lum.data.Players?.Length}");
+            LastLobbyState = lum.data;
+            OnLobbyUpdate?.Invoke(lum.data);
         }
         else if (msg is StartGameMessage sgm)
         {
@@ -145,8 +161,6 @@ public class ClientNetwork : MonoBehaviour
                     if (ev.EventId <= lastProcessedEventId) continue;
                     lastProcessedEventId = ev.EventId;
                     
-                    // TODO: Implement proper event deduplication using unique EventIDs.
-                    // Currently assuming "at least once" delivery is acceptable.
                     ClientMessageRouter.RaiseServerEvent(ev);
                 }
             }
@@ -156,6 +170,4 @@ public class ClientNetwork : MonoBehaviour
             Debug.Log("Client received unknown message type: " + msg.GetType());
         }
     }
-
-
 }

@@ -15,6 +15,9 @@ namespace Networking.Serialization
         private const byte TYPE_StartGameMessage = 5;
         private const byte TYPE_TickPacketMessage = 6;
         
+        private const byte TYPE_LobbyUpdateMessage = 7;
+        private const byte TYPE_LobbyActionMessage = 8;
+        
         // Event payloads
         private const byte TYPE_EntityDespawnEvent = 15;
         private const byte TYPE_EntitySpawnEvent = 16;
@@ -60,6 +63,16 @@ namespace Networking.Serialization
                     bw.Write(TYPE_TickPacketMessage);
                     WriteTickPacket(bw, tpm);
                 }
+                else if (obj is LobbyUpdateMessage lum)
+                {
+                    bw.Write(TYPE_LobbyUpdateMessage);
+                    WriteLobbyUpdate(bw, lum);
+                }
+                else if (obj is LobbyActionMessage lam)
+                {
+                    bw.Write(TYPE_LobbyActionMessage);
+                    WriteLobbyAction(bw, lam);
+                }
                 else
                 {
                     throw new NotSupportedException("Unknown message type: " + obj.GetType().FullName);
@@ -91,6 +104,8 @@ namespace Networking.Serialization
                     case TYPE_JoinResponseMessage: return ReadJoinResponse(br);
                     case TYPE_StartGameMessage: return ReadStartGame(br);
                     case TYPE_TickPacketMessage: return ReadTickPacket(br);
+                    case TYPE_LobbyUpdateMessage: return ReadLobbyUpdate(br);
+                    case TYPE_LobbyActionMessage: return ReadLobbyAction(br);
                     case TYPE_EntityDespawnEvent: return ReadEntityDespawnEvent(br);
                     case TYPE_EntitySpawnEvent: return ReadEntitySpawnEvent(br);
                     default:
@@ -98,7 +113,36 @@ namespace Networking.Serialization
                 }
             }
         }
+        
+        // ... (Existing Writers/Readers unchanged) ...
 
+        private static void WriteLobbyUpdate(BinaryWriter bw, LobbyUpdateMessage m)
+        {
+            m.data.Serialize(bw);
+        }
+        private static LobbyUpdateMessage ReadLobbyUpdate(BinaryReader br)
+        {
+            var m = new LobbyUpdateMessage();
+            m.data = new Shared.LobbyStateData();
+            m.data.Deserialize(br);
+            return m;
+        }
+
+        private static void WriteLobbyAction(BinaryWriter bw, LobbyActionMessage m)
+        {
+            bw.Write(m.actionType);
+            WriteString(bw, m.payload);
+        }
+        private static LobbyActionMessage ReadLobbyAction(BinaryReader br)
+        {
+            return new LobbyActionMessage
+            {
+                actionType = br.ReadInt32(),
+                payload = ReadString(br)
+            };
+        }
+        
+        // Static Helpers for Strings/etc
         private static void WriteString(BinaryWriter bw, string s)
         {
             bool has = !string.IsNullOrEmpty(s);
@@ -110,6 +154,8 @@ namespace Networking.Serialization
             bool has = br.ReadBoolean();
             return has ? br.ReadString() : string.Empty;
         }
+
+        // ... (Rest of existing methods)
 
         private static void WriteInputMessage(BinaryWriter bw, InputMessage m)
         {

@@ -17,6 +17,10 @@ public class GameLauncherManager : MonoBehaviour
 
         var go = Instantiate(clientNetworkPrefab);
         activeClient = go.GetComponent<ClientNetwork>();
+        
+        var lobby = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
+        if (lobby) lobby.SetNetwork(activeClient);
+
         activeClient.Connect(ip, 9050);
     }
 
@@ -24,7 +28,16 @@ public class GameLauncherManager : MonoBehaviour
     {
         var srvGo = Instantiate(serverNetworkPrefab);
         activeServer = srvGo.GetComponent<ServerNetwork>();
-        activeServer.StartGame(map);
+        activeServer.Init();
+
+        // Create Server Logic
+        var slm = srvGo.AddComponent<ServerLobbyManager>(); // Attach to same GO for simplicity
+        slm.Init(activeServer);
+        
+        var lobby = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
+        if (lobby) lobby.SetServer(slm);
+        
+        // Server stays in Lobby Mode until StartGame message
     }
 
     public void StartHost(string map, string hero)
@@ -41,10 +54,19 @@ public class GameLauncherManager : MonoBehaviour
         activeServer = srvGo.GetComponent<ServerNetwork>();
         activeServer.Init();
 
+        // Host also needs Server Lobby Logic running!
+        var slm = srvGo.AddComponent<ServerLobbyManager>();
+        slm.Init(activeServer);
+
         var cliGo = Instantiate(clientNetworkPrefab);
         activeClient = cliGo.GetComponent<ClientNetwork>();
+        
+        var lobby = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
+        if (lobby) lobby.SetNetwork(activeClient);
+
         activeClient.Connect("127.0.0.1", 9050);
 
+        // Wait for connection
         float timeout = 5f;
         while (!activeClient.HasAssignedId && timeout > 0f)
         {
@@ -58,7 +80,9 @@ public class GameLauncherManager : MonoBehaviour
         }
         else
         {
-            activeServer.StartGame(map);
+            // Do NOT start game automatically. 
+            // The Lobby UI will appear because ClientNetwork is connected.
+            Debug.Log("Host connected to Lobby.");
         }
     }
 }
