@@ -12,10 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4945a1f6b582daa4db6db837b9da270e, type: 3}
   m_Name: Knight
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.HeroSO
-  id: 
-  displayName: 
+  id: knight
+  displayName: Knight
   baseHp: 100
   moveSpeed: 4
-  movementStrategy: {fileID: 0}
-  bindings: []
-  heroPrefab: {fileID: 0}
+  movementStrategy: {fileID: 11400000, guid: fdfe982f7bc0a684696addb7ff550fdd, type: 2}
+  bindings:
+  - key: Q
+    ability: {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
+  - key: W
+    ability: {fileID: 11400000, guid: 048859dc965cd10499256fd2d0345f6c, type: 2}
+  heroPrefab: {fileID: 5229275301457161681, guid: f75172a1aca57c149908c81e5806740f, type: 3}

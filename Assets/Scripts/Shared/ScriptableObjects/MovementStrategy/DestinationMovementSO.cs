@@ -18,12 +18,6 @@ namespace Shared.ScriptableObjects
             float distSq = dx * dx + dy * dy;
             float step = m.moveSpeed * dt;
 
-            if (distSq > 0.0001f)
-            {
-                float angleRad = Mathf.Atan2(dy, dx);
-                t.rotZ = angleRad;
-            }
-
             // If close enough, snap and stop
             if (distSq <= step * step)
             {
@@ -38,7 +32,7 @@ namespace Shared.ScriptableObjects
                 float dist = Mathf.Sqrt(distSq);
                 float nx = dx / dist;
                 float ny = dy / dist;
-                
+
                 // Update velocity for other systems to read (e.g. animation)
                 m.velX = nx * m.moveSpeed;
                 m.velY = ny * m.moveSpeed;
@@ -46,6 +40,8 @@ namespace Shared.ScriptableObjects
                 t.posX += m.velX * dt;
                 t.posY += m.velY * dt;
 
+                float angle = Mathf.Atan2(nx, ny) * Mathf.Rad2Deg;
+                t.rotZ = angle;
             }
         }
     }
