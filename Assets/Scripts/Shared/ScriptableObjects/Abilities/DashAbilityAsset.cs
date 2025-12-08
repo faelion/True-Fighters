@@ -20,7 +20,7 @@ namespace ClientContent
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent t)) return false;
             
             // Rotate caster to face dash direction
-            t.rotZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            //t.rotZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
             // Apply Self Effects (Dash, Buffs, etc)
             if (Effects != null)

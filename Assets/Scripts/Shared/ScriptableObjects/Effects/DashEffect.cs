@@ -38,9 +38,10 @@ namespace Shared.Effects
             if (target.TryGetComponent(out TransformComponent t))
             {
                 float angleRad = t.rotZ * Mathf.Deg2Rad;
-                float dx = Mathf.Cos(angleRad) * Speed * dt;
-                float dy = Mathf.Sin(angleRad) * Speed * dt;
-                
+
+                float dx = Mathf.Sin(angleRad) * Speed * dt;
+                float dy = Mathf.Cos(angleRad) * Speed * dt;
+
                 t.posX += dx;
                 t.posY += dy;
             }
