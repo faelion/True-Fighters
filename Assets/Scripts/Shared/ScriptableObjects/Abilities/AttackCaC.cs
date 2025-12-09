@@ -8,7 +8,7 @@ namespace ClientContent
     public class AttackCaCAbilityAsset : AbilityAsset
     {
         [Header("Lifetime")]
-        public int projectileLifeMs = 1000;
+        public int projectileLifeMs = 10;
 
         [Header("Effects")]
         public System.Collections.Generic.List<Shared.Effects.Effect> onHitEffects;
@@ -29,6 +29,17 @@ namespace ClientContent
         {            
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent casterTransform)) return false;
+
+            float dx = targetX - casterTransform.posX;
+            float dy = targetY - casterTransform.posY;
+            float distSq = dx * dx + dy * dy;
+
+            float dist = Mathf.Sqrt(distSq);
+            float nx = dx / dist;
+            float ny = dy / dist;
+
+            float angle = Mathf.Atan2(nx, ny) * Mathf.Rad2Deg;
+            casterTransform.rotZ = angle;
 
             var melee = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.Melee);
             hasHit = false;

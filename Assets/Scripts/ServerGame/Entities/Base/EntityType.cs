@@ -6,6 +6,7 @@ namespace ServerGame.Entities
         Neutral = 1,
         Structure = 2,
         Projectile = 3,
-        Melee = 4
+        Melee = 4,
+        AoE = 5
     }
 }

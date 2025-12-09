@@ -1,28 +1,29 @@
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace ClientContent
 {
-    [CreateAssetMenu(menuName = "Content/Ability Assets/Projectile", fileName = "ProjectileAbilityAsset")]
-    public class ProjectileAbilityAsset : AbilityAsset
+    [CreateAssetMenu(menuName = "Content/Ability Assets/AoE", fileName = "AoEAbilityAsset")]
+    public class AoEAbilityAsset : AbilityAsset
     {
-        [Header("Movement")]
-        public Shared.ScriptableObjects.MovementStrategySO movementStrategy;
-        public float projectileSpeed = 8f;
 
         [Header("Lifetime")]
-        public int projectileLifeMs = 1500;
+        public int projectileLifeMs = 5000;
 
         [Header("Effects")]
         public System.Collections.Generic.List<Shared.Effects.Effect> onHitEffects;
 
         [Header("Collision")]
-        public float collisionRadius = 0.25f;
+        public float collisionRadius = 2.0f;
         public bool isTrigger = true;
+        public float distanceFromCaster = 3.0f;
 
         [Header("View")]
-        public GameObject projectilePrefab;
+        public GameObject aoePrefab;
+
+        private bool hasHit = false;
 
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
@@ -30,6 +31,8 @@ namespace ClientContent
             
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent casterTransform)) return false;
+
+            hasHit = false;
 
             float dx = targetX - casterTransform.posX;
             float dy = targetY - casterTransform.posY;
@@ -42,26 +45,20 @@ namespace ClientContent
             float angle = Mathf.Atan2(nx, ny) * Mathf.Rad2Deg;
             casterTransform.rotZ = angle;
 
-            var projectile = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.Projectile); 
+            var projectile = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.AoE); 
             projectile.OwnerPlayerId = playerId;
-            projectile.ArchetypeId = id; 
-            
+            projectile.ArchetypeId = id;
+
+            float clampDist = (dist > distanceFromCaster) ? distanceFromCaster : dist;
+
             var t = new ServerGame.Entities.TransformComponent 
-            { 
-                posX = casterTransform.posX, 
-                posY = casterTransform.posY,
+            {
+                posX = casterTransform.posX + (nx * clampDist),
+                posY = casterTransform.posY + (ny * clampDist),
+
                 rotZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg
             };
             projectile.AddComponent(t);
-
-            var movement = new ServerGame.Entities.MovementComponent
-            {
-                strategy = movementStrategy, 
-                moveSpeed = projectileSpeed,
-                velX = dir.x * projectileSpeed,
-                velY = dir.y * projectileSpeed
-            };
-            projectile.AddComponent(movement);
 
             projectile.AddComponent(new ServerGame.Entities.LifetimeComponent 
             { 
@@ -104,14 +101,13 @@ namespace ClientContent
                         {
                             foreach (var effect in onHitEffects)
                             {
-                                if (effect != null)
+                                if (effect != null && !hasHit)
                                 {
+                                    hasHit = true;
                                     effect.Apply(world, me, other);
                                 }
                             }
                         }
-
-                        world.DespawnEntity(me.Id); // Destroy projectile on hit
                     }
                 }
             }

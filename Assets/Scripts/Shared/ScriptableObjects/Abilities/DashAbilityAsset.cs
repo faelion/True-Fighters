@@ -18,9 +18,17 @@ namespace ClientContent
             
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent t)) return false;
-            
-            // Rotate caster to face dash direction
-            //t.rotZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+            float dx = targetX - t.posX;
+            float dy = targetY - t.posY;
+            float distSq = dx * dx + dy * dy;
+
+            float dist = Mathf.Sqrt(distSq);
+            float nx = dx / dist;
+            float ny = dy / dist;
+
+            float angle = Mathf.Atan2(nx, ny) * Mathf.Rad2Deg;
+            t.rotZ = angle;
 
             // Apply Self Effects (Dash, Buffs, etc)
             if (Effects != null)

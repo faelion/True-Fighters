@@ -24,4 +24,6 @@ MonoBehaviour:
     ability: {fileID: 11400000, guid: 048859dc965cd10499256fd2d0345f6c, type: 2}
   - key: E
     ability: {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}
+  - key: R
+    ability: {fileID: 11400000, guid: 299f7434df4b9e34f900c0c6479631ac, type: 2}
   heroPrefab: {fileID: 5229275301457161681, guid: f75172a1aca57c149908c81e5806740f, type: 3}
