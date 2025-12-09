@@ -29,6 +29,7 @@ public class LobbyManager : MonoBehaviour
     }
 
     private ServerLobbyManager serverLobbyManager;
+    public bool IsHost => serverLobbyManager != null;
 
     public void SetServer(ServerLobbyManager lobbyMgr)
     {

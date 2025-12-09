@@ -90,6 +90,9 @@ namespace ClientContent
 
         public override void OnEntityCollision(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity me, ServerGame.Entities.GameEntity other)
         {
+            // Prevent self-damage
+            if (me.OwnerPlayerId == other.Id) return;
+
             if (other.TryGetComponent(out ServerGame.Entities.TeamComponent otherTeam))
             {
                 if (me.TryGetComponent(out ServerGame.Entities.TeamComponent myTeam))

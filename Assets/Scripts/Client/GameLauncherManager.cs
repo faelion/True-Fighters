@@ -44,7 +44,7 @@ public class GameLauncherManager : MonoBehaviour
 
     public void StartHost(string map, string hero)
     {
-        NetworkConfig.playerName = "HostPlayer";
+        // NetworkConfig.playerName = "HostPlayer"; // Removed to keep UI input name
         NetworkConfig.heroId = hero;
 
         StartCoroutine(HostStartRoutine(map));
@@ -64,7 +64,11 @@ public class GameLauncherManager : MonoBehaviour
         activeClient = cliGo.GetComponent<ClientNetwork>();
         
         var lobby = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
-        if (lobby) lobby.SetNetwork(activeClient);
+        if (lobby) 
+        {
+            lobby.SetNetwork(activeClient);
+            lobby.SetServer(slm); // Connect local server logic for Host Controls
+        }
 
         activeClient.Connect("127.0.0.1", 9050);
 

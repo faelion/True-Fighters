@@ -44,9 +44,9 @@ namespace ServerGame
             endpointToPlayerId[endpoint] = assigned;
             playerIdToEndpoint[assigned] = endpoint;
             playerIdToHero[assigned] = heroId;
-            playerIdToName[assigned] = jr.playerName ?? $"Player {assigned}";
+            playerIdToName[assigned] = !string.IsNullOrEmpty(jr.playerName) ? jr.playerName : $"Player {assigned}";
             playerIdToReady[assigned] = false;
-            playerIdToTeam[assigned] = 0; // Default Team
+            playerIdToTeam[assigned] = -1;
 
             if (world != null)
                 world.EnsurePlayer(assigned, jr.playerName, heroId);

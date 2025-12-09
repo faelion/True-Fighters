@@ -23,12 +23,12 @@ public class LobbyUI : MonoBehaviour
     public TMP_Text heroPreviewDescription;
     public Toggle readyToggle;
     public Button startGameButton;
-    public TMP_InputField mapNameInput;
+    public TMP_Dropdown mapDropdown; // Replaces mapNameInput
     public TMP_Text lobbyInfoText; // "Waiting for players..." or IP
 
     private LobbyManager manager;
-    private Dictionary<string, AbilityAsset> loadedHeroes; 
-
+    private Dictionary<string, AbilityAsset> loadedHeroes;
+        
     public void Init(LobbyManager mgr)
     {
         manager = mgr;
@@ -36,16 +36,53 @@ public class LobbyUI : MonoBehaviour
         if (readyToggle) readyToggle.onValueChanged.AddListener(OnReadyToggled);
         if (startGameButton) startGameButton.onClick.AddListener(OnStartGameClicked);
         
+        // Populate Maps dynamically from Folder
+        if (mapDropdown)
+        {
+            mapDropdown.ClearOptions();
+            List<string> maps = new List<string>();
+            
+            // Try to scan folder (Works in Editor and PC builds if data is kept, otherwise fallback)
+            try 
+            {
+                // Assuming project structure: Assets/Scenes/Maps
+                // In Editor: Application.dataPath points to Assets
+                // In Build: pointing to Assets might fail, usually we use scenes in BuildSettings.
+                // But per user request:
+                string mapPath = System.IO.Path.Combine(Application.dataPath, "Scenes", "Maps");
+                if (System.IO.Directory.Exists(mapPath))
+                {
+                    var files = System.IO.Directory.GetFiles(mapPath, "*.unity");
+                    foreach(var f in files)
+                    {
+                        maps.Add(System.IO.Path.GetFileNameWithoutExtension(f));
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[LobbyUI] Map directory not found at: {mapPath}");
+                     // Fallback check in case path is slightly different or not existing
+                     maps.Add("Arena");
+                     maps.Add("Map1");
+                }
+            }
+            catch(System.Exception e)
+            {
+                Debug.LogError($"[LobbyUI] Error scanning maps: {e.Message}");
+                maps.Add("Arena"); 
+            }
+            
+            if (maps.Count == 0) maps.Add("Arena"); // Safety
+            mapDropdown.AddOptions(maps);
+        }
+
         // Host controls visibility check
-        bool isHost = NetworkConfig.playerName == "HostPlayer" || NetworkConfig.playerName == "Server"; 
+        bool isHost = manager.IsHost || NetworkConfig.playerName == "Server"; 
         
         if (hostControlsPanel) 
         {
-            Debug.Log($"[LobbyUI] Host Controls Panel is assigned to: {hostControlsPanel.name} (Scene: {hostControlsPanel.scene.name})");
-            Debug.Log($"[LobbyUI] Setting Host Controls active: {isHost}");
             hostControlsPanel.SetActive(isHost);
         }
-        else Debug.LogWarning("[LobbyUI] Host Controls Panel is NULL");
 
         // Server does not select heroes
         if (NetworkConfig.playerName != "Server")
@@ -59,7 +96,6 @@ public class LobbyUI : MonoBehaviour
             if (readyToggle) readyToggle.gameObject.SetActive(false);
             if (previewArea) previewArea.SetActive(false);
             if (heroGridContent) heroGridContent.gameObject.SetActive(false);
-            // also clear grid
             foreach (Transform child in heroGridContent) Destroy(child.gameObject);
         }
 
@@ -110,7 +146,6 @@ public class LobbyUI : MonoBehaviour
         foreach (var kvp in ContentAssetRegistry.Heroes)
         {
             var heroId = kvp.Key;
-            var heroData = kvp.Value;
             
             var go = Instantiate(heroButtonPrefab, heroGridContent);
             var btn = go.GetComponent<Button>();
@@ -139,14 +174,14 @@ public class LobbyUI : MonoBehaviour
         {
             foreach (var p in data.Players)
             {
+                if (p.PlayerName == "Server") continue; // Skip displaying invisible server player
+
                 var go = Instantiate(playerListEntryPrefab, playerListContent);
                 var txt = go.GetComponentInChildren<TMP_Text>();
                 string status = p.IsReady ? "<color=green>READY</color>" : "<color=red>WAITING</color>";
                 string team = p.TeamId == 0 ? "Spectator" : $"Team {p.TeamId}";
                 
                 if (txt) txt.text = $"[{team}] {p.PlayerName} ({p.SelectedHeroId}) - {status}";
-                
-                // Add Team Change Buttons logic here if desired directly on the entry
             }
         }
 
@@ -156,7 +191,11 @@ public class LobbyUI : MonoBehaviour
             bool allReady = true;
             if (data.Players != null)
             {
-                foreach (var p in data.Players) if (!p.IsReady) allReady = false;
+                // Host/Server is not required to be ready usually, checking clients
+                foreach (var p in data.Players) 
+                {
+                    if (p.PlayerName != "Server" && p.PlayerName != "HostPlayer" && !p.IsReady) allReady = false; 
+                }
             }
             startGameButton.interactable = allReady;
         }
@@ -169,7 +208,11 @@ public class LobbyUI : MonoBehaviour
 
     private void OnStartGameClicked()
     {
-        string map = mapNameInput ? mapNameInput.text : "Map1";
+        string map = "Map1";
+        if (mapDropdown && mapDropdown.options.Count > 0)
+        {
+            map = mapDropdown.options[mapDropdown.value].text;
+        }
         manager.StartGameRequest(map);
     }
 

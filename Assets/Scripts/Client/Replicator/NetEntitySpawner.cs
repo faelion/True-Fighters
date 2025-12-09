@@ -105,11 +105,13 @@ public class NetEntitySpawner : MonoBehaviour
             // Fallback to Default ID
             else if (ClientContent.ContentAssetRegistry.Heroes.TryGetValue(ClientContent.ContentAssetRegistry.DefaultHeroId, out var defHero) && defHero.heroPrefab)
             {
+                 Debug.LogWarning($"[NetEntitySpawner] HeroID '{m.archetypeId}' not found. Falling back to default '{ClientContent.ContentAssetRegistry.DefaultHeroId}'. Available Keys: {string.Join(", ", ClientContent.ContentAssetRegistry.Heroes.Keys)}");
                  visualPrefab = defHero.heroPrefab;
             }
             // Last resort: Any hero
             else 
             {
+                Debug.LogError($"[NetEntitySpawner] Requested '{m.archetypeId}' AND Default not found. Using random first available. Keys: {string.Join(", ", ClientContent.ContentAssetRegistry.Heroes.Keys)}");
                 foreach(var h in ClientContent.ContentAssetRegistry.Heroes.Values) 
                 { 
                     if(h.heroPrefab) { visualPrefab = h.heroPrefab; break; } 

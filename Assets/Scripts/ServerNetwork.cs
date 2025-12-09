@@ -77,16 +77,15 @@ public class ServerNetwork : MonoBehaviour
         {
             int pid = kv.Key;
             string heroId = connections.GetHeroId(pid);
-            
-            // Create Entity
-            var entity = world.EnsurePlayer(pid, connections.GetPlayerName(pid), heroId);
-            
-            // Set Team - Requires accessing component directly without ref in iterator
-            // Cannot use 'ref' locals inside iterator block
-            // Direct component access for initialization:
-            world.SetTeam(pid, connections.GetTeam(pid));
+            int team = connections.GetTeam(pid);
 
             replicationManager.RegisterClient(pid);
+
+            // Create Entity (Host/Spectators are players now)
+            var entity = world.EnsurePlayer(pid, connections.GetPlayerName(pid), heroId);
+            
+            // Set Team
+            world.SetTeam(pid, team);
         }
 
         gameStarted = true;
