@@ -73,6 +73,8 @@ public class NetEntitySpawner : MonoBehaviour
         {
             if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.AttackCaCAbilityAsset cacAbility)
                 go = Instantiate(cacAbility.CaCPrefab);
+            else if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var cone) && cone is ClientContent.ConeCaCAbilityAsset coneAbility)
+                go = Instantiate(coneAbility.conePrefab);
         }
         else if(type == ServerGame.Entities.EntityType.AoE)
         {

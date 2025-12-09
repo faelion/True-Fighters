@@ -9,19 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 990967dc3fd149b4d9989af420eb5bb5, type: 3}
-  m_Name: GolpeCaC
-  m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AttackCaCAbilityAsset
-  id: 3
-  displayName: AttackCaC
+  m_Script: {fileID: 11500000, guid: 323e04dbac9c7044eac97288426ccff4, type: 3}
+  m_Name: CrtystalCone
+  m_EditorClassIdentifier: Assembly-CSharp::ClientContent.ConeCaCAbilityAsset
+  id: 5
+  displayName: CrystalCone
   defaultKey: E
   range: 2
   castTime: 0
   cooldown: 2
-  projectileLifeMs: 150
+  projectileLifeMs: 1000
   onHitEffects:
   - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}
-  collisionRadius: 1
+  collisionRadius: 2
   isTrigger: 1
-  CaCPrefab: {fileID: 1171201465392465800, guid: 4aa9f30a28a77224ba84b2a2c334c71b, type: 3}
-  spawnDistance: 1.5
+  conePrefab: {fileID: 3156866507962234106, guid: 645ebd7cef59b7b40b27c29bf3e99cf2, type: 3}
+  spawnDistance: 0
