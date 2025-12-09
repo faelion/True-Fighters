@@ -32,7 +32,6 @@ public class ClientNetwork : MonoBehaviour
     void Start()
     {
         DontDestroyOnLoad(gameObject);
-        // We need to find it dynamically or have it register itself
     }
 
 

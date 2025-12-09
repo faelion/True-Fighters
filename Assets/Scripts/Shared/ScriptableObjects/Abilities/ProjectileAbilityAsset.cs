@@ -75,7 +75,6 @@ namespace ClientContent
                 projectile.AddComponent(new ServerGame.Entities.TeamComponent { teamId = team.teamId, friendlyFire = team.friendlyFire });
             }
 
-            // Optimization/Hack: Pass effects to the projectile entity? 
             // Ideally projectile knows its Archetype which leads back to this Asset, 
             // so we look up the effects from the Asset when collision happens (which is what we do below).
             
@@ -122,8 +121,6 @@ namespace ClientContent
 
         public override void ClientHandleEvent(IGameEvent evt, GameObject contextRoot)
         {
-            // Projectiles are now spawned via generic EntitySpawnEvent handled by NetEntitySpawner.
-            // This method is no longer used for projectile spawning but kept for inheritance.
         }
     }
 }

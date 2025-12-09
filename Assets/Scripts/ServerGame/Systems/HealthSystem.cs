@@ -18,14 +18,6 @@ namespace ServerGame.Systems
                     toDespawn.Add(entity.Id);
                     continue;
                 }
-
-                if (!health.recentlyHit) continue;
-                health.hitTimer += dt;
-                if (health.hitTimer >= ServerWorld.HitFlashDuration)
-                {
-                    health.hitTimer = 0f;
-                    health.recentlyHit = false;
-                }
             }
 
             foreach (var id in toDespawn)

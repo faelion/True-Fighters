@@ -7,7 +7,7 @@ using UnityEngine;
 using System.Buffers;
 using Networking.Transport;
 using ServerGame;
-using Shared; // Added for LobbyActionMessage validation if needed, though mostly passed through
+using Shared;
 
 public class ServerNetwork : MonoBehaviour
 {
@@ -23,7 +23,6 @@ public class ServerNetwork : MonoBehaviour
     private ServerGame.Managers.ReplicationManager replicationManager;
     private readonly System.Collections.Generic.List<IGameEvent> frameEvents = new System.Collections.Generic.List<IGameEvent>();
 
-    // Public API for External Managers (like ServerLobbyManager)
     public ServerGame.ConnectionRegistry Connections => connections;
     public event Action<IPEndPoint, object> OnClientMessage;
     public event Action<int> OnPlayerJoined;
@@ -81,10 +80,8 @@ public class ServerNetwork : MonoBehaviour
 
             replicationManager.RegisterClient(pid);
 
-            // Create Entity (Host/Spectators are players now)
             var entity = world.EnsurePlayer(pid, connections.GetPlayerName(pid), heroId);
             
-            // Set Team
             world.SetTeam(pid, team);
         }
 

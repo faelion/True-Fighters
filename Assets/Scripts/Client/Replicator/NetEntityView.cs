@@ -6,7 +6,6 @@ public class NetEntityView : MonoBehaviour
 {
     public int entityId;
     
-    // Reuse server component DTOs for deserialization
     private readonly TransformComponent transformComp = new TransformComponent();
 
     void OnEnable()

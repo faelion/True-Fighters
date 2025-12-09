@@ -13,9 +13,6 @@ namespace ClientContent
         public float range = 12f;
         public float castTime = 0f;
         public float cooldown = 2f;
-        
-        // [Header("Effects")]
-        // public System.Collections.Generic.List<Shared.ScriptableObjects.EffectSO> effects = new System.Collections.Generic.List<Shared.ScriptableObjects.EffectSO>();
 
 
         public abstract bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY);
@@ -37,7 +34,7 @@ namespace ClientContent
         }
 
 
-        // New Modular Logic hooks
+
         public virtual void OnEntitySpawn(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity) { }
         public virtual void OnEntityTick(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity, float dt) { }
         public virtual void OnEntityCollision(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity me, ServerGame.Entities.GameEntity other) { }

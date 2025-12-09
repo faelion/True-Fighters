@@ -67,7 +67,6 @@ namespace ServerGame.Managers
             
             if (hasHero)
             {
-                // playerHero.GetComponent would work too since we checked hasHero
                 var t = playerHero.GetComponent<TransformComponent>();
                 px = t.posX;
                 py = t.posY;
@@ -79,8 +78,8 @@ namespace ServerGame.Managers
             foreach (var entity in world.EntityRepo.AllEntities)
             {
                 bool isOwner = entity.Id == playerId;
-                
-                // Interest Management
+
+                // Interest Management (only compute things that are close to the player's hero)
                 if (hasHero && !isOwner)
                 {
                     if (entity.TryGetComponent(out TransformComponent t))

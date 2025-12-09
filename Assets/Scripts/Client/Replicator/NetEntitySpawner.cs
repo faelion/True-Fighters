@@ -7,7 +7,6 @@ using Unity.Cinemachine;
 public class NetEntitySpawner : MonoBehaviour
 {
     [SerializeField] private GameObject basePlayerPrefab;
-    // Removed defaultHeroPrefab in favor of Registry lookups
 
     private readonly Dictionary<int, NetEntityView> views = new Dictionary<int, NetEntityView>();
 
@@ -51,10 +50,8 @@ public class NetEntitySpawner : MonoBehaviour
         GameObject go = null;
         var type = (ServerGame.Entities.EntityType)m.entityType;
 
-        // 1. Determine Root Object
         if (type == ServerGame.Entities.EntityType.Hero)
         {
-            // Use BasePlayer generic prefab
             if (basePlayerPrefab) go = Instantiate(basePlayerPrefab);
             else 
             {
@@ -64,13 +61,11 @@ public class NetEntitySpawner : MonoBehaviour
         }
         else if (type == ServerGame.Entities.EntityType.Projectile)
         {
-            // Projectiles are currently single prefab
             if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.ProjectileAbilityAsset projAbility)
                 go = Instantiate(projAbility.projectilePrefab);         
         }
         else if (type == ServerGame.Entities.EntityType.Neutral)
         {
-             // Neutrals might also use a BaseNPC prefab in future, for now using direct prefab
              var neutral = ClientContent.ContentAssetRegistry.GetNeutral(m.archetypeId);
              if (neutral) go = Instantiate(neutral.prefab);
         }
@@ -87,12 +82,12 @@ public class NetEntitySpawner : MonoBehaviour
 
         if (go == null) go = new GameObject($"Entity_{m.entityId}");
 
-        // 2. Setup Components
+        if (go == null) go = new GameObject($"Entity_{m.entityId}");
+        
         NetEntityView view = go.GetComponent<NetEntityView>() ?? go.AddComponent<NetEntityView>();
         view.Initialize(m);
         views[m.entityId] = view;
 
-        // 3. Instantiate Visuals (For Heroes)
         if (type == ServerGame.Entities.EntityType.Hero)
         {
             GameObject visualPrefab = null; // Look up from Registry
@@ -125,7 +120,6 @@ public class NetEntitySpawner : MonoBehaviour
                 visuals.transform.localRotation = Quaternion.identity;
             }
 
-            // 4. Handle Camera for Local Player
             var clientNet = FindFirstObjectByType<ClientNetwork>();
             var vcam = go.GetComponentInChildren<CinemachineCamera>(true);
 

@@ -31,8 +31,7 @@ public class GameLauncherManager : MonoBehaviour
         activeServer = srvGo.GetComponent<ServerNetwork>();
         activeServer.Init();
 
-        // Create Server Logic
-        var slm = srvGo.AddComponent<ServerLobbyManager>(); // Attach to same GO for simplicity
+        var slm = srvGo.AddComponent<ServerLobbyManager>();
         
         var lobby = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
         if (lobby) lobby.SetServer(slm);
@@ -44,7 +43,6 @@ public class GameLauncherManager : MonoBehaviour
 
     public void StartHost(string map, string hero)
     {
-        // NetworkConfig.playerName = "HostPlayer"; // Removed to keep UI input name
         NetworkConfig.heroId = hero;
 
         StartCoroutine(HostStartRoutine(map));
@@ -56,7 +54,6 @@ public class GameLauncherManager : MonoBehaviour
         activeServer = srvGo.GetComponent<ServerNetwork>();
         activeServer.Init();
 
-        // Host also needs Server Lobby Logic running!
         var slm = srvGo.AddComponent<ServerLobbyManager>();
         slm.Init(activeServer);
 
@@ -67,7 +64,7 @@ public class GameLauncherManager : MonoBehaviour
         if (lobby) 
         {
             lobby.SetNetwork(activeClient);
-            lobby.SetServer(slm); // Connect local server logic for Host Controls
+            lobby.SetServer(slm);
         }
 
         activeClient.Connect("127.0.0.1", 9050);
@@ -86,7 +83,6 @@ public class GameLauncherManager : MonoBehaviour
         }
         else
         {
-            // Do NOT start game automatically. 
             // The Lobby UI will appear because ClientNetwork is connected.
             Debug.Log("Host connected to Lobby.");
         }

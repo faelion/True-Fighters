@@ -8,18 +8,11 @@ namespace ServerGame
 {
     public class ServerWorld
     {
-        public const float HitFlashDuration = 0.2f;
-        
-
         public readonly GameEntityManager EntityManager = new GameEntityManager();
         
-        // public readonly Dictionary<int, AbilityEffect> AbilityEffects = new Dictionary<int, AbilityEffect>();
-        
-
         public EntityRepository EntityRepo => EntityManager.Repo;
 
         private readonly List<IGameEvent> pendingEvents = new List<IGameEvent>();
-        // private int nextEffectId = 1; // Unused
         private int nextEventId = 1;
 
 
@@ -79,7 +72,7 @@ namespace ServerGame
 
         public int RegisterAbilityEffect(object effect, ClientContent.AbilityAsset sourceAsset = null)
         {
-            return 0; // Legacy
+            return 0;
         }
 
 
