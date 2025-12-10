@@ -9,6 +9,9 @@ namespace ServerGame.Managers
     {
         public readonly EntityRepository Repo = new EntityRepository();
         private readonly Dictionary<int, GameEntity> heroEntities = new Dictionary<int, GameEntity>();
+        private Dictionary<int, int> gameModeToSceneTeamMap = new Dictionary<int, int>();
+        private List<Shared.NetworkSpawner> playerSpawnersCache = new List<Shared.NetworkSpawner>();
+        private int ffaSpawnIndex = 0;
         
         private class SpawnerTracker
         {
@@ -28,6 +31,10 @@ namespace ServerGame.Managers
 
         public void InitializeMapSpawners(ServerWorld world)
         {
+            spawnerTrackers.Clear();
+            gameModeToSceneTeamMap.Clear();
+            playerSpawnersCache.Clear();
+            ffaSpawnIndex = 0;
 
             var spawners = UnityEngine.Object.FindObjectsByType<Shared.NetworkSpawner>(UnityEngine.FindObjectsInactive.Include, UnityEngine.FindObjectsSortMode.None);
             
@@ -40,17 +47,78 @@ namespace ServerGame.Managers
                 return;
             }
 
+            // 1. Analyze Scene Spawners
+            HashSet<int> scenePlayerTeamIds = new HashSet<int>();
+            Dictionary<int, int> playerSpawnerCounts = new Dictionary<int, int>();
+
             foreach (var spawner in spawners)
             {
                 var tracker = new SpawnerTracker { Config = spawner };
                 spawnerTrackers.Add(tracker);
 
-                if (spawner.entityType == EntityType.Neutral)
+                if (spawner.spawnerType == Shared.SpawnerType.Npc)
                 {
                     UnityEngine.Debug.Log($"[GameEntityManager] Spawning Neutral '{spawner.archetypeId}' at {spawner.transform.position}");
                     var npc = CreateNeutralNpc(spawner.archetypeId, spawner.transform.position.x, spawner.transform.position.z);
                     tracker.CurrentEntityId = npc.Id;
                 }
+                else if (spawner.spawnerType == Shared.SpawnerType.Player)
+                {
+                    if (!playerSpawnerCounts.ContainsKey(spawner.teamId)) playerSpawnerCounts[spawner.teamId] = 0;
+                    playerSpawnerCounts[spawner.teamId]++;
+                    scenePlayerTeamIds.Add(spawner.teamId);
+                    playerSpawnersCache.Add(spawner);
+                }
+            }
+            
+            // Sort cache for deterministic round-robin
+            playerSpawnersCache.Sort((a, b) => a.teamId.CompareTo(b.teamId));
+
+            // 2. Validate Player Spawners (Max 1 per team)
+            foreach(var kvp in playerSpawnerCounts)
+            {
+                if (kvp.Value > 1)
+                {
+                    UnityEngine.Debug.LogError($"[GameEntityManager] Error: Multiple Player Spawners found for Team ID {kvp.Key}. Only 1 allowed per team.");
+                }
+            }
+
+            // 3. Map GameMode Teams to Scene Teams
+            if (world.GameMode != null && world.GameMode.teams != null && world.GameMode.teams.Length > 0)
+            {
+                List<int> validSceneTeams = new List<int>(scenePlayerTeamIds);
+                validSceneTeams.Sort(); // Ensure deterministic order
+
+                if (validSceneTeams.Count == 0)
+                {
+                    UnityEngine.Debug.LogError("[GameEntityManager] GameMode requires teams, but no Player Spawners found in scene!");
+                }
+                else
+                {
+                    int gameModeTeams = world.GameMode.teams.Length;
+                    UnityEngine.Debug.Log($"[GameEntityManager] Mapping {gameModeTeams} GameMode Teams to {validSceneTeams.Count} Scene Teams.");
+
+                    for (int i = 0; i < gameModeTeams; i++)
+                    {
+                        // GameMode Team Index (1-based usually in my logic, let's stick to 1-based = i+1)
+                        int gmTeamId = i + 1;
+                        
+                        // Map to Scene Team
+                        // If GM Teams > Scene Teams, we reuse scene teams (modulo)
+                        int sceneIndex = i % validSceneTeams.Count;
+                        int targetSceneTeam = validSceneTeams[sceneIndex];
+
+                        gameModeToSceneTeamMap[gmTeamId] = targetSceneTeam;
+                        UnityEngine.Debug.Log($"[GameEntityManager] GameMode Team {gmTeamId} ({world.GameMode.teams[i].teamName}) -> Scene Team {targetSceneTeam}");
+                    }
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.Log("[GameEntityManager] FFA or No Teams defined. Using direct mapping if possible.");
+                // For FFA, we usually map PlayerID directly?? Or random spawns?
+                // User requirement was specific about Teams. For FFA, let's assume we mapped something or just use direct lookup?
+                // If FFA, teamId usually 0.
             }
         }
 
@@ -72,7 +140,7 @@ namespace ServerGame.Managers
                     if (tracker.RespawnTimer <= 0f)
                     {
                         var spawner = tracker.Config;
-                        if (spawner.entityType == EntityType.Neutral)
+                        if (spawner.spawnerType == Shared.SpawnerType.Npc)
                         {
                             var npc = CreateNeutralNpc(spawner.archetypeId, spawner.transform.position.x, spawner.transform.position.z);
                             tracker.CurrentEntityId = npc.Id;
@@ -99,7 +167,7 @@ namespace ServerGame.Managers
             return true;
         }
 
-        public GameEntity EnsurePlayer(int id, string name, string heroId, ServerWorld world)
+        public GameEntity EnsurePlayer(int id, string name, string heroId, int teamId, ServerWorld world)
         {
             string resolvedHeroId = string.IsNullOrEmpty(heroId) ? ContentAssetRegistry.DefaultHeroId : heroId;
             
@@ -107,7 +175,7 @@ namespace ServerGame.Managers
             {
                 entity = CreateHeroEntity(id, name, resolvedHeroId);
                 var heroSo = GetHeroAsset(resolvedHeroId);
-                AddHeroComponents(entity, heroSo, id);
+                AddHeroComponents(entity, heroSo, id, teamId);
 
                 heroEntities[id] = entity;
                 
@@ -137,10 +205,10 @@ namespace ServerGame.Managers
                     ? heroSo : null;
         }
 
-        private void AddHeroComponents(GameEntity entity, HeroSO hero, int playerId)
+        private void AddHeroComponents(GameEntity entity, HeroSO hero, int playerId, int gameModeTeamId)
         {
             // Transform & Spawn
-            var spawnPos = GetSpawnPosition(playerId);
+            var spawnPos = GetSpawnPosition(playerId, gameModeTeamId);
             entity.AddComponent(new TransformComponent { posX = spawnPos.x, posY = spawnPos.y });
 
             // Movement
@@ -164,16 +232,26 @@ namespace ServerGame.Managers
             entity.AddComponent(new StatusEffectComponent());
         }
 
-        private Vector2 GetSpawnPosition(int teamId)
+        private Vector2 GetSpawnPosition(int playerId, int gameModeTeamId)
         {
-            var spawners = UnityEngine.Object.FindObjectsByType<Shared.NetworkSpawner>(UnityEngine.FindObjectsSortMode.None);
-            foreach (var sp in spawners)
+            // 1. Team Based Logic
+            if (gameModeToSceneTeamMap.ContainsKey(gameModeTeamId))
             {
-                if (sp.entityType == EntityType.Hero && sp.teamId == teamId)
+                int targetSceneTeamId = gameModeToSceneTeamMap[gameModeTeamId];
+                // Find spawner for this team
+                foreach (var sp in playerSpawnersCache)
                 {
-                    return new Vector2(sp.transform.position.x, sp.transform.position.z);
+                    if (sp.teamId == targetSceneTeamId) return new Vector2(sp.transform.position.x, sp.transform.position.z);
                 }
             }
+            // 2. FFA / Fallback Logic (Round Robin)
+            else if (playerSpawnersCache.Count > 0)
+            {
+                var sp = playerSpawnersCache[ffaSpawnIndex % playerSpawnersCache.Count];
+                ffaSpawnIndex++;
+                return new Vector2(sp.transform.position.x, sp.transform.position.z);
+            }
+
             return Vector2.zero;
         }
 

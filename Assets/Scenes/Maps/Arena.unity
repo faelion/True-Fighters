@@ -275,8 +275,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42a3f62377f25eb44acddd020b75652d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shared.NetworkSpawner
-  entityType: 1
-  teamId: 1
+  spawnerType: 1
+  teamId: 0
   archetypeId: neutral_default
   respawnTime: 5
 --- !u!4 &901208212
@@ -380,7 +380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42a3f62377f25eb44acddd020b75652d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shared.NetworkSpawner
-  entityType: 0
+  spawnerType: 0
   teamId: 1
   archetypeId: default
   respawnTime: 5
@@ -485,7 +485,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42a3f62377f25eb44acddd020b75652d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shared.NetworkSpawner
-  entityType: 0
+  spawnerType: 0
   teamId: 2
   archetypeId: default
   respawnTime: 5

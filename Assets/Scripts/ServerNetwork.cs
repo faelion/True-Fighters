@@ -69,15 +69,16 @@ public class ServerNetwork : MonoBehaviour
 
         Debug.Log("[ServerNetwork] Scene loaded. Initializing ServerWorld...");
         
-        world = new ServerWorld();
+        Shared.ScriptableObjects.GameModeSO activeGameMode = null;
         if (ClientContent.ContentAssetRegistry.GameModes.TryGetValue(gameModeId, out var gm))
         {
-             world.GameMode = gm;
+             activeGameMode = gm;
         }
         else
         {
              Debug.LogWarning($"[ServerNetwork] GameMode '{gameModeId}' not found. Using default.");
         }
+        world = new ServerWorld(activeGameMode);
         simulation = new ServerGame.Systems.SimulationRunner(world);
 
         foreach (var kv in connections.PlayerEndpoints)
@@ -88,7 +89,7 @@ public class ServerNetwork : MonoBehaviour
 
             replicationManager.RegisterClient(pid);
 
-            var entity = world.EnsurePlayer(pid, connections.GetPlayerName(pid), heroId);
+            var entity = world.EnsurePlayer(pid, connections.GetPlayerName(pid), heroId, team);
             
             world.SetTeam(pid, team);
         }
@@ -172,7 +173,7 @@ public class ServerNetwork : MonoBehaviour
         var key = ServerGame.Systems.AbilitySystem.KeyFromInputKind(im.kind);
         if (key != null)
         {
-            world.EnsurePlayer(pid);
+            world.EnsurePlayer(pid, null, null, connections.GetTeam(pid));
             world.TryCastAbility(pid, key, im.targetX, im.targetY);
         }
     }

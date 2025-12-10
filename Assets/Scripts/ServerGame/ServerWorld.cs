@@ -22,21 +22,28 @@ namespace ServerGame
 
         public Shared.ScriptableObjects.GameModeSO GameMode { get; set; }
 
-        public ServerWorld()
+        public ServerWorld(Shared.ScriptableObjects.GameModeSO mode = null)
         {
-            // Default GameMode initialization
-            string defaultGmId = ContentAssetRegistry.DefaultGameModeId;
-            if (ContentAssetRegistry.GameModes.TryGetValue(defaultGmId, out var gm))
+            if (mode != null)
             {
-                GameMode = gm;
+                GameMode = mode;
+            }
+            else
+            {
+                // Default GameMode initialization
+                string defaultGmId = ContentAssetRegistry.DefaultGameModeId;
+                if (ContentAssetRegistry.GameModes.TryGetValue(defaultGmId, out var gm))
+                {
+                    GameMode = gm;
+                }
             }
             
             EntityManager.InitializeMapSpawners(this);
         }
 
-        public GameEntity EnsurePlayer(int id, string name = null, string heroId = null)
+        public GameEntity EnsurePlayer(int id, string name = null, string heroId = null, int teamId = 0)
         {
-            return EntityManager.EnsurePlayer(id, name, heroId, this);
+            return EntityManager.EnsurePlayer(id, name, heroId, teamId, this);
         }
 
         public GameEntity GetHeroEntity(int playerId)
