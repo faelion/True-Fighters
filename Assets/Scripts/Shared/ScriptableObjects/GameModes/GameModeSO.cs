@@ -15,6 +15,7 @@ namespace Shared.ScriptableObjects
         public int minPlayers = 1;
         public int maxPlayers = 10;
         public float matchDuration = 300f; // 0 = Infinite
+        public float playerRespawnTime = 5f;
         public List<SceneReference> maps;
 
         [Header("Logic")]

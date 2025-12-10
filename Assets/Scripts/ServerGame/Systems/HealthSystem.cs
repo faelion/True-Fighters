@@ -6,17 +6,45 @@ namespace ServerGame.Systems
     {
         public void Tick(ServerWorld world, float dt)
         {
-            // Use a list to avoid modification during iteration if we remove entities
             var toDespawn = new System.Collections.Generic.List<int>();
 
             foreach (var entity in world.EntityRepo.AllEntities)
             {
                 if (!entity.TryGetComponent(out HealthComponent health)) continue;
                 
-                if (!health.IsAlive)
+                if (entity.Type == EntityType.Hero)
                 {
-                    toDespawn.Add(entity.Id);
-                    continue;
+                    // Soft Death Logic for Heroes
+                    if (health.IsDead)
+                    {
+                        // Already dead, tick timer
+                        health.RespawnTimer -= dt;
+                        if (health.RespawnTimer <= 0f)
+                        {
+                            // Respawn!
+                            UnityEngine.Debug.Log($"[HealthSystem] Respawning Player {entity.Id}...");
+                            health.IsDead = false;
+                            health.Reset(health.maxHp);
+                            world.RespawnPlayer(entity);
+                        }
+                    }
+                    else if (!health.IsAlive) // Just died
+                    {
+                        UnityEngine.Debug.Log($"[HealthSystem] Player {entity.Id} died. Starting Soft Death.");
+                        health.IsDead = true;
+                        
+                        float time = 5f;
+                        if (world.GameMode != null) time = world.GameMode.playerRespawnTime;
+                        health.RespawnTimer = time;
+                    }
+                }
+                else
+                {
+                    // standard NPC Hard Death
+                    if (!health.IsAlive)
+                    {
+                        toDespawn.Add(entity.Id);
+                    }
                 }
             }
 

@@ -63,6 +63,11 @@ namespace ServerGame
             EntityManager.DespawnEntity(entityId, this);
         }
 
+        public void RespawnPlayer(GameEntity entity)
+        {
+            EntityManager.RespawnPlayer(entity, GameMode);
+        }
+
         public bool TryGetEntity(int entityId, out GameEntity entity) => EntityManager.TryGetEntity(entityId, out entity);
 
         public void HandleMove(int playerId, float targetX, float targetY)

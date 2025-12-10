@@ -10,13 +10,17 @@ namespace ServerGame.Entities
         public float currentHp = 500f;
         public bool invulnerable = false;
 
-        public bool IsAlive => currentHp > 0f;
+        public bool IsDead = false;
+        public float RespawnTimer = 0f;
+
+        public bool IsAlive => !IsDead && currentHp > 0f;
 
         public void Serialize(BinaryWriter writer)
         {
             writer.Write(maxHp);
             writer.Write(currentHp);
             writer.Write(invulnerable);
+            writer.Write(IsDead);
         }
 
         public void Deserialize(BinaryReader reader)
@@ -24,6 +28,7 @@ namespace ServerGame.Entities
             maxHp = reader.ReadSingle();
             currentHp = reader.ReadSingle();
             invulnerable = reader.ReadBoolean();
+            IsDead = reader.ReadBoolean();
         }
 
         public void Reset(float hp)

@@ -19,7 +19,6 @@ public class AssetEventRouter : MonoBehaviour
 
     private void OnServerEvent(IGameEvent evt)
     {
-        Debug.Log("[AssetEventRouter] Received server event, attempting to route.");
         if (evt == null || string.IsNullOrEmpty(evt.SourceId)) return;
         Debug.Log($"[AssetEventRouter] Routing event of type {evt.Type} from source {evt.SourceId}");
         if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(evt.SourceId, out var asset) && asset != null)

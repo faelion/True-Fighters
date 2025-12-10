@@ -46,7 +46,7 @@ namespace ServerGame
             playerIdToHero[assigned] = heroId;
             playerIdToName[assigned] = !string.IsNullOrEmpty(jr.playerName) ? jr.playerName : $"Player {assigned}";
             playerIdToReady[assigned] = false;
-            playerIdToTeam[assigned] = -1;
+            playerIdToTeam[assigned] = 1; // Default to Team 1
 
             if (world != null)
                 world.EnsurePlayer(assigned, jr.playerName, heroId);

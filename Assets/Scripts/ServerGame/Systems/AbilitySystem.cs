@@ -49,6 +49,10 @@ namespace ServerGame.Systems
             if (!world.AbilityBooks.TryGetValue(playerId, out var book) || book == null || !book.TryGetValue(key, out var ability))
                 return false;
 
+            // Block input if dead
+            if (caster.TryGetComponent(out ServerGame.Entities.HealthComponent h) && h.IsDead)
+                return false;
+
 
             if (!ClientContent.ContentAssetRegistry.Abilities.ContainsKey(ability.id))
                 ClientContent.ContentAssetRegistry.Abilities[ability.id] = ability;

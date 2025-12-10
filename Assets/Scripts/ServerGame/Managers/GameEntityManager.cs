@@ -226,7 +226,10 @@ namespace ServerGame.Managers
             health.Reset(hp);
             entity.AddComponent(health);
 
-            entity.AddComponent(new TeamComponent { teamId = playerId });
+            entity.AddComponent(health);
+
+            entity.AddComponent(new TeamComponent { teamId = gameModeTeamId });
+            entity.AddComponent(new CombatComponent());
             entity.AddComponent(new CombatComponent());
             entity.AddComponent(new CollisionComponent { radius = 0.5f });
             entity.AddComponent(new StatusEffectComponent());
@@ -241,17 +244,24 @@ namespace ServerGame.Managers
                 // Find spawner for this team
                 foreach (var sp in playerSpawnersCache)
                 {
-                    if (sp.teamId == targetSceneTeamId) return new Vector2(sp.transform.position.x, sp.transform.position.z);
+                    if (sp.teamId == targetSceneTeamId) 
+                    {
+                        // UnityEngine.Debug.Log($"[GameEntityManager] Spawn Player {playerId} at Team {gameModeTeamId} (Scene Team {targetSceneTeamId})");
+                        return new Vector2(sp.transform.position.x, sp.transform.position.z);
+                    }
                 }
+                UnityEngine.Debug.LogWarning($"[GameEntityManager] Mapped Team {gameModeTeamId} to Scene {targetSceneTeamId} but no spawner found!");
             }
             // 2. FFA / Fallback Logic (Round Robin)
             else if (playerSpawnersCache.Count > 0)
             {
                 var sp = playerSpawnersCache[ffaSpawnIndex % playerSpawnersCache.Count];
+                UnityEngine.Debug.Log($"[GameEntityManager] FFA Spawn Player {playerId} at Index {ffaSpawnIndex} (Team {sp.teamId})");
                 ffaSpawnIndex++;
                 return new Vector2(sp.transform.position.x, sp.transform.position.z);
             }
 
+            UnityEngine.Debug.LogError("[GameEntityManager] No Player Spawners found anywhere!");
             return Vector2.zero;
         }
 
@@ -301,6 +311,23 @@ namespace ServerGame.Managers
                 }
                 world.EnqueueEvent(new EntityDespawnEvent { CasterId = entityId });
             }
+        }
+
+        public void RespawnPlayer(GameEntity entity, Shared.ScriptableObjects.GameModeSO gameMode)
+        {
+            if (entity.Type != EntityType.Hero) return;
+            
+            int teamId = 0;
+            if (entity.TryGetComponent(out TeamComponent tc)) teamId = tc.teamId;
+
+            var spawnPos = GetSpawnPosition(entity.OwnerPlayerId, teamId); // teamId mapping handled inside
+            
+            if (entity.TryGetComponent(out TransformComponent t))
+            {
+                t.posX = spawnPos.x;
+                t.posY = spawnPos.y;
+            }
+            // Health reset handled by caller (HealthSystem)
         }
 
         public bool TryGetEntity(int entityId, out GameEntity entity) => Repo.TryGetEntity(entityId, out entity);
