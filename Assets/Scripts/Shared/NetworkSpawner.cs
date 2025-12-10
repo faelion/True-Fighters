@@ -25,14 +25,12 @@ namespace Shared
         {
             if (spawnerType == SpawnerType.Player)
             {
-                // Player Spawner: Blue/Red/Green based on Team
                 Gizmos.color = GetTeamColor(teamId);
                 Gizmos.DrawWireSphere(transform.position, 0.5f);
                 Gizmos.DrawIcon(transform.position, "hero_icon", true);
             }
             else
             {
-                // NPC Spawner: Yellow usually
                 Gizmos.color = teamId == -1 ? Color.yellow : GetTeamColor(teamId);
                 Gizmos.DrawWireCube(transform.position, Vector3.one * 0.5f);
             }

@@ -25,7 +25,7 @@ namespace ServerGame.Systems
                     {
                         Debug.Log($"[ServerGameLoop] Game Over! Winner Team: {winner}");
                         CurrentState = GameState.Finished;
-                        // In future: Send GAME_OVER packet
+                        // TODO: Send GAME_OVER packet
                     }
                 }
             }

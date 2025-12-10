@@ -17,18 +17,16 @@ namespace ServerGame.Systems
                     // Soft Death Logic for Heroes
                     if (health.IsDead)
                     {
-                        // Already dead, tick timer
                         health.RespawnTimer -= dt;
                         if (health.RespawnTimer <= 0f)
                         {
-                            // Respawn!
                             UnityEngine.Debug.Log($"[HealthSystem] Respawning Player {entity.Id}...");
                             health.IsDead = false;
                             health.Reset(health.maxHp);
                             world.RespawnPlayer(entity);
                         }
                     }
-                    else if (!health.IsAlive) // Just died
+                    else if (!health.IsAlive)
                     {
                         UnityEngine.Debug.Log($"[HealthSystem] Player {entity.Id} died. Starting Soft Death.");
                         health.IsDead = true;

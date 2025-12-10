@@ -10,7 +10,7 @@ namespace ClientContent
         [Serializable]
         public struct Binding
         {
-            public string key; // e.g., "Q","W","E","R" (or any)
+            public string key; // "Q","W","E","R" (or any)
             public AbilityAsset ability;
         }
         public List<Binding> bindings = new List<Binding>();

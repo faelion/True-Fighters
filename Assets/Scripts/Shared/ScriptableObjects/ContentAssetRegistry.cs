@@ -108,7 +108,8 @@ namespace ClientContent
                 if (map.Count > 0)
                     return map;
             }
-            // Fallback minimal binding
+
+            //IN CASE NO VALID HERO OR BINDINGS, RETURN A FALLBACK ABILITY ON KEY Q
             var fallback = ScriptableObject.CreateInstance<ProjectileAbilityAsset>();
             fallback.id = "fallback_proj_q"; fallback.defaultKey = "Q"; fallback.range = 20f; fallback.cooldown = 1.0f; fallback.projectileSpeed = 9f; fallback.projectileLifeMs = 1400;
             

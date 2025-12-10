@@ -113,7 +113,7 @@ namespace ClientContent
                             }
                         }
 
-                        world.DespawnEntity(me.Id); // Destroy projectile on hit
+                        world.DespawnEntity(me.Id);
                     }
                 }
             }

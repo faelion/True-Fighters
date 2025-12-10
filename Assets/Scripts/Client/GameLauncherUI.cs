@@ -12,7 +12,7 @@ public class GameLauncherUI : MonoBehaviour
     public GameObject clientPanel;
     public GameObject hostPanel;
     public GameObject serverPanel;
-    public GameObject lobbyPanel; // New Reference
+    public GameObject lobbyPanel;
 
     [Header("Client Inputs")]
     public TMP_InputField clientIpInput;
@@ -21,7 +21,7 @@ public class GameLauncherUI : MonoBehaviour
 
     [Header("Host/Server Inputs")]
     // Map/Hero inputs removed (handled in Lobby)
-    public TMP_InputField hostNameInput; // New
+    public TMP_InputField hostNameInput;
     public TMP_Text hostIpDisplay;
     public TMP_Text serverIpDisplay;
 
@@ -75,7 +75,6 @@ public class GameLauncherUI : MonoBehaviour
         string defaultMap = "Map1"; 
         string defaultHero = "Warrior";
         
-        // Update player name for Host
         string hostName = (hostNameInput != null && !string.IsNullOrEmpty(hostNameInput.text)) ? hostNameInput.text : "Host";
         NetworkConfig.playerName = hostName;
         

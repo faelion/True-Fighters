@@ -35,7 +35,7 @@ namespace Networking.Serialization
                 }
                 else if (obj is EntityStateData sm)
                 {
-                    bw.Write(TYPE_StateMessage); // reusing op code
+                    bw.Write(TYPE_StateMessage);
                     WriteEntityStateData(bw, sm);
                 }
                 else if (obj is JoinRequestMessage jr)

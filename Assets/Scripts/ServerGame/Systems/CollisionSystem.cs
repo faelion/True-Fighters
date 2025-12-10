@@ -10,8 +10,8 @@ namespace ServerGame.Systems
         public void Tick(ServerWorld world, float dt)
         {
             var entities = world.EntityRepo.AllEntities;
-            // TODO: Optimization: Replace naive O(N^2) check with Spatial Partitioning (Grid/Quadtree).
-            // TODO: Optimization: Filter mostly static entities or use "IsTrigger" flags to reduce checks.
+            // TODO: Optimization: Replace O(N^2) check with Spatial Partitioning (Grid/Quadtree).
+            // TODO: Optimization: Filter mostly static entities to reduce checks.
             
             var all = new List<GameEntity>(entities);
             int count = all.Count;

@@ -100,11 +100,10 @@ namespace ServerGame.Managers
 
                     for (int i = 0; i < gameModeTeams; i++)
                     {
-                        // GameMode Team Index (1-based usually in my logic, let's stick to 1-based = i+1)
                         int gmTeamId = i + 1;
                         
                         // Map to Scene Team
-                        // If GM Teams > Scene Teams, we reuse scene teams (modulo)
+                        // If GameMode Teams > Scene Teams, we reuse scene teams (modulo)
                         int sceneIndex = i % validSceneTeams.Count;
                         int targetSceneTeam = validSceneTeams[sceneIndex];
 
@@ -112,13 +111,6 @@ namespace ServerGame.Managers
                         UnityEngine.Debug.Log($"[GameEntityManager] GameMode Team {gmTeamId} ({world.GameMode.teams[i].teamName}) -> Scene Team {targetSceneTeam}");
                     }
                 }
-            }
-            else
-            {
-                UnityEngine.Debug.Log("[GameEntityManager] FFA or No Teams defined. Using direct mapping if possible.");
-                // For FFA, we usually map PlayerID directly?? Or random spawns?
-                // User requirement was specific about Teams. For FFA, let's assume we mapped something or just use direct lookup?
-                // If FFA, teamId usually 0.
             }
         }
 
@@ -246,13 +238,12 @@ namespace ServerGame.Managers
                 {
                     if (sp.teamId == targetSceneTeamId) 
                     {
-                        // UnityEngine.Debug.Log($"[GameEntityManager] Spawn Player {playerId} at Team {gameModeTeamId} (Scene Team {targetSceneTeamId})");
                         return new Vector2(sp.transform.position.x, sp.transform.position.z);
                     }
                 }
                 UnityEngine.Debug.LogWarning($"[GameEntityManager] Mapped Team {gameModeTeamId} to Scene {targetSceneTeamId} but no spawner found!");
             }
-            // 2. FFA / Fallback Logic (Round Robin)
+            // 2. FFA / Fallback Logic Round Robin (Spawns alternate(
             else if (playerSpawnersCache.Count > 0)
             {
                 var sp = playerSpawnersCache[ffaSpawnIndex % playerSpawnersCache.Count];
@@ -320,7 +311,7 @@ namespace ServerGame.Managers
             int teamId = 0;
             if (entity.TryGetComponent(out TeamComponent tc)) teamId = tc.teamId;
 
-            var spawnPos = GetSpawnPosition(entity.OwnerPlayerId, teamId); // teamId mapping handled inside
+            var spawnPos = GetSpawnPosition(entity.OwnerPlayerId, teamId);
             
             if (entity.TryGetComponent(out TransformComponent t))
             {

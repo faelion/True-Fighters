@@ -23,7 +23,6 @@ namespace Shared.Effects
 
         public override void OnTick(ServerWorld world, ActiveEffect runtime, GameEntity target, float dt)
         {
-            // Simple timer usage; could use 'tickTimer' in runtime if added
             runtime.TickTimer += dt;
             if (runtime.TickTimer >= Interval)
             {

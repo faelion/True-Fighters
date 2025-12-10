@@ -14,7 +14,7 @@ namespace ServerGame.Entities
         // State
         public float velX, velY;
         public float destX, destY;
-        public bool hasDestination; // For click-to-move
+        public bool hasDestination;
 
         // Generic "IsActive" logic for Disable effects (Stuns, Roots, etc)
         public int DisabledCount;

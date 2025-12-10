@@ -17,13 +17,13 @@ public class LobbyUI : MonoBehaviour
     [Header("References")]
     public Transform heroGridContent;
     public Transform playerListContent;
-    public GameObject previewArea; // New Reference for the container
+    public GameObject previewArea;
     public Image heroPreviewImage;
     public TMP_Text heroPreviewName;
     public TMP_Text heroPreviewDescription;
     public Toggle readyToggle;
     public Button startGameButton;
-    public TMP_Dropdown mapDropdown; // Replaces mapNameInput
+    public TMP_Dropdown mapDropdown;
     public TMP_Dropdown gameModeDropdown;
     public TMP_Dropdown teamDropdown;
     public TMP_Text lobbyInfoText; // "Waiting for players..." or IP
@@ -231,7 +231,7 @@ public class LobbyUI : MonoBehaviour
     private void RefreshTeamDropdown(string gameModeId)
     {
         if (!teamDropdown) return;
-        if (lastTeamGmId == gameModeId && teamDropdown.options.Count > 0) return; // Optimization: Don't rebuild if same mode
+        if (lastTeamGmId == gameModeId && teamDropdown.options.Count > 0) return;
 
         lastTeamGmId = gameModeId;
         teamDropdown.ClearOptions();
@@ -283,7 +283,7 @@ public class LobbyUI : MonoBehaviour
                  if (p.ConnectionId == myPlayerId && p.PlayerName != "Server")
                  {
                      // Convert TeamID (1-based or 0?) to Dropdown Index (0-based)
-                     // Logic used in OnChange: index + 1 = teamId. So index = teamId - 1.
+                     // Convert TeamID to Dropdown Index
                      int targetIndex = (p.TeamId > 0) ? p.TeamId - 1 : 0;
                      if (teamDropdown.value != targetIndex)
                      {

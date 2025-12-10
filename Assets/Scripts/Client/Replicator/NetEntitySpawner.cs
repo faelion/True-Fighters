@@ -92,7 +92,7 @@ public class NetEntitySpawner : MonoBehaviour
 
         if (type == ServerGame.Entities.EntityType.Hero)
         {
-            GameObject visualPrefab = null; // Look up from Registry
+            GameObject visualPrefab = null;
             
             // Try explicit ID
             if (!string.IsNullOrEmpty(m.archetypeId) && ClientContent.ContentAssetRegistry.Heroes.TryGetValue(m.archetypeId, out var hero) && hero.heroPrefab)
@@ -131,7 +131,7 @@ public class NetEntitySpawner : MonoBehaviour
                 {
                     Debug.Log($"[NetEntitySpawner] Activating Camera for Local Player {m.entityId}");
                     vcam.gameObject.SetActive(true);
-                    vcam.enabled = true; // Ensure component is enabled
+                    vcam.enabled = true;
                 }
                 else
                 {
@@ -140,7 +140,6 @@ public class NetEntitySpawner : MonoBehaviour
             }
             else
             {
-                // Not local player, destroy camera
                 if (vcam != null) Destroy(vcam.gameObject);
             }
         }

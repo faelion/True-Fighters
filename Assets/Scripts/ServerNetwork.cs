@@ -144,7 +144,6 @@ public class ServerNetwork : MonoBehaviour
 
     private void OnReceiveMessage(IPEndPoint remote, object msg)
     {
-        // Raise event for external managers first
         OnClientMessage?.Invoke(remote, msg);
 
         if (msg is JoinRequestMessage jr)

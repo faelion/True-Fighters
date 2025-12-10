@@ -18,7 +18,7 @@ namespace Shared.Effects
             {
                 status.AddEffect(this, Duration, source);
                 
-                // Disable normal movement & combat
+                // Disable movement & combat
                 if (target.TryGetComponent(out MovementComponent move))
                 {
                     move.DisabledCount++;
@@ -49,7 +49,7 @@ namespace Shared.Effects
 
         public override void OnRemove(ServerWorld world, ActiveEffect runtime, GameEntity target)
         {
-            // Re-enable normal movement & combat
+            // Re-enable movement & combat
             if (target.TryGetComponent(out MovementComponent move))
             {
                 move.DisabledCount--;

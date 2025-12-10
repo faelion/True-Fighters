@@ -19,6 +19,7 @@ public class AssetEventRouter : MonoBehaviour
 
     private void OnServerEvent(IGameEvent evt)
     {
+        // TODO: here only arrives events, we need a way to get here effects too from the StatusEffectComponent
         if (evt == null || string.IsNullOrEmpty(evt.SourceId)) return;
         Debug.Log($"[AssetEventRouter] Routing event of type {evt.Type} from source {evt.SourceId}");
         if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(evt.SourceId, out var asset) && asset != null)

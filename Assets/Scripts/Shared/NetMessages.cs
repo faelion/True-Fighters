@@ -8,13 +8,13 @@ public class InputMessage
     public InputKind kind;
     public float targetX;
     public float targetY;
-    public int lastReceivedTick; // ACK: The last server tick this client received
+    public int lastReceivedTick;
     public InputMessage() { }
 }
 
 public class ComponentData
 {
-    public int type; // ComponentType enum
+    public int type;
     public byte[] data;
     public ComponentData() { }
 }
@@ -22,7 +22,7 @@ public class ComponentData
 public class EntityStateData
 {
     public int entityId;
-    public int entityType; // Keep for now for identification (e.g. initial spawn)
+    public int entityType; // TODO: Verify if this is still needed for identification (e.g. initial spawn)
     public string archetypeId;
     public int tick;
     public ComponentData[] components;
@@ -79,7 +79,7 @@ public interface IGameEvent
 public class EntityDespawnEvent : IGameEvent
 {
     public string SourceId => "";
-    public int CasterId { get; set; } // The entity being despawned
+    public int CasterId { get; set; }
     public int ServerTick { get; set; }
     public int EventId { get; set; }
     public GameEventType Type => GameEventType.EntityDespawn;
