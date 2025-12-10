@@ -12,15 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f77c80af0d181fa46890180fe01daf00, type: 3}
   m_Name: CrystalAoE
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AoEAbilityAsset
-  id: 
-  displayName: 
-  defaultKey: 
+  id: 6
+  displayName: crystalAoE
+  defaultKey: E
   range: 12
   castTime: 0
   cooldown: 2
-  projectileLifeMs: 5000
-  onHitEffects: []
-  collisionRadius: 2
+  projectileLifeMs: 1000
+  onHitEffects:
+  - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}
+  collisionRadius: 5
   isTrigger: 1
-  distanceFromCaster: 3
-  aoePrefab: {fileID: 0}
+  distanceFromCaster: 0
+  aoePrefab: {fileID: 584207449403360073, guid: d05406da6bc63c74db9c198b427eb1ce, type: 3}

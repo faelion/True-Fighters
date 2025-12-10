@@ -18,7 +18,7 @@ MonoBehaviour:
   range: 2
   castTime: 0
   cooldown: 2
-  projectileLifeMs: 1000
+  projectileLifeMs: 1500
   onHitEffects:
   - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}
   collisionRadius: 2
