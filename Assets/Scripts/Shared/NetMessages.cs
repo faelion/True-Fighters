@@ -47,6 +47,7 @@ public class JoinResponseMessage
 public class StartGameMessage
 {
     public string sceneName;
+    public string gameModeId;
     public StartGameMessage() { }
 }
 
@@ -58,8 +59,8 @@ public class LobbyUpdateMessage
 
 public class LobbyActionMessage
 {
-    public int actionType; // 0=None, 1=SelectHero, 2=ToggleReady, 3=ChangeTeam
-    public string payload; // HeroId, "1"/"0", or TeamId string
+    public int actionType; // 0=None, 1=SelectHero, 2=ToggleReady, 3=ChangeTeam, 4=SetGameMode
+    public string payload; // HeroId, "1"/"0", TeamId string, or GameModeId
     public LobbyActionMessage() { }
 }
 

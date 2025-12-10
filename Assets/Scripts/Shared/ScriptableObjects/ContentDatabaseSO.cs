@@ -11,5 +11,6 @@ namespace ClientContent
         public List<AbilityAsset> abilities = new List<AbilityAsset>();
         public List<HeroSO> heroes = new List<HeroSO>();
         public List<NeutralEntitySO> neutrals = new List<NeutralEntitySO>();
+        public List<Shared.ScriptableObjects.GameModeSO> gameModes = new List<Shared.ScriptableObjects.GameModeSO>();
     }
 }

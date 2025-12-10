@@ -11,6 +11,11 @@ public class LobbyManager : MonoBehaviour
     private int myPlayerId;
     private LobbyStateData lastData;
 
+    void Awake()
+    {
+        if (lobbyUI != null) lobbyUI.Init(this);
+    }
+
     void Start()
     {
         if (clientNetwork == null)
@@ -20,11 +25,6 @@ public class LobbyManager : MonoBehaviour
         {
             clientNetwork.OnLobbyUpdate += HandleLobbyUpdate;
             myPlayerId = clientNetwork.AssignedPlayerId;
-        }
-
-        if (lobbyUI != null)
-        {
-            lobbyUI.Init(this);
         }
     }
 
@@ -103,7 +103,7 @@ public class LobbyManager : MonoBehaviour
         clientNetwork?.SendLobbyAction(3, teamId.ToString());
     }
 
-    public void StartGameRequest(string mapName)
+    public void StartGameRequest(string mapName, string gameMode)
     {
         // Only Host calls this, but it goes via ServerNetwork directly on the host machine usually?
         // Or we can add a network message for "StartGame" if we wanted remote host.
@@ -111,7 +111,7 @@ public class LobbyManager : MonoBehaviour
         var server = FindFirstObjectByType<ServerNetwork>();
         if (server != null)
         {
-            server.StartGame(mapName);
+            server.StartGame(mapName, gameMode);
         }
     }
 }

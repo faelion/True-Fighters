@@ -20,8 +20,17 @@ namespace ServerGame
 
         private Systems.AbilitySystem abilitySystem;
 
+        public Shared.ScriptableObjects.GameModeSO GameMode { get; set; }
+
         public ServerWorld()
         {
+            // Default GameMode initialization
+            string defaultGmId = ContentAssetRegistry.DefaultGameModeId;
+            if (ContentAssetRegistry.GameModes.TryGetValue(defaultGmId, out var gm))
+            {
+                GameMode = gm;
+            }
+            
             EntityManager.InitializeMapSpawners(this);
         }
 

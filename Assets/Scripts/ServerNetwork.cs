@@ -46,19 +46,19 @@ public class ServerNetwork : MonoBehaviour
         Debug.Log($"[ServerNetwork] Started on port {listenPort}. Waiting for players...");
     }
 
-    public void StartGame(string sceneName)
+    public void StartGame(string sceneName, string gameModeId)
     {
         if (gameStarted) return;
         Init();
-        StartCoroutine(LoadGameScene(sceneName));
+        StartCoroutine(LoadGameScene(sceneName, gameModeId));
     }
 
-    private System.Collections.IEnumerator LoadGameScene(string sceneName)
+    private System.Collections.IEnumerator LoadGameScene(string sceneName, string gameModeId)
     {
-        Debug.Log($"[ServerNetwork] Loading scene '{sceneName}'...");
+        Debug.Log($"[ServerNetwork] Loading scene '{sceneName}' with Mode '{gameModeId}'...");
         currentSceneName = sceneName;
         
-        var startMsg = new StartGameMessage { sceneName = sceneName };
+        var startMsg = new StartGameMessage { sceneName = sceneName, gameModeId = gameModeId };
         foreach (var ep in connections.PlayerEndpoints.Values)
         {
             SendMessageToClient(startMsg, ep);
@@ -70,6 +70,14 @@ public class ServerNetwork : MonoBehaviour
         Debug.Log("[ServerNetwork] Scene loaded. Initializing ServerWorld...");
         
         world = new ServerWorld();
+        if (ClientContent.ContentAssetRegistry.GameModes.TryGetValue(gameModeId, out var gm))
+        {
+             world.GameMode = gm;
+        }
+        else
+        {
+             Debug.LogWarning($"[ServerNetwork] GameMode '{gameModeId}' not found. Using default.");
+        }
         simulation = new ServerGame.Systems.SimulationRunner(world);
 
         foreach (var kv in connections.PlayerEndpoints)
