@@ -361,9 +361,9 @@ public class LobbyUI : MonoBehaviour
             map = mapDropdown.options[mapDropdown.value].text;
         }
         string mode = ContentAssetRegistry.DefaultGameModeId;
-        if (gameModeDropdown && gameModeDropdown.options.Count > 0)
+        if (gameModeDropdown && gameModeDropdown.options.Count > 0 && availableGameModeIds.Count > gameModeDropdown.value)
         {
-            mode = gameModeDropdown.options[gameModeDropdown.value].text;
+            mode = availableGameModeIds[gameModeDropdown.value];
         }
         manager.StartGameRequest(map, mode);
     }
