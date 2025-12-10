@@ -1,3 +1,4 @@
+using Shared.ScriptableObjects;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,8 +10,10 @@ namespace ClientContent
         public static readonly Dictionary<string, AbilityAsset> Abilities = new Dictionary<string, AbilityAsset>();
         public static readonly Dictionary<string, HeroSO> Heroes = new Dictionary<string, HeroSO>();
         public static readonly Dictionary<string, NeutralEntitySO> Neutrals = new Dictionary<string, NeutralEntitySO>();
+        public static readonly Dictionary<string, GameModeSO> GameModes = new Dictionary<string, GameModeSO>();
         public static string DefaultHeroId = "default";
         public static string DefaultNeutralId = "neutral_default";
+        public static string DefaultGameModeId = "endless";
         
         public static Shared.ScriptableObjects.MovementStrategySO DefaultMovementStrategy
         {
@@ -48,7 +51,25 @@ namespace ClientContent
             if (db.neutrals != null)
                 foreach (var n in db.neutrals)
                     if (n != null && !string.IsNullOrEmpty(n.id)) Neutrals[n.id] = n;
-            Debug.Log($"[AbilityAssetRegistry] Loaded {Abilities.Count} abilities, {Heroes.Count} heroes, {Neutrals.Count} neutrals. DefaultHeroId='{DefaultHeroId}' DefaultNeutralId='{DefaultNeutralId}'");
+
+            GameModes.Clear();
+            if (db.gameModes != null)
+            {
+                foreach (var gm in db.gameModes)
+                {
+                    if (gm != null && !string.IsNullOrEmpty(gm.id))
+                    {
+                        GameModes[gm.id] = gm;
+                        Debug.Log($"[ContentAssetRegistry] Registered GameMode: {gm.id} ({gm.displayName})");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[ContentAssetRegistry] GameMode in database is null or has empty ID.");
+                    }
+                }
+            }
+
+            Debug.Log($"[ContentAssetRegistry] Loaded {Abilities.Count} abilities, {Heroes.Count} heroes, {Neutrals.Count} neutrals, {GameModes.Count} game modes.");
             loaded = true;
         }
 

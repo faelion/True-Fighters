@@ -35,11 +35,13 @@ namespace Shared
     public struct LobbyStateData
     {
         public bool IsGameStarted;
+        public string SelectedGameModeId;
         public LobbyPlayerInfo[] Players;
 
         public void Serialize(BinaryWriter writer)
         {
             writer.Write(IsGameStarted);
+            writer.Write(SelectedGameModeId ?? "");
             int count = Players != null ? Players.Length : 0;
             writer.Write(count);
             for (int i = 0; i < count; i++)
@@ -51,6 +53,7 @@ namespace Shared
         public void Deserialize(BinaryReader reader)
         {
             IsGameStarted = reader.ReadBoolean();
+            SelectedGameModeId = reader.ReadString();
             int count = reader.ReadInt32();
             Players = new LobbyPlayerInfo[count];
             for (int i = 0; i < count; i++)

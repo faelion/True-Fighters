@@ -6,6 +6,7 @@ using System;
 public class ServerLobbyManager : MonoBehaviour
 {
     private ServerNetwork serverNetwork;
+    private string currentGameModeId = ClientContent.ContentAssetRegistry.DefaultGameModeId;
 
     public event Action<LobbyStateData> OnLobbyStateUpdated;
 
@@ -68,6 +69,15 @@ public class ServerLobbyManager : MonoBehaviour
                 changed = true;
             }
         }
+        else if (lam.actionType == 4) // SetGameMode
+        {
+            // Only allow if it's a known game mode
+            if (ClientContent.ContentAssetRegistry.GameModes.ContainsKey(lam.payload))
+            {
+                currentGameModeId = lam.payload;
+                changed = true;
+            }
+        }
 
         if (changed) BroadcastLobbyState();
     }
@@ -75,7 +85,7 @@ public class ServerLobbyManager : MonoBehaviour
     private void BroadcastLobbyState()
     {
         var info = serverNetwork.Connections.GetLobbyInfo();
-        var data = new LobbyStateData { Players = info };
+        var data = new LobbyStateData { Players = info, SelectedGameModeId = currentGameModeId };
 
         // Local event for Server UI (if any)
         OnLobbyStateUpdated?.Invoke(data);

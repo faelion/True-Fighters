@@ -19,7 +19,8 @@ namespace ServerGame.Systems
                 new AIBehaviorSystem(),
                 new CollisionSystem(),
                 new StatusEffectSystem(),
-                abilitySystem
+                abilitySystem,
+                new ServerGameLoopSystem()
             };
         }
 
