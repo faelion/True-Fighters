@@ -351,63 +351,54 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fa03955e497bd9746b27b1ec5de3018d, type: 3}
---- !u!1001 &1758469517
-PrefabInstance:
+--- !u!1 &1232768663
+GameObject:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1232768665}
+  - component: {fileID: 1232768664}
+  m_Layer: 0
+  m_Name: HeroSpawnerTeam1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1232768664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232768663}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42a3f62377f25eb44acddd020b75652d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Shared.NetworkSpawner
+  entityType: 0
+  teamId: 1
+  archetypeId: default
+  respawnTime: 5
+--- !u!4 &1232768665
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232768663}
   serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 6.33455
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.01581
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -15.08102
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5022547109564238692, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5913585510923597840, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
-      propertyPath: m_Name
-      value: AbilityAssetEventRouter
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 557801ace8e4a404d92bc65e6418d0d1, type: 3}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 19.24, y: 0, z: -19.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1927121106
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -476,7 +467,7 @@ GameObject:
   - component: {fileID: 2006970551}
   - component: {fileID: 2006970550}
   m_Layer: 0
-  m_Name: HeroSpawner
+  m_Name: HeroSpawnerTeam2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -507,7 +498,7 @@ Transform:
   m_GameObject: {fileID: 2006970549}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -38.1, y: 0, z: 0}
+  m_LocalPosition: {x: 14.85, y: 0, z: 2.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -605,8 +596,8 @@ SceneRoots:
   m_Roots:
   - {fileID: 1927121106}
   - {fileID: 1022514611}
-  - {fileID: 1758469517}
   - {fileID: 471818399}
   - {fileID: 901208212}
   - {fileID: 2006970551}
+  - {fileID: 1232768665}
   - {fileID: 3949080588765305668}
