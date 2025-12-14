@@ -64,7 +64,7 @@ public class LobbyActionMessage
     public LobbyActionMessage() { }
 }
 
-public enum GameEventType { EntityDespawn = 1, EntitySpawn = 2 }
+public enum GameEventType { EntityDespawn = 1, EntitySpawn = 2, AbilityCasted = 3 }
 
 public interface IGameEvent
 {
@@ -110,3 +110,14 @@ public class TickPacketMessage
     public TickPacketMessage() { }
 }
 
+public class AbilityCastedEvent : IGameEvent
+{
+    public string SourceId { get; set; } // Ability ID
+    public int CasterId { get; set; }
+    public int ServerTick { get; set; }
+    public int EventId { get; set; }
+    public float TargetX { get; set; }
+    public float TargetY { get; set; }
+    public GameEventType Type => GameEventType.AbilityCasted;
+    public bool IsReliable => true;
+}

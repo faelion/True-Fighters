@@ -16,6 +16,13 @@ namespace ServerGame.Systems
                 {
                     var active = statusComp.ActiveEffects[i];
                     
+                    // Handle Start
+                    if (active.IsNew)
+                    {
+                        active.IsNew = false;
+                        active.SourceEffect.OnStart(world, active, entity);
+                    }
+
                     // Tick
                     active.RemainingTime -= dt;
                     active.SourceEffect.OnTick(world, active, entity, dt);

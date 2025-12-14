@@ -12,7 +12,8 @@ namespace ServerGame.Entities
         public float Duration;
         public float RemainingTime;
         public float TickTimer; // For DOTs
-        public GameEntity Caster; // Who cast it?
+        public int CasterId; // Using ID for easier sync (GameEntity reference is transient)
+        public bool IsNew = true; // Flag to trigger OnStart
     }
 
     public class StatusEffectComponent : IGameComponent
@@ -23,31 +24,49 @@ namespace ServerGame.Entities
 
         public void AddEffect(Effect source, float duration, GameEntity caster)
         {
+            // Optional: Check if unique or stackable. For now, multiple allowed.
             ActiveEffects.Add(new ActiveEffect 
             { 
                 SourceEffect = source, 
                 Duration = duration, 
                 RemainingTime = duration,
-                Caster = caster,
-                TickTimer = 0f
+                CasterId = caster != null ? caster.Id : -1,
+                TickTimer = 0f,
+                IsNew = true
             });
         }
 
         public void Serialize(System.IO.BinaryWriter writer)
         {
-            // For now, minimal sync. 
-            // Ideally we sync Effect IDs, but with Polymorphic Inline effects, they don't have IDs!
-            // This is the tricky part of Option 3. How to sync to client?
-            // Client NEEDS to know "I am stunned".
-            // We can add a "Tag" or "VisualId" string to the Effect base class.
             writer.Write(ActiveEffects.Count);
-            // We'll figure out full sync later. For now just sync count to avoid crashing.
+            foreach (var ae in ActiveEffects)
+            {
+                // Write ID
+                string effectId = ae.SourceEffect != null ? ae.SourceEffect.id : "";
+                writer.Write(effectId);
+                
+                // Write State
+                writer.Write(ae.RemainingTime);
+                writer.Write(ae.CasterId);
+            }
         }
 
         public void Deserialize(System.IO.BinaryReader reader)
         {
+            // Note: This Deserialize is raw data. 
+            // In the Client implementation (NetEntityView), we'll read this manually 
+            // because we need to map string ID back to ScriptableObject.
+            // This method might be unused if we handle it in View, but good to keep structure.
             int count = reader.ReadInt32();
-            // Stub
+            // We can't reconstruct SourceEffect here easily without Registry access.
+            // So we skip reading or assume this is only called if we have access.
+            // For now, let's just skip the bytes to prevent stream corruption if called blindly.
+            for (int i = 0; i < count; i++)
+            {
+                reader.ReadString(); // ID
+                reader.ReadSingle(); // Time
+                reader.ReadInt32();  // Caster
+            }
         }
     }
 }

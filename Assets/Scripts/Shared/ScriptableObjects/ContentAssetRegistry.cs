@@ -11,6 +11,7 @@ namespace ClientContent
         public static readonly Dictionary<string, HeroSO> Heroes = new Dictionary<string, HeroSO>();
         public static readonly Dictionary<string, NeutralEntitySO> Neutrals = new Dictionary<string, NeutralEntitySO>();
         public static readonly Dictionary<string, GameModeSO> GameModes = new Dictionary<string, GameModeSO>();
+        public static readonly Dictionary<string, Shared.Effects.Effect> Effects = new Dictionary<string, Shared.Effects.Effect>();
         public static string DefaultHeroId = "default";
         public static string DefaultNeutralId = "neutral_default";
         public static string DefaultGameModeId = "endless";
@@ -68,8 +69,13 @@ namespace ClientContent
                     }
                 }
             }
+            
+            Effects.Clear();
+            if (db.effects != null)
+                foreach(var e in db.effects)
+                    if (e != null && !string.IsNullOrEmpty(e.id)) Effects[e.id] = e;
 
-            Debug.Log($"[ContentAssetRegistry] Loaded {Abilities.Count} abilities, {Heroes.Count} heroes, {Neutrals.Count} neutrals, {GameModes.Count} game modes.");
+            Debug.Log($"[ContentAssetRegistry] Loaded {Abilities.Count} abilities, {Heroes.Count} heroes, {Neutrals.Count} neutrals, {GameModes.Count} game modes, {Effects.Count} effects.");
             loaded = true;
         }
 
@@ -142,5 +148,25 @@ namespace ClientContent
             
             return null;
         }
+
+        public static GameObject GetPrefab(string id)
+        {
+            EnsureLoaded();
+            if (string.IsNullOrEmpty(id)) return null;
+
+            if (Abilities.TryGetValue(id, out var ability))
+            {
+                 // Handle different ability types that have prefabs
+                 if (ability is ProjectileAbilityAsset p) return p.projectilePrefab;
+                 if (ability is AttackCaCAbilityAsset c) return c.CaCPrefab;
+                 if (ability is ConeCaCAbilityAsset cone) return cone.conePrefab;
+                 if (ability is AoEAbilityAsset aoe) return aoe.aoePrefab;
+                 return null;
+            }
+            if (Heroes.TryGetValue(id, out var hero)) return hero.heroPrefab;
+            if (Neutrals.TryGetValue(id, out var neutral)) return neutral.prefab;
+            
+            return null;
+         }
     }
 }

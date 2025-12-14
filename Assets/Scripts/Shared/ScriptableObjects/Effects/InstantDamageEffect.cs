@@ -11,7 +11,7 @@ namespace Shared.Effects
         [Tooltip("Amount of damage to deal instantly.")]
         public float Amount;
 
-        public override void Apply(ServerWorld world, GameEntity source, GameEntity target)
+        public override void OnStart(ServerWorld world, ActiveEffect runtime, GameEntity target)
         {
             if (target.TryGetComponent(out HealthComponent health))
             {

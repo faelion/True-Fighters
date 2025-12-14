@@ -11,6 +11,7 @@ namespace ClientContent
 
         [Header("View")]
         public GameObject FlashVfx;
+        public float vfxDuration = 0.2f;
 
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
@@ -47,8 +48,16 @@ namespace ClientContent
 
         public override void ClientHandleEvent(IGameEvent evt, GameObject contextRoot)
         {
-            Instantiate(FlashVfx, contextRoot.transform);
-            Debug.Log("Flash VFX instantiated on client.");
+        }
+
+        public override void ClientOnCast(AbilityCastedEvent evt, GameObject contextRoot)
+        {
+            if (FlashVfx != null && contextRoot != null)
+            {
+                var vfx = Instantiate(FlashVfx, contextRoot.transform.position, contextRoot.transform.rotation);
+                Destroy(vfx, vfxDuration); 
+            }
+            Debug.Log($"[FlashAbilityAsset] ClientOnCast executed on {contextRoot?.name}");
         }
     }
 }

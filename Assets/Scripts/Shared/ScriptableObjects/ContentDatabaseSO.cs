@@ -12,5 +12,6 @@ namespace ClientContent
         public List<HeroSO> heroes = new List<HeroSO>();
         public List<NeutralEntitySO> neutrals = new List<NeutralEntitySO>();
         public List<Shared.ScriptableObjects.GameModeSO> gameModes = new List<Shared.ScriptableObjects.GameModeSO>();
+        public List<Shared.Effects.Effect> effects = new List<Shared.Effects.Effect>();
     }
 }

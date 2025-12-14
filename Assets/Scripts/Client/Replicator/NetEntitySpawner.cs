@@ -10,6 +10,12 @@ public class NetEntitySpawner : MonoBehaviour
 
     private readonly Dictionary<int, NetEntityView> views = new Dictionary<int, NetEntityView>();
 
+    public NetEntityView GetView(int id)
+    {
+        if (views.TryGetValue(id, out var view)) return view;
+        return null;
+    }
+
     void OnEnable()
     {
         ClientMessageRouter.OnEntityState += OnEntityState;
@@ -50,39 +56,34 @@ public class NetEntitySpawner : MonoBehaviour
         GameObject go = null;
         var type = (ServerGame.Entities.EntityType)m.entityType;
 
+        // Unified Prefab Lookup
+        GameObject prefab = ContentAssetRegistry.GetPrefab(m.archetypeId);
+
+        // Special handling for Hero Base Container (which holds the visual prefab inside)
         if (type == ServerGame.Entities.EntityType.Hero)
         {
-            if (basePlayerPrefab) go = Instantiate(basePlayerPrefab);
-            else 
-            {
-                Debug.LogWarning("[NetEntitySpawner] BasePlayerPrefab not assigned! Using primitive.");
-                go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            }
+             if (basePlayerPrefab) 
+             {
+                 go = Instantiate(basePlayerPrefab);
+                 // If we found a specific hero visual, instantiate it inside the base
+                 if (prefab != null)
+                 {
+                     var visuals = Instantiate(prefab, go.transform);
+                     visuals.transform.localPosition = Vector3.zero;
+                     visuals.transform.localRotation = Quaternion.identity;
+                 }
+             }
+             else 
+             {
+                 Debug.LogWarning("[NetEntitySpawner] BasePlayerPrefab not assigned! Using primitive.");
+                 go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+             }
         }
-        else if (type == ServerGame.Entities.EntityType.Projectile)
+        else
         {
-            if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.ProjectileAbilityAsset projAbility)
-                go = Instantiate(projAbility.projectilePrefab);         
+            // Standard Entities directly use the prefab
+            if (prefab != null) go = Instantiate(prefab);
         }
-        else if (type == ServerGame.Entities.EntityType.Neutral)
-        {
-             var neutral = ClientContent.ContentAssetRegistry.GetNeutral(m.archetypeId);
-             if (neutral) go = Instantiate(neutral.prefab);
-        }
-        else if(type == ServerGame.Entities.EntityType.Melee)
-        {
-            if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.AttackCaCAbilityAsset cacAbility)
-                go = Instantiate(cacAbility.CaCPrefab);
-            else if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var cone) && cone is ClientContent.ConeCaCAbilityAsset coneAbility)
-                go = Instantiate(coneAbility.conePrefab);
-        }
-        else if(type == ServerGame.Entities.EntityType.AoE)
-        {
-            if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(m.archetypeId, out var ability) && ability is ClientContent.AoEAbilityAsset aoeAbility)
-                go = Instantiate(aoeAbility.aoePrefab);
-        }
-
-        if (go == null) go = new GameObject($"Entity_{m.entityId}");
 
         if (go == null) go = new GameObject($"Entity_{m.entityId}");
         
@@ -90,38 +91,9 @@ public class NetEntitySpawner : MonoBehaviour
         view.Initialize(m);
         views[m.entityId] = view;
 
+        // Camera Logic for Local Player
         if (type == ServerGame.Entities.EntityType.Hero)
         {
-            GameObject visualPrefab = null;
-            
-            // Try explicit ID
-            if (!string.IsNullOrEmpty(m.archetypeId) && ClientContent.ContentAssetRegistry.Heroes.TryGetValue(m.archetypeId, out var hero) && hero.heroPrefab)
-            {
-                 visualPrefab = hero.heroPrefab;
-            }
-            // Fallback to Default ID
-            else if (ClientContent.ContentAssetRegistry.Heroes.TryGetValue(ClientContent.ContentAssetRegistry.DefaultHeroId, out var defHero) && defHero.heroPrefab)
-            {
-                 Debug.LogWarning($"[NetEntitySpawner] HeroID '{m.archetypeId}' not found. Falling back to default '{ClientContent.ContentAssetRegistry.DefaultHeroId}'. Available Keys: {string.Join(", ", ClientContent.ContentAssetRegistry.Heroes.Keys)}");
-                 visualPrefab = defHero.heroPrefab;
-            }
-            // Last resort: Any hero
-            else 
-            {
-                Debug.LogError($"[NetEntitySpawner] Requested '{m.archetypeId}' AND Default not found. Using random first available. Keys: {string.Join(", ", ClientContent.ContentAssetRegistry.Heroes.Keys)}");
-                foreach(var h in ClientContent.ContentAssetRegistry.Heroes.Values) 
-                { 
-                    if(h.heroPrefab) { visualPrefab = h.heroPrefab; break; } 
-                }
-            }
-
-            if (visualPrefab)
-            {
-                var visuals = Instantiate(visualPrefab, go.transform);
-                visuals.transform.localPosition = Vector3.zero;
-                visuals.transform.localRotation = Quaternion.identity;
-            }
-
             var clientNet = FindFirstObjectByType<ClientNetwork>();
             var vcam = go.GetComponentInChildren<CinemachineCamera>(true);
 

@@ -42,5 +42,7 @@ namespace ClientContent
 
 
         public abstract void ClientHandleEvent(IGameEvent evt, GameObject contextRoot);
+        
+        public virtual void ClientOnCast(AbilityCastedEvent evt, GameObject contextRoot) { }
     }
 }

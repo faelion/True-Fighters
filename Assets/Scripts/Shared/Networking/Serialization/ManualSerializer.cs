@@ -21,6 +21,7 @@ namespace Networking.Serialization
         // Event payloads
         private const byte TYPE_EntityDespawnEvent = 15;
         private const byte TYPE_EntitySpawnEvent = 16;
+        private const byte TYPE_AbilityCastedEvent = 17;
 
         public byte[] Serialize(object obj)
         {
@@ -256,6 +257,7 @@ namespace Networking.Serialization
             {
                 case GameEventType.EntityDespawn: return TYPE_EntityDespawnEvent;
                 case GameEventType.EntitySpawn: return TYPE_EntitySpawnEvent;
+                case GameEventType.AbilityCasted: return TYPE_AbilityCastedEvent;
                 default: throw new NotSupportedException("Unknown event type: " + ev.Type);
             }
         }
@@ -290,6 +292,17 @@ namespace Networking.Serialization
                     bw.Write(m.EventId);
                     break;
                 }
+                case GameEventType.AbilityCasted:
+                {
+                    var m = (AbilityCastedEvent)ev;
+                    bw.Write(m.CasterId);
+                    bw.Write(m.ServerTick);
+                    bw.Write(m.EventId);
+                    WriteString(bw, m.SourceId);
+                    bw.Write(m.TargetX);
+                    bw.Write(m.TargetY);
+                    break;
+                }
                 default:
                     throw new NotSupportedException("Unknown event type: " + ev.Type);
             }
@@ -301,6 +314,7 @@ namespace Networking.Serialization
             {
                 case TYPE_EntityDespawnEvent: return ReadEntityDespawnEvent(br);
                 case TYPE_EntitySpawnEvent: return ReadEntitySpawnEvent(br);
+                case TYPE_AbilityCastedEvent: return ReadAbilityCastedEvent(br);
                 default:
                     throw new NotSupportedException("Unknown event type id: " + type);
             }
@@ -328,6 +342,19 @@ namespace Networking.Serialization
                 ArchetypeId = ReadString(br),
                 TeamId = br.ReadInt32(),
                 EventId = br.ReadInt32(),
+            };
+        }
+
+        private static AbilityCastedEvent ReadAbilityCastedEvent(BinaryReader br)
+        {
+            return new AbilityCastedEvent
+            {
+                CasterId = br.ReadInt32(),
+                ServerTick = br.ReadInt32(),
+                EventId = br.ReadInt32(),
+                SourceId = ReadString(br),
+                TargetX = br.ReadSingle(),
+                TargetY = br.ReadSingle(),
             };
         }
 

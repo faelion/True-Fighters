@@ -7,13 +7,26 @@ namespace Shared.Effects
 {
     public abstract class Effect : ScriptableObject
     {
-        // Apply method called by the server when the effect should trigger (e.g. on hit)
-        public abstract void Apply(ServerWorld world, GameEntity source, GameEntity target);
+        // Identification
+        public string id;
+        public float Duration = 0f;
 
-        // Optional: Called every tick while active (for dots, movement, etc)
+        public virtual void Apply(ServerWorld world, GameEntity source, GameEntity target)
+        {
+            if (target.TryGetComponent(out StatusEffectComponent status))
+            {
+                status.AddEffect(this, Duration, source);
+            }
+        }
+
+        // --- Server Logic ---
+        public virtual void OnStart(ServerWorld world, ActiveEffect runtime, GameEntity target) { }
         public virtual void OnTick(ServerWorld world, ActiveEffect runtime, GameEntity target, float dt) { }
-
-        // Optional: Called when the effect expires or is removed
         public virtual void OnRemove(ServerWorld world, ActiveEffect runtime, GameEntity target) { }
+
+        // --- Client Visuals ---
+        public virtual void ClientOnStart(GameObject targetVisuals) { }
+        public virtual void ClientOnTick(GameObject targetVisuals, float dt) { }
+        public virtual void ClientOnRemove(GameObject targetVisuals) { }
     }
 }

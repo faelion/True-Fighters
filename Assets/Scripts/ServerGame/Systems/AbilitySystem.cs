@@ -76,6 +76,14 @@ namespace ServerGame.Systems
             if (!ability.ServerTryCast(world, playerId, targetX, targetY))
                 return false;
             
+            // Raise Event
+            world.EnqueueEvent(new AbilityCastedEvent
+            {
+                SourceId = ability.id,
+                CasterId = playerId,
+                TargetX = targetX,
+                TargetY = targetY
+            });
 
             cdByKey[key] = ability.cooldown;
             return true;

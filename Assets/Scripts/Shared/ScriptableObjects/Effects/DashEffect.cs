@@ -9,27 +9,21 @@ namespace Shared.Effects
     public class DashEffect : Effect
     {
         public float Speed = 15f;
-        public float Duration = 0.2f;
         public bool disableCombat = true;
 
-        public override void Apply(ServerWorld world, GameEntity source, GameEntity target)
+        public override void OnStart(ServerWorld world, ActiveEffect runtime, GameEntity target)
         {
-            if (target.TryGetComponent(out StatusEffectComponent status))
+            // Disable movement & combat
+            if (target.TryGetComponent(out MovementComponent move))
             {
-                status.AddEffect(this, Duration, source);
-                
-                // Disable movement & combat
-                if (target.TryGetComponent(out MovementComponent move))
-                {
-                    move.DisabledCount++;
-                }
-                if (disableCombat && target.TryGetComponent(out CombatComponent combat))
-                {
-                    combat.DisabledCount++;
-                }
-                
-                Debug.Log($"[DashEffect] Applied Dash to {target.Id}. Speed: {Speed}");
+                move.DisabledCount++;
             }
+            if (disableCombat && target.TryGetComponent(out CombatComponent combat))
+            {
+                combat.DisabledCount++;
+            }
+            
+            Debug.Log($"[DashEffect] Started Dash on {target.Id}. Speed: {Speed}");
         }
 
         public override void OnTick(ServerWorld world, ActiveEffect runtime, GameEntity target, float dt)

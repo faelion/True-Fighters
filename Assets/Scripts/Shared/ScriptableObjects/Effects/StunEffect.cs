@@ -8,24 +8,18 @@ namespace Shared.Effects
     [CreateAssetMenu(menuName = "Content/Effects/Stun Effect", fileName = "StunEffect")]
     public class StunEffect : Effect
     {
-        public float Duration = 2f;
 
-        public override void Apply(ServerWorld world, GameEntity source, GameEntity target)
+        public override void OnStart(ServerWorld world, ActiveEffect runtime, GameEntity target)
         {
-            if (target.TryGetComponent(out StatusEffectComponent status))
+            if (target.TryGetComponent(out MovementComponent move))
             {
-                status.AddEffect(this, Duration, source);
-                
-                if (target.TryGetComponent(out MovementComponent move))
-                {
-                    move.DisabledCount++;
-                }
-                if (target.TryGetComponent(out CombatComponent combat))
-                {
-                    combat.DisabledCount++;
-                }
-                Debug.Log($"[StunEffect] Applied Stun to {target.Id}");
+                move.DisabledCount++;
             }
+            if (target.TryGetComponent(out CombatComponent combat))
+            {
+                combat.DisabledCount++;
+            }
+            Debug.Log($"[StunEffect] Applied Stun to {target.Id}");
         }
 
         public override void OnRemove(ServerWorld world, ActiveEffect runtime, GameEntity target)

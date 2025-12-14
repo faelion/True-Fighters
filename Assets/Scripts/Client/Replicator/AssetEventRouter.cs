@@ -19,12 +19,32 @@ public class AssetEventRouter : MonoBehaviour
 
     private void OnServerEvent(IGameEvent evt)
     {
-        // TODO: here only arrives events, we need a way to get here effects too from the StatusEffectComponent
         if (evt == null || string.IsNullOrEmpty(evt.SourceId)) return;
-        Debug.Log($"[AssetEventRouter] Routing event of type {evt.Type} from source {evt.SourceId}");
-        if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(evt.SourceId, out var asset) && asset != null)
+        
+        // Only route Ability events for now
+        if (evt.Type == GameEventType.AbilityCasted && ClientContent.ContentAssetRegistry.Abilities.TryGetValue(evt.SourceId, out var ability))
         {
-            Debug.Log($"[AssetEventRouter] Found AbilityAsset for source {evt.SourceId}, routing event.");
+             var castedEvent = (AbilityCastedEvent)evt;
+             var spawner = FindFirstObjectByType<NetEntitySpawner>();
+             GameObject casterVisual = null;
+             
+             if (spawner)
+             {
+                 var view = spawner.GetView(castedEvent.CasterId);
+                 if (view) casterVisual = view.gameObject;
+             }
+
+             if (casterVisual)
+             {
+                 ability.ClientOnCast(castedEvent, casterVisual);
+             }
+             else
+             {
+                 Debug.LogWarning($"[AssetEventRouter] Caster View {castedEvent.CasterId} not found for ability {evt.SourceId}");
+             }
+        }
+        else if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(evt.SourceId, out var asset) && asset != null)
+        {
             asset.ClientHandleEvent(evt, gameObject);
         }
     }

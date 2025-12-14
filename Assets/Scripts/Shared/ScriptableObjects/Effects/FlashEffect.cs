@@ -9,20 +9,9 @@ namespace Shared.Effects
     public class FlashEffect : Effect
     {
         public float JumpUnits = 15f;
-        public float Duration = 0.0f;
         public bool disableCombat = true;
 
-        public override void Apply(ServerWorld world, GameEntity source, GameEntity target)
-        {
-            if (target.TryGetComponent(out StatusEffectComponent status))
-            {
-                status.AddEffect(this, Duration, source);
-                
-                Debug.Log($"[DashEffect] Applied Flash to {target.Id}. JumpUnits: {JumpUnits}");
-            }
-        }
-
-        public override void OnTick(ServerWorld world, ActiveEffect runtime, GameEntity target, float dt)
+        public override void OnStart(ServerWorld world, ActiveEffect runtime, GameEntity target)
         {
             // Move entity forward based on its current rotation
             if (target.TryGetComponent(out TransformComponent t))
