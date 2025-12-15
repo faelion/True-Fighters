@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8381d5d3dc79e7e44882805d5e9d5247, type: 3}
   m_Name: DefaultDashEffect
   m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.DashEffect
-  Speed: 10
+  id: dash
   Duration: 0.5
+  Speed: 10
   disableCombat: 0

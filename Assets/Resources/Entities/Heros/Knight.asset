@@ -20,10 +20,17 @@ MonoBehaviour:
   bindings:
   - key: Q
     ability: {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
+    castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   - key: W
     ability: {fileID: 11400000, guid: 048859dc965cd10499256fd2d0345f6c, type: 2}
+    castClip: {fileID: -3851722262833059593, guid: 89bf0923eeb152a498f8b5c175456551, type: 3}
   - key: E
     ability: {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}
+    castClip: {fileID: -8653722278162725603, guid: f0c244fac520efa48b958b7b43da5734, type: 3}
   - key: R
     ability: {fileID: 11400000, guid: 299f7434df4b9e34f900c0c6479631ac, type: 2}
+    castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   heroPrefab: {fileID: 5229275301457161681, guid: f75172a1aca57c149908c81e5806740f, type: 3}
+  baseControllerTemplate: {fileID: 9100000, guid: 0f12453f2c01eab4ca5f5aad96761aae, type: 2}
+  idleClip: {fileID: 345275505875579249, guid: 90aad54161a84d14492377a161369f5f, type: 3}
+  walkClip: {fileID: -1640158340307531623, guid: fe23e1687ec0bf245b5ad1f7a63d4ddb, type: 3}

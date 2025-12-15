@@ -45,3 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetEntitySpawner
   basePlayerPrefab: {fileID: 1365672224816715787, guid: a2a8f9fec0c863443835694112354d7e, type: 3}
+  baseNeutralPrefab: {fileID: 2761828473584717703, guid: 25f87f1e18bf45c4ebcd70d1aff9f5e3, type: 3}

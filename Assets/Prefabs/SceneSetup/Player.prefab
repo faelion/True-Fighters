@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6682834146038823048}
-  - component: {fileID: 8258544613492074597}
+  - component: {fileID: 2483148188101050572}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -33,7 +33,7 @@ Transform:
   - {fileID: 1385678640466017142}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8258544613492074597
+--- !u!114 &2483148188101050572
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -42,10 +42,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 1365672224816715787}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd8b1b8356cabca49aa71f52e99cd8e7, type: 3}
+  m_Script: {fileID: 11500000, guid: 99fddae89aa3b6d4a820d576e8318a20, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AssetEventRouter
-  databaseResourcePath: ContentDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkHeroAnimator
+  animator: {fileID: 0}
+  speedParam: Speed
+  runSpeedThreshold: 0.1
+  smoothTime: 0.1
+  slotPlaceholders:
+  - {fileID: 7400000, guid: d600247f5b3702645a2a64889814cb0e, type: 2}
+  - {fileID: 7400000, guid: f3d2607538beb9c499e907f4138afda6, type: 2}
+  - {fileID: 7400000, guid: c22b62d2146be6d4a8eb7d57af36b255, type: 2}
+  - {fileID: 7400000, guid: eb48439647b84d34f8a3bf1295fd9a32, type: 2}
+  - {fileID: 7400000, guid: 9e77e7baf31c36f4da768468d0375db6, type: 2}
+  - {fileID: 7400000, guid: 52342db0bad351348856d9d2f093db96, type: 2}
 --- !u!1 &3151408337958476115
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,6 +7,7 @@ using Unity.Cinemachine;
 public class NetEntitySpawner : MonoBehaviour
 {
     [SerializeField] private GameObject basePlayerPrefab;
+    [SerializeField] private GameObject baseNeutralPrefab; // Added
 
     private readonly Dictionary<int, NetEntityView> views = new Dictionary<int, NetEntityView>();
 

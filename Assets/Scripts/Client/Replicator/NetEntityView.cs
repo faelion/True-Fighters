@@ -1,27 +1,44 @@
 using ServerGame.Entities;
 using System.IO;
 using UnityEngine;
+using System.Collections.Generic;
+using Client.Replicator;
 
 public class NetEntityView : MonoBehaviour
 {
     public int entityId;
+    public string ArchetypeId;
     
-    public GameObject visualRoot;
-    
-    private readonly TransformComponent transformComp = new TransformComponent();
-    private readonly ServerGame.Entities.HealthComponent healthComp = new ServerGame.Entities.HealthComponent();
-
-
-    private bool isDead = false;
-    private Renderer[] cachedRenderers;
+    // Mapping ComponentType ID -> List of Visual Handlers
+    private Dictionary<int, List<INetworkComponentVisual>> visualHandlers = new Dictionary<int, List<INetworkComponentVisual>>();
 
     void Awake()
     {
-        if (visualRoot == null)
+        // 1. Find existing handlers (Custom scripts attached in Editor)
+        var handlers = GetComponentsInChildren<INetworkComponentVisual>(true);
+        foreach (var h in handlers)
         {
-            var renderer = GetComponentInChildren<Renderer>();
-            if (renderer) visualRoot = renderer.gameObject;
+            RegisterHandler(h);
         }
+
+        // 2. Add Defaults if missing (Backward Compatibility)
+        if (!HasHandler((int)ComponentType.Transform)) RegisterHandler(gameObject.AddComponent<NetworkTransformVisual>());
+        if (!HasHandler((int)ComponentType.Health)) RegisterHandler(gameObject.AddComponent<NetworkHealthVisual>());
+        if (!HasHandler((int)ComponentType.StatusEffect)) RegisterHandler(gameObject.AddComponent<NetworkStatusEffectsVisual>());
+    }
+
+    private void RegisterHandler(INetworkComponentVisual handler)
+    {
+        if (!visualHandlers.ContainsKey(handler.TargetComponentType))
+        {
+            visualHandlers[handler.TargetComponentType] = new List<INetworkComponentVisual>();
+        }
+        visualHandlers[handler.TargetComponentType].Add(handler);
+    }
+
+    private bool HasHandler(int typeId)
+    {
+        return visualHandlers.ContainsKey(typeId) && visualHandlers[typeId].Count > 0;
     }
 
     void OnEnable()
@@ -37,6 +54,18 @@ public class NetEntityView : MonoBehaviour
     public void Initialize(EntityStateData m)
     {
         entityId = m.entityId;
+        ArchetypeId = m.archetypeId;
+        
+        // Initialize Animation logic based on Archetype
+        if (ClientContent.ContentAssetRegistry.Heroes.TryGetValue(m.archetypeId, out var hero))
+        {
+             GetComponentInChildren<NetworkHeroAnimator>()?.Initialize(hero);
+        }
+        else if (ClientContent.ContentAssetRegistry.Neutrals.TryGetValue(m.archetypeId, out var neutral))
+        {
+             GetComponentInChildren<NetworkNpcAnimator>()?.Initialize(neutral);
+        }
+
         UpdateState(m);
     }
 
@@ -45,106 +74,34 @@ public class NetEntityView : MonoBehaviour
         if (m.entityId != entityId) return;
         UpdateState(m);
     }
-
-    private readonly System.Collections.Generic.HashSet<string> currentEffects = new System.Collections.Generic.HashSet<string>();
     
+    // Reusable buffer to avoid allocations
+    private byte[] buffer = new byte[1024]; 
+
     private void UpdateState(EntityStateData m)
     {
         if (m.components == null) return;
 
         foreach (var compData in m.components)
         {
-            switch (compData.type)
+            // If we have handlers for this component type
+            if (visualHandlers.TryGetValue(compData.type, out var handlers))
             {
-                case (int)ComponentType.Transform:
+                // We wrap the data in a MemoryStream/BinaryReader
+                // Since compData.data is already a byte[], we can just use it.
+                // However, for safety, multiple readers might be needed if handlers advance the stream.
+                // But typically we can just reset position or instantiate new readers.
+                // Given the GC implication, let's just pass a new generic reader for now, optimization later.
+                
+                foreach(var handler in handlers)
+                {
                     using (var ms = new MemoryStream(compData.data))
                     using (var reader = new BinaryReader(ms))
                     {
-                        transformComp.Deserialize(reader);
+                        handler.OnNetworkUpdate(reader);
                     }
-                    transform.position = new Vector3(transformComp.posX, transform.position.y, transformComp.posY);
-                    transform.rotation = Quaternion.Euler(0f, transformComp.rotZ, 0f);
-                    break;
-                case (int)ComponentType.Health:
-                    using (var ms = new MemoryStream(compData.data))
-                    using (var reader = new BinaryReader(ms))
-                    {
-                        healthComp.Deserialize(reader);
-                    }
-                    if (isDead != healthComp.IsDead)
-                    {
-                        isDead = healthComp.IsDead;
-                        ToggleVisuals(!isDead);
-                    }
-                    break;
-                case (int)ComponentType.StatusEffect:
-                    using (var ms = new MemoryStream(compData.data))
-                    using (var reader = new BinaryReader(ms))
-                    {
-                        HandleStatusEffects(reader);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    private void HandleStatusEffects(BinaryReader reader)
-    {
-        int count = reader.ReadInt32();
-        var serverEffects = new System.Collections.Generic.HashSet<string>();
-
-        for (int i = 0; i < count; i++)
-        {
-            string effectId = reader.ReadString();
-            float remainingTime = reader.ReadSingle();
-            int casterId = reader.ReadInt32();
-
-            serverEffects.Add(effectId);
-
-            // Fetch Asset
-            if (ClientContent.ContentAssetRegistry.Effects.TryGetValue(effectId, out var effectAsset))
-            {
-                if (!currentEffects.Contains(effectId))
-                {
-                    // NEW
-                    effectAsset.ClientOnStart(gameObject);
-                }
-                else
-                {
-                    // EXISTING
-                    effectAsset.ClientOnTick(gameObject, Time.deltaTime); // Approximate DT
                 }
             }
-        }
-
-        // Check for Removed
-        foreach (var oldId in currentEffects)
-        {
-            if (!serverEffects.Contains(oldId))
-            {
-                if (ClientContent.ContentAssetRegistry.Effects.TryGetValue(oldId, out var effectAsset))
-                {
-                    effectAsset.ClientOnRemove(gameObject);
-                }
-            }
-        }
-
-        currentEffects.Clear();
-        foreach(var id in serverEffects) currentEffects.Add(id);
-    }
-
-    private void ToggleVisuals(bool isActive)
-    {
-        if (visualRoot)
-        {
-            visualRoot.SetActive(isActive);
-        }
-        else
-        {
-            if (cachedRenderers == null) cachedRenderers = GetComponentsInChildren<Renderer>(true);
-            foreach(var r in cachedRenderers) r.enabled = isActive;
         }
     }
 }

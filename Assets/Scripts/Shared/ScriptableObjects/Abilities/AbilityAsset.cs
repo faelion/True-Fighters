@@ -43,6 +43,13 @@ namespace ClientContent
 
         public abstract void ClientHandleEvent(IGameEvent evt, GameObject contextRoot);
         
-        public virtual void ClientOnCast(AbilityCastedEvent evt, GameObject contextRoot) { }
+        public virtual void ClientOnCast(AbilityCastedEvent evt, GameObject contextRoot) 
+        { 
+            if (contextRoot)
+            {
+                var anim = contextRoot.GetComponent<NetworkHeroAnimator>();
+                if (anim) anim.TriggerAbility(evt.SourceId);
+            }
+        }
     }
 }

@@ -10,10 +10,16 @@ namespace ClientContent
         [Serializable]
         public struct Binding
         {
-            public string key; // "Q","W","E","R" (or any)
+            public string key; // "Q","W","E","R"
             public AbilityAsset ability;
+            public AnimationClip castClip;
         }
         public List<Binding> bindings = new List<Binding>();
         public GameObject heroPrefab;
+
+        [Header("Animation Config")]
+        public RuntimeAnimatorController baseControllerTemplate;
+        public AnimationClip idleClip;
+        public AnimationClip walkClip;
     }
 }

@@ -22,9 +22,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0420b112ea9c81640a5c60e203edcde3, type: 2}
   - {fileID: 11400000, guid: 94dddadb3cc6bb64fb058369626bb25e, type: 2}
   heroes:
-  - {fileID: 11400000, guid: a831a35e839ead24ca0bb335170b0b5d, type: 2}
-  - {fileID: 11400000, guid: 1bb73a3dec071f04388c19830c89fdf6, type: 2}
   - {fileID: 11400000, guid: 611f9f78ef3f81a4f89066b0ea01e291, type: 2}
+  - {fileID: 11400000, guid: 1bb73a3dec071f04388c19830c89fdf6, type: 2}
   neutrals:
   - {fileID: 11400000, guid: ccbe95f7de4d5e44cbce25e4bf8c90d6, type: 2}
   gameModes:

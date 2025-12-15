@@ -22,6 +22,8 @@ public class AssetEventRouter : MonoBehaviour
         if (evt == null || string.IsNullOrEmpty(evt.SourceId)) return;
         
         // Only route Ability events for now
+        Debug.Log($"[AssetEventRouter] Received Event: {evt.Type}, Source: {evt.SourceId}");
+
         if (evt.Type == GameEventType.AbilityCasted && ClientContent.ContentAssetRegistry.Abilities.TryGetValue(evt.SourceId, out var ability))
         {
              var castedEvent = (AbilityCastedEvent)evt;
@@ -36,6 +38,7 @@ public class AssetEventRouter : MonoBehaviour
 
              if (casterVisual)
              {
+                 Debug.Log($"[AssetEventRouter] Routing Cast to Ability '{ability.name}'. Caster: {casterVisual.name}");
                  ability.ClientOnCast(castedEvent, casterVisual);
              }
              else

@@ -6,5 +6,11 @@ namespace ClientContent
     public class NeutralEntitySO : UnitSO
     {
         public GameObject prefab;
+
+        [Header("Animation Config")]
+        public RuntimeAnimatorController baseControllerTemplate;
+        public AnimationClip idleClip;
+        public AnimationClip walkClip;
+        public AnimationClip attackClip;
     }
 }

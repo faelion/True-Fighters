@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32ca5f08fdd3be540a3dd7ef2fdff2cd, type: 3}
   m_Name: InstantDamage
   m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.InstantDamageEffect
+  id: dmg
+  Duration: 0
   Amount: 25

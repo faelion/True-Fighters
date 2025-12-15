@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30dfc5a2371c1944c8463216764bc197, type: 3}
   m_Name: DotEffect
   m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.DotEffect
+  id: dot
+  Duration: 5
   DamagePerTick: 25
   Interval: 1
-  Duration: 5

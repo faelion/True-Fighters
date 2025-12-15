@@ -52,6 +52,8 @@ namespace ClientContent
 
         public override void ClientOnCast(AbilityCastedEvent evt, GameObject contextRoot)
         {
+            base.ClientOnCast(evt, contextRoot);
+
             if (FlashVfx != null && contextRoot != null)
             {
                 var vfx = Instantiate(FlashVfx, contextRoot.transform.position, contextRoot.transform.rotation);
