@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: b3a424dc3e9e49049b2a7e07cd9d5ae6
   - enabled: 1
-    path: Assets/Scenes/Maps/Map1.unity
+    path: Assets/Scenes/Maps/Cemetery.unity
     guid: 258b383567b294547962d41b9fbe8306
   - enabled: 1
     path: Assets/Scenes/Maps/Arena.unity
