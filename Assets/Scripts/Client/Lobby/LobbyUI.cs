@@ -36,13 +36,17 @@ public class LobbyUI : MonoBehaviour
         
         if (readyToggle) readyToggle.onValueChanged.AddListener(OnReadyToggled);
         if (startGameButton) startGameButton.onClick.AddListener(OnStartGameClicked);
-        
-        if (readyToggle) readyToggle.onValueChanged.AddListener(OnReadyToggled);
-        if (startGameButton) startGameButton.onClick.AddListener(OnStartGameClicked);
         if (gameModeDropdown) gameModeDropdown.onValueChanged.AddListener(OnGameModeChanged);
         if (teamDropdown) teamDropdown.onValueChanged.AddListener(OnTeamDropdownChanged);
         
         PopulateGameModes();
+        
+        RefreshHostState();
+    }
+
+    public void RefreshHostState()
+    {
+        if (manager == null) return;
 
         // Host controls visibility check
         bool isHost = manager.IsHost || NetworkConfig.playerName == "Server"; 
@@ -72,7 +76,9 @@ public class LobbyUI : MonoBehaviour
         {
             if (isHost || NetworkConfig.playerName == "Server")
             {
-                lobbyInfoText.text = $"Local IP: {GetLocalIPAddress()}:9050";
+                lobbyInfoText.text = $"Local IP: {GetLocalIPAddress()}:9050\nFetching Public IP...";
+                StopAllCoroutines();
+                StartCoroutine(FetchPublicIP());
             }
             else
             {
@@ -80,6 +86,25 @@ public class LobbyUI : MonoBehaviour
                      lobbyInfoText.text = $"Connected to: {manager.clientNetwork.serverHost}:{manager.clientNetwork.serverPort}";
                 else
                      lobbyInfoText.text = "Connected";
+            }
+        }
+    }
+
+    private System.Collections.IEnumerator FetchPublicIP()
+    {
+        using (UnityEngine.Networking.UnityWebRequest webRequest = UnityEngine.Networking.UnityWebRequest.Get("https://api.ipify.org"))
+        {
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError || 
+                webRequest.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
+            {
+                if (lobbyInfoText) lobbyInfoText.text += "\nPublic IP: Error (Check Internet)";
+            }
+            else
+            {
+                string publicIP = webRequest.downloadHandler.text;
+                if (lobbyInfoText) lobbyInfoText.text = $"Local IP: {GetLocalIPAddress()}:9050\nPublic IP: {publicIP}";
             }
         }
     }
@@ -372,4 +397,3 @@ public class LobbyUI : MonoBehaviour
     public void OnJoinTeam1() => manager.ChangeTeam(1);
     public void OnJoinTeam2() => manager.ChangeTeam(2);
 }
-

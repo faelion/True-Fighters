@@ -38,6 +38,7 @@ public class LobbyManager : MonoBehaviour
         {
             serverLobbyManager.OnLobbyStateUpdated += HandleLobbyUpdate;
             myPlayerId = -1; // Server view
+            if (lobbyUI) lobbyUI.RefreshHostState();
         }
     }
 
