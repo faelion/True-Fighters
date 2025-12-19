@@ -24,7 +24,9 @@ namespace ServerGame.Entities
         public bool IsEnemyTo(TeamComponent other)
         {
             if (other == null) return false;
-            if (teamId == -1 || other.teamId == -1) return true; // neutrals hostile to all
+
+            if (teamId <= 0 || other.teamId <= 0) return true; 
+            
             if (teamId == other.teamId) return friendlyFire;
             return true;
         }
