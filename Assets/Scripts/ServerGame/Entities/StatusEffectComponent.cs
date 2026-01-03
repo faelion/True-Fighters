@@ -14,6 +14,10 @@ namespace ServerGame.Entities
         public float TickTimer; // For DOTs
         public int CasterId; // Using ID for easier sync (GameEntity reference is transient)
         public bool IsNew = true; // Flag to trigger OnStart
+        
+        // Custom Data
+        public UnityEngine.Vector3 TargetPos;
+        public bool HasTarget;
     }
 
     public class StatusEffectComponent : IGameComponent
@@ -22,7 +26,7 @@ namespace ServerGame.Entities
 
         public List<ActiveEffect> ActiveEffects = new List<ActiveEffect>();
 
-        public void AddEffect(Effect source, float duration, GameEntity caster)
+        public void AddEffect(Effect source, float duration, GameEntity caster, UnityEngine.Vector3? targetPos = null)
         {
             // Optional: Check if unique or stackable. For now, multiple allowed.
             ActiveEffects.Add(new ActiveEffect 
@@ -32,7 +36,9 @@ namespace ServerGame.Entities
                 RemainingTime = duration,
                 CasterId = caster != null ? caster.Id : -1,
                 TickTimer = 0f,
-                IsNew = true
+                IsNew = true,
+                HasTarget = targetPos.HasValue,
+                TargetPos = targetPos.GetValueOrDefault()
             });
         }
 
@@ -53,14 +59,9 @@ namespace ServerGame.Entities
 
         public void Deserialize(System.IO.BinaryReader reader)
         {
-            // Note: This Deserialize is raw data. 
-            // In the Client implementation (NetEntityView), we'll read this manually 
-            // because we need to map string ID back to ScriptableObject.
-            // This method might be unused if we handle it in View, but good to keep structure.
+            // Note: Client implementation (NetEntityView) reads this manually to map string ID.
+            // We skip bytes here to prevent stream corruption if called blindly.
             int count = reader.ReadInt32();
-            // We can't reconstruct SourceEffect here easily without Registry access.
-            // So we skip reading or assume this is only called if we have access.
-            // For now, let's just skip the bytes to prevent stream corruption if called blindly.
             for (int i = 0; i < count; i++)
             {
                 reader.ReadString(); // ID

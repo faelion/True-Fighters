@@ -11,11 +11,11 @@ namespace Shared.Effects
         public string id;
         public float Duration = 0f;
 
-        public virtual void Apply(ServerWorld world, GameEntity source, GameEntity target)
+        public virtual void Apply(ServerWorld world, GameEntity source, GameEntity target, Vector3? targetPos = null)
         {
             if (target.TryGetComponent(out StatusEffectComponent status))
             {
-                status.AddEffect(this, Duration, source);
+                status.AddEffect(this, Duration, source, targetPos);
             }
         }
 

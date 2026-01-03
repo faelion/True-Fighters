@@ -38,7 +38,7 @@ namespace ClientContent
                 {
                     if (effect != null)
                     {
-                        effect.Apply(world, caster, caster); // Self-cast
+                        effect.Apply(world, caster, caster, new Vector3(targetX, 0, targetY)); // Self-cast with target param
                     }
                 }
             }

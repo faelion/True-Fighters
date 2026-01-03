@@ -15,10 +15,10 @@ MonoBehaviour:
   id: 7
   displayName: Flash
   defaultKey: R
-  range: 10
+  range: 20
   castTime: 0
   cooldown: 2
   Effects:
-  - {fileID: 11400000, guid: 9f7ea06ac97c9f449978ff25e891d4f1, type: 2}
+  - {fileID: 11400000, guid: 685cc30d2d2b743469a05939eb64b514, type: 2}
   FlashVfx: {fileID: 8974203713140315807, guid: 1e26492b26946b54a81ccbef899a486a, type: 3}
   vfxDuration: 0.5

@@ -6,6 +6,8 @@ using Client.Replicator;
 
 public class NetEntityView : MonoBehaviour
 {
+    public static Dictionary<int, NetEntityView> AllViews = new Dictionary<int, NetEntityView>();
+
     public int entityId;
     public string ArchetypeId;
     
@@ -25,6 +27,7 @@ public class NetEntityView : MonoBehaviour
         if (!HasHandler((int)ComponentType.Transform)) RegisterHandler(gameObject.AddComponent<NetworkTransformVisual>());
         if (!HasHandler((int)ComponentType.Health)) RegisterHandler(gameObject.AddComponent<NetworkHealthVisual>());
         if (!HasHandler((int)ComponentType.StatusEffect)) RegisterHandler(gameObject.AddComponent<NetworkStatusEffectsVisual>());
+        if (!HasHandler((int)ComponentType.Movement)) RegisterHandler(gameObject.AddComponent<NetworkMovementVisual>());
     }
 
     private void RegisterHandler(INetworkComponentVisual handler)
@@ -44,11 +47,13 @@ public class NetEntityView : MonoBehaviour
     void OnEnable()
     {
         ClientMessageRouter.OnEntityState += OnEntityState;
+        if (entityId != 0) AllViews[entityId] = this;
     }
 
     void OnDisable()
     {
         ClientMessageRouter.OnEntityState -= OnEntityState;
+        if (entityId != 0) AllViews.Remove(entityId);
     }
 
     public void Initialize(EntityStateData m)
@@ -67,6 +72,7 @@ public class NetEntityView : MonoBehaviour
         }
 
         UpdateState(m);
+        if (entityId != 0) AllViews[entityId] = this;
     }
 
     private void OnEntityState(EntityStateData m)

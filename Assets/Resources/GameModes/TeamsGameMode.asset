@@ -23,8 +23,9 @@ MonoBehaviour:
   minPlayers: 1
   maxPlayers: 10
   matchDuration: 0
+  playerRespawnTime: 5
   maps:
   - sceneAsset: {fileID: 102900000, guid: 258b383567b294547962d41b9fbe8306, type: 3}
-    sceneName: Map1
-    scenePath: Assets/Scenes/Maps/Map1.unity
+    sceneName: Cemetery
+    scenePath: Assets/Scenes/Maps/Cemetery.unity
   victoryCondition: {fileID: 11400000, guid: 8e0672795a5908b4985fddccd158d13e, type: 2}

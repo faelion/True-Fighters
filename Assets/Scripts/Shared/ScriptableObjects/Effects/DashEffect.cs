@@ -17,6 +17,11 @@ namespace Shared.Effects
             if (target.TryGetComponent(out MovementComponent move))
             {
                 move.DisabledCount++;
+                // Stop existing pathfinding to prevent snap-back
+                move.pathCorners = null;
+                move.hasDestination = false;
+                move.velX = 0; 
+                move.velY = 0;
             }
             if (disableCombat && target.TryGetComponent(out CombatComponent combat))
             {
@@ -35,9 +40,26 @@ namespace Shared.Effects
 
                 float dx = Mathf.Sin(angleRad) * Speed * dt;
                 float dy = Mathf.Cos(angleRad) * Speed * dt;
+                
+                Vector3 currentPos = new Vector3(t.posX, 0, t.posY);
+                Vector3 nextPos = new Vector3(t.posX + dx, 0, t.posY + dy);
 
-                t.posX += dx;
-                t.posY += dy;
+                // Raycast against NavMesh to prevent going through walls
+                UnityEngine.AI.NavMeshHit hit;
+                if (!UnityEngine.AI.NavMesh.Raycast(currentPos, nextPos, out hit, UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    // No hit = clear path
+                    t.posX = nextPos.x;
+                    t.posY = nextPos.z;
+                }
+                else
+                {
+                    // Hit wall = stop at wall
+                    t.posX = hit.position.x;
+                    t.posY = hit.position.z;
+                    
+                    // Optional: Cancel effect? Or just slide? For now, stop.
+                }
             }
         }
 

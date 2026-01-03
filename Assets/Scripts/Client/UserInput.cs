@@ -36,15 +36,38 @@ public class UserInput : MonoBehaviour
 
         Vector2 screenPos = mouse.position.ReadValue();
         Ray r = Camera.main.ScreenPointToRay(screenPos);
-        if (!Physics.Raycast(r, out RaycastHit hit, 100f, groundMask)) return;
-
+        
+        // Raycast against everything so we can click on 'void' or non-walkable triggers too 
+        // We trust the PathfindingService to snap it to NavMesh. 
+        // (Assuming a giant collider or plane exists for the ray to hit at y=0, or we use Plane math)
+        
+        Vector3 targetPoint = Vector3.zero;
+        if (Physics.Raycast(r, out RaycastHit hit, 200f)) 
+        {
+            targetPoint = hit.point;
+        }
+        else
+        {
+             // Fallback: Plane math if no collider
+             Plane p = new Plane(Vector3.up, Vector3.zero);
+             if (p.Raycast(r, out float dist)) targetPoint = r.GetPoint(dist);
+             else return;
+        }
+        
         var msg = new InputMessage
         {
             playerId = net.AssignedPlayerId,
             kind = kind,
-            targetX = hit.point.x,
-            targetY = hit.point.z
+            targetX = targetPoint.x,
+            targetY = targetPoint.z
         };
+        if (GameSettings.UseMovementPrediction && kind == InputKind.RightClick)
+        {
+            if (NetEntityView.AllViews.TryGetValue(net.AssignedPlayerId, out var localView))
+            {
+                 localView.GetComponent<Client.Replicator.NetworkTransformVisual>()?.PredictMovement(new Vector3(targetPoint.x, 0, targetPoint.z));
+            }
+        }
         net.SendInput(msg);
     }
 }
