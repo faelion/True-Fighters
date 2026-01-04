@@ -99,6 +99,14 @@ public class LobbyManager : MonoBehaviour
         clientNetwork?.SendLobbyAction(2, isReady ? "1" : "0");
     }
 
+    public void ToggleUPnP(bool enabled)
+    {
+        if (IsHost && enabled)
+        {
+            serverLobbyManager?.TryEnableUPnP();
+        }
+    }
+
     public void ChangeTeam(int teamId)
     {
         clientNetwork?.SendLobbyAction(3, teamId.ToString());

@@ -8,7 +8,7 @@ using ClientContent;
 public class LobbyUI : MonoBehaviour
 {
     [Header("Panels")]
-    public GameObject hostControlsPanel;  // Bottom/Host Only
+    public GameObject hostControlsPanel;
     
     [Header("Prefabs")]
     public GameObject heroButtonPrefab;
@@ -26,7 +26,12 @@ public class LobbyUI : MonoBehaviour
     public TMP_Dropdown mapDropdown;
     public TMP_Dropdown gameModeDropdown;
     public TMP_Dropdown teamDropdown;
-    public TMP_Text lobbyInfoText; // "Waiting for players..." or IP
+    public Toggle upnpToggle;
+    public TMP_Text lobbyInfoText;
+
+    [Header("Debug Logs")]
+    public Toggle showLogsToggle;
+    public TMP_Text logsText;
 
     private LobbyManager manager;
         
@@ -39,14 +44,43 @@ public class LobbyUI : MonoBehaviour
         if (gameModeDropdown) gameModeDropdown.onValueChanged.AddListener(OnGameModeChanged);
         if (teamDropdown) teamDropdown.onValueChanged.AddListener(OnTeamDropdownChanged);
         
+        if (upnpToggle) upnpToggle.onValueChanged.AddListener((val) => manager.ToggleUPnP(val));
+
+        if (showLogsToggle) 
+        {
+            showLogsToggle.onValueChanged.AddListener(OnShowLogsToggled);
+            OnShowLogsToggled(showLogsToggle.isOn); // Init state
+        }
+        if (logsText) 
+        {
+             // logsText.text = ""; // Don't clear logs on init
+             logsText.raycastTarget = false; // IMPORTANT: Prevent text from blocking clicks on buttons behind it
+        }
+        
+        // Ensure state match
+        if (showLogsToggle) OnShowLogsToggled(showLogsToggle.isOn);
+
         PopulateGameModes();
         
-        RefreshHostState();
+        // RefreshHostState(); // REMOVED: Unsafe to call here if GameObject is disabled (StartCoroutine fails)
+    }
+
+    void OnEnable()
+    {
+        Application.logMessageReceived += HandleLog;
+        RefreshHostState(); // Called when panel becomes visible
+    }
+
+    private void OnShowLogsToggled(bool show)
+    {
+        if (logsText) logsText.gameObject.SetActive(show);
     }
 
     public void RefreshHostState()
     {
         if (manager == null) return;
+        if (!gameObject.activeInHierarchy) return; // Prevent Coroutine errors
+
 
         // Host controls visibility check
         bool isHost = manager.IsHost || NetworkConfig.playerName == "Server"; 
@@ -76,9 +110,11 @@ public class LobbyUI : MonoBehaviour
         {
             if (isHost || NetworkConfig.playerName == "Server")
             {
-                lobbyInfoText.text = $"Local IP: {GetLocalIPAddress()}:9050\nFetching Public IP...";
-                StopAllCoroutines();
-                StartCoroutine(FetchPublicIP());
+                if (!hasAttemptedFetch && fetchCoroutine == null) 
+                {
+                    lobbyInfoText.text = $"Local IP: {GetLocalIPAddress()}\nFetching Public IP...";
+                    fetchCoroutine = StartCoroutine(FetchPublicIP());
+                }
             }
             else
             {
@@ -90,23 +126,63 @@ public class LobbyUI : MonoBehaviour
         }
     }
 
+    private Coroutine fetchCoroutine;
+    private bool hasAttemptedFetch = false;
+
     private System.Collections.IEnumerator FetchPublicIP()
     {
-        using (UnityEngine.Networking.UnityWebRequest webRequest = UnityEngine.Networking.UnityWebRequest.Get("https://api.ipify.org"))
-        {
-            yield return webRequest.SendWebRequest();
+        Debug.Log("[UPnP] Coroutine Started: FetchPublicIP");
+        hasAttemptedFetch = true; // Mark strict start
 
-            if (webRequest.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError || 
-                webRequest.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
-            {
-                if (lobbyInfoText) lobbyInfoText.text += "\nPublic IP: Error (Check Internet)";
-            }
-            else
-            {
-                string publicIP = webRequest.downloadHandler.text;
-                if (lobbyInfoText) lobbyInfoText.text = $"Local IP: {GetLocalIPAddress()}:9050\nPublic IP: {publicIP}";
-            }
+        string localIP = GetLocalIPAddress();
+        if (lobbyInfoText) lobbyInfoText.text = $"Local IP: {localIP}\nPublic IP: Contacting Service...";
+
+        string publicIP = null;
+        string error = null;
+
+        // Wrap network calls in absolute safety
+        yield return null; // Wait one frame to ensure UI updated
+
+        // Service 1
+        var req1 = UnityEngine.Networking.UnityWebRequest.Get("https://api.ipify.org");
+        req1.timeout = 5;
+        yield return req1.SendWebRequest();
+
+        if (req1.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+        {
+             publicIP = req1.downloadHandler.text;
         }
+        else
+        {
+             Debug.LogWarning($"[UPnP] Service 1 Failed: {req1.error}");
+             // Service 2
+             var req2 = UnityEngine.Networking.UnityWebRequest.Get("https://icanhazip.com");
+             req2.timeout = 5;
+             yield return req2.SendWebRequest();
+             if (req2.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+             {
+                 publicIP = req2.downloadHandler.text.Trim();
+             }
+             else
+             {
+                 error = req2.error;
+                 Debug.LogWarning($"[UPnP] Service 2 Failed: {req2.error}");
+             }
+             req2.Dispose();
+        }
+        req1.Dispose();
+
+        // Final UI Update
+        if (lobbyInfoText)
+        {
+            if (!string.IsNullOrEmpty(publicIP))
+                lobbyInfoText.text = $"Local IP: {localIP}\nPublic IP: {publicIP}";
+            else
+                lobbyInfoText.text = $"Local IP: {localIP}\nPublic IP: Check Logs"; 
+        }
+
+        Debug.Log($"[UPnP] IP Fetch Result: {publicIP ?? error ?? "Unknown"}");
+        fetchCoroutine = null;
     }
 
     private string GetLocalIPAddress()
@@ -396,4 +472,31 @@ public class LobbyUI : MonoBehaviour
     // UI Helper for Team Selection (linked to buttons in scene)
     public void OnJoinTeam1() => manager.ChangeTeam(1);
     public void OnJoinTeam2() => manager.ChangeTeam(2);
+
+
+
+    void OnDisable()
+    {
+        Application.logMessageReceived -= HandleLog;
+        
+        // Reset fetch state so we can retry if we re-enter the lobby
+        if (fetchCoroutine != null)
+        {
+            StopCoroutine(fetchCoroutine);
+            fetchCoroutine = null;
+        }
+        hasAttemptedFetch = false;
+    }
+
+    private void HandleLog(string logString, string stackTrace, LogType type)
+    {
+        if (logString.StartsWith("[UPnP]") && logsText)
+        {
+            // Append log to the dedicated UI text
+            logsText.text += logString + "\n";
+            
+            // Optional: Force canvas update if inside a layout group
+            // Canvas.ForceUpdateCanvases(); 
+        }
+    }
 }

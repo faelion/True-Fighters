@@ -10,7 +10,7 @@ using Shared.Networking;
 
 public class ServerNetwork : MonoBehaviour
 {
-    public int listenPort = 9050;
+    public int listenPort = 7777;
 
     private IServerTransport networkProxy;
     private ServerWorld world;
@@ -30,11 +30,12 @@ public class ServerNetwork : MonoBehaviour
     void Start()
     {
         DontDestroyOnLoad(gameObject);
-        Init();
+        // Init(); // REMOVED: Managed explicitly by GameLauncherManager or Bootstrap
     }
 
     public void Init()
     {
+        listenPort = 7777; // Force override Inspector value
         if (networkProxy != null) return;
 
         ClientContent.ContentAssetRegistry.EnsureLoaded();
@@ -48,6 +49,12 @@ public class ServerNetwork : MonoBehaviour
         networkProxy = proxy;
 
         Debug.Log($"[ServerNetwork] Started on port {listenPort}. Waiting for players...");
+    }
+
+    public void AttemptUPnP()
+    {
+        Debug.Log("[ServerNetwork] Manual UPnP trigger requested.");
+        Shared.Networking.UPnPService.OpenPort(listenPort);
     }
 
     public void StartGame(string sceneName, string gameModeId)

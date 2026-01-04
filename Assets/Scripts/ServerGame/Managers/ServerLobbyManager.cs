@@ -20,6 +20,11 @@ public class ServerLobbyManager : MonoBehaviour
         BroadcastLobbyState();
     }
 
+    public void TryEnableUPnP()
+    {
+        serverNetwork?.AttemptUPnP();
+    }
+
     void OnDestroy()
     {
         if (serverNetwork != null)

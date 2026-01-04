@@ -21,7 +21,7 @@ public class GameLauncherManager : MonoBehaviour
         var lobby = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
         if (lobby) lobby.SetNetwork(activeClient);
 
-        activeClient.Connect(ip, 9050);
+        activeClient.Connect(ip, 7777);
     }
 
     public void StartServer(string map)
@@ -67,7 +67,7 @@ public class GameLauncherManager : MonoBehaviour
             lobby.SetServer(slm);
         }
 
-        activeClient.Connect("127.0.0.1", 9050);
+        activeClient.Connect("127.0.0.1", 7777);
 
         // Wait for connection
         float timeout = 5f;

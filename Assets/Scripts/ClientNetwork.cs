@@ -10,7 +10,7 @@ using Networking.Transport;
 public class ClientNetwork : MonoBehaviour
 {
     public string serverHost = "127.0.0.1";
-    public int serverPort = 9050;
+    public int serverPort = 7777;
 
     public int clientPlayerId = 0;
 
