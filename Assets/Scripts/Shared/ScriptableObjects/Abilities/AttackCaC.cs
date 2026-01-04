@@ -12,6 +12,7 @@ namespace ClientContent
 
         [Header("Effects")]
         public System.Collections.Generic.List<Shared.Effects.Effect> onHitEffects;
+        public System.Collections.Generic.List<Shared.Effects.Effect> selfEffects;
 
         [Header("Collision")]
         public float collisionRadius = 1.0f;
@@ -30,16 +31,17 @@ namespace ClientContent
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent casterTransform)) return false;
 
-            float dx = targetX - casterTransform.posX;
-            float dy = targetY - casterTransform.posY;
-            float distSq = dx * dx + dy * dy;
 
-            float dist = Mathf.Sqrt(distSq);
-            float nx = dx / dist;
-            float ny = dy / dist;
-
-            float angle = Mathf.Atan2(nx, ny) * Mathf.Rad2Deg;
-            casterTransform.rotZ = angle;
+            if (selfEffects != null)
+            {
+                foreach (var effect in selfEffects)
+                {
+                    if (effect != null)
+                    {
+                        effect.Apply(world, caster, caster, new Vector3(targetX, 0, targetY));
+                    }
+                }
+            }
 
             var melee = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.Melee);
             hasHit = false;

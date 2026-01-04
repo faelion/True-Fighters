@@ -21,6 +21,8 @@ MonoBehaviour:
   projectileLifeMs: 150
   onHitEffects:
   - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}
+  selfEffects:
+  - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
   collisionRadius: 1
   isTrigger: 1
   CaCPrefab: {fileID: 1171201465392465800, guid: 4aa9f30a28a77224ba84b2a2c334c71b, type: 3}

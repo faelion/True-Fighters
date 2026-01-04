@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4945a1f6b582daa4db6db837b9da270e, type: 3}
   m_Name: Knight
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.HeroSO
-  id: knight
+  id: default
   displayName: Knight
   baseHp: 100
   moveSpeed: 4
@@ -22,7 +22,7 @@ MonoBehaviour:
     ability: {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
     castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   - key: W
-    ability: {fileID: 11400000, guid: 048859dc965cd10499256fd2d0345f6c, type: 2}
+    ability: {fileID: 11400000, guid: 4e1b2f1285f45ba4582aeaa3ab50e4a5, type: 2}
     castClip: {fileID: -3851722262833059593, guid: 89bf0923eeb152a498f8b5c175456551, type: 3}
   - key: E
     ability: {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}

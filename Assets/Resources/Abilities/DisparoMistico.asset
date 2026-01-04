@@ -21,6 +21,8 @@ MonoBehaviour:
   movementStrategy: {fileID: 11400000, guid: 5a98ccce66e943f468f26598c2e0c946, type: 2}
   projectileSpeed: 8
   projectileLifeMs: 1500
+  selfEffects:
+  - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
   onHitEffects:
   - {fileID: 11400000, guid: 7e4ff6dbfba1fba46bc8a94f382ad5eb, type: 2}
   collisionRadius: 0.25

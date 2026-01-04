@@ -19,6 +19,7 @@ MonoBehaviour:
   castTime: 0
   cooldown: 2
   Effects:
+  - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
   - {fileID: 11400000, guid: 685cc30d2d2b743469a05939eb64b514, type: 2}
-  FlashVfx: {fileID: 8974203713140315807, guid: 1e26492b26946b54a81ccbef899a486a, type: 3}
+  vfx: {fileID: 8974203713140315807, guid: 1e26492b26946b54a81ccbef899a486a, type: 3}
   vfxDuration: 0.5

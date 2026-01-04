@@ -1,3 +1,4 @@
+using Shared.Effects;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,6 +16,7 @@ namespace ClientContent
         public int projectileLifeMs = 1500;
 
         [Header("Effects")]
+        public System.Collections.Generic.List<Shared.Effects.Effect> selfEffects;
         public System.Collections.Generic.List<Shared.Effects.Effect> onHitEffects;
 
         [Header("Collision")]
@@ -31,16 +33,16 @@ namespace ClientContent
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent casterTransform)) return false;
 
-            float dx = targetX - casterTransform.posX;
-            float dy = targetY - casterTransform.posY;
-            float distSq = dx * dx + dy * dy;
-
-            float dist = Mathf.Sqrt(distSq);
-            float nx = dx / dist;
-            float ny = dy / dist;
-
-            float angle = Mathf.Atan2(nx, ny) * Mathf.Rad2Deg;
-            casterTransform.rotZ = angle;
+            if (selfEffects != null)
+            {
+                foreach (var effect in selfEffects)
+                {
+                    if (effect != null)
+                    {
+                        effect.Apply(world, caster, caster, new Vector3(targetX, 0, targetY));
+                    }
+                }
+            }
 
             var projectile = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.Projectile); 
             projectile.OwnerPlayerId = playerId;

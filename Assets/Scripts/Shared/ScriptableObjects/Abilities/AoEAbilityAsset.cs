@@ -42,9 +42,6 @@ namespace ClientContent
             float nx = dx / dist;
             float ny = dy / dist;
 
-            float angle = Mathf.Atan2(nx, ny) * Mathf.Rad2Deg;
-            casterTransform.rotZ = angle;
-
             var projectile = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.AoE); 
             projectile.OwnerPlayerId = playerId;
             projectile.ArchetypeId = id;

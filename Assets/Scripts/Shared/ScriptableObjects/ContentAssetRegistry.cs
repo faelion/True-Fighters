@@ -159,7 +159,6 @@ namespace ClientContent
                  // Handle different ability types that have prefabs
                  if (ability is ProjectileAbilityAsset p) return p.projectilePrefab;
                  if (ability is AttackCaCAbilityAsset c) return c.CaCPrefab;
-                 if (ability is ConeCaCAbilityAsset cone) return cone.conePrefab;
                  if (ability is AoEAbilityAsset aoe) return aoe.aoePrefab;
                  return null;
             }
