@@ -19,6 +19,10 @@ namespace Shared.Effects
                 if (target.TryGetComponent(out HealthComponent health))
                 {
                     health.currentHp += HealPerTick;
+                    if (health.currentHp > health.maxHp)
+                    {
+                        health.currentHp = health.maxHp;
+                    }
                     Debug.Log($"[DotEffect] Tick heal {HealPerTick} on {target.Id}. HP: {health.currentHp}");
                 }
             }
