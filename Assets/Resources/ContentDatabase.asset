@@ -16,7 +16,7 @@ MonoBehaviour:
   defaultNeutralId: neutral_default
   abilities:
   - {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
-  - {fileID: 11400000, guid: 048859dc965cd10499256fd2d0345f6c, type: 2}
+  - {fileID: 11400000, guid: 235ddee9bd57e0b4ba28f183546fe35b, type: 2}
   - {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}
   - {fileID: 11400000, guid: 299f7434df4b9e34f900c0c6479631ac, type: 2}
   - {fileID: 11400000, guid: 0420b112ea9c81640a5c60e203edcde3, type: 2}
@@ -33,5 +33,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 733de97f98940bf47b75da630c8b1dd3, type: 2}
   - {fileID: 11400000, guid: 7e4ff6dbfba1fba46bc8a94f382ad5eb, type: 2}
   - {fileID: 11400000, guid: 884ca524fbb41164886a0c91f6499e27, type: 2}
-  - {fileID: 11400000, guid: 9f7ea06ac97c9f449978ff25e891d4f1, type: 2}
+  - {fileID: 0}
   - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}

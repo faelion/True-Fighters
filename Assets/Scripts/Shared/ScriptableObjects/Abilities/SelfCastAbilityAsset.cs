@@ -44,7 +44,7 @@ namespace ClientContent
 
             if (vfx != null && contextRoot != null)
             {
-                var vfx = Instantiate(this.vfx, contextRoot.transform.position, contextRoot.transform.rotation);
+                var vfx = Instantiate(this.vfx, contextRoot.transform.position, contextRoot.transform.rotation, contextRoot.transform);
                 Destroy(vfx, vfxDuration); 
             }
             Debug.Log($"[FlashAbilityAsset] ClientOnCast executed on {contextRoot?.name}");
