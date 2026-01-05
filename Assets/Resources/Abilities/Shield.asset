@@ -20,5 +20,5 @@ MonoBehaviour:
   cooldown: 5
   Effects:
   - {fileID: 11400000, guid: 52b5fcd35ef53fc479b29c1b42ef3577, type: 2}
-  vfx: {fileID: 0}
+  vfx: {fileID: 6424583148328831481, guid: 76cfadb824c3e8f489289b360fae24dd, type: 3}
   vfxDuration: 3.8

@@ -18,16 +18,16 @@ MonoBehaviour:
   moveSpeed: 4
   movementStrategy: {fileID: 11400000, guid: d4018944ee58b4b42aa938c1c4400ddf, type: 2}
   bindings:
-  - key: Q
-    ability: {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
+  - key: R
+    ability: {fileID: 11400000, guid: f995a8f26de81fa42867e716d6aad8ee, type: 2}
     castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   - key: W
     ability: {fileID: 11400000, guid: 4e1b2f1285f45ba4582aeaa3ab50e4a5, type: 2}
     castClip: {fileID: -3851722262833059593, guid: 89bf0923eeb152a498f8b5c175456551, type: 3}
-  - key: E
+  - key: Q
     ability: {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}
     castClip: {fileID: -8653722278162725603, guid: f0c244fac520efa48b958b7b43da5734, type: 3}
-  - key: R
+  - key: E
     ability: {fileID: 11400000, guid: 235ddee9bd57e0b4ba28f183546fe35b, type: 2}
     castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   heroPrefab: {fileID: 5229275301457161681, guid: f75172a1aca57c149908c81e5806740f, type: 3}
