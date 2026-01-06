@@ -47,13 +47,24 @@ public class NetEntityView : MonoBehaviour
     void OnEnable()
     {
         ClientMessageRouter.OnEntityState += OnEntityState;
+        ClientMessageRouter.OnServerEvent += OnServerEvent;
         if (entityId != 0) AllViews[entityId] = this;
     }
 
     void OnDisable()
     {
         ClientMessageRouter.OnEntityState -= OnEntityState;
+        ClientMessageRouter.OnServerEvent -= OnServerEvent;
         if (entityId != 0) AllViews.Remove(entityId);
+    }
+    
+    public System.Action<IGameEvent> OnGameEvent;
+
+    private void OnServerEvent(IGameEvent evt)
+    {
+        if (evt.CasterId != entityId) return;
+        Debug.Log($"[NetEntityView] Invoking Game Event for Entity ID {entityId}, Event Type: {evt.Type}.");
+        OnGameEvent?.Invoke(evt);
     }
 
     public void Initialize(EntityStateData m)
@@ -68,8 +79,10 @@ public class NetEntityView : MonoBehaviour
         }
         else if (ClientContent.ContentAssetRegistry.Neutrals.TryGetValue(m.archetypeId, out var neutral))
         {
-             GetComponentInChildren<NetworkNpcAnimator>()?.Initialize(neutral);
+            GetComponentInChildren<NetworkNpcAnimator>()?.Initialize(neutral);
         }
+
+        Debug.Log($"[NetEntityView] Initialized Entity View for ID {entityId}, Archetype '{ArchetypeId}'.");
 
         UpdateState(m);
         if (entityId != 0) AllViews[entityId] = this;

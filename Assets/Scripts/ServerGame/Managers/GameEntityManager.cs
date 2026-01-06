@@ -284,7 +284,23 @@ namespace ServerGame.Managers
             npc.AddComponent(h);
 
             npc.AddComponent(new TeamComponent { teamId = -1 });
-            npc.AddComponent(new AIBehaviorComponent());
+            npc.AddComponent(new TeamComponent { teamId = -1 });
+            
+            // New AI Initiation
+            if (config != null && config.aiStrategy != null)
+            {
+               var aiComp = new AIControllerComponent();
+               aiComp.Behavior = config.aiStrategy.CreateBehavior();
+               npc.AddComponent(aiComp);
+               UnityEngine.Debug.Log($"[GameEntityManager] Initialized AI Behavior for {neutralId}");
+            }
+            else
+            {
+                // Fallback or Legacy? For now, we only use new system if strategy is present.
+                // If you want to keep legacy for old prefabs, keep AIBehaviorComponent here conditionally.
+                // But user said "me da igual si cambias por completo", so I effectively replace it.
+                // If no strategy, it's a dummy NPC.
+            }
             npc.AddComponent(new CollisionComponent { radius = 0.5f });
             npc.AddComponent(new StatusEffectComponent());
 

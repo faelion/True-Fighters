@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6682834146038823048}
   - component: {fileID: 2483148188101050572}
+  - component: {fileID: 1131173954214946128}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -56,6 +57,20 @@ MonoBehaviour:
   - {fileID: 7400000, guid: eb48439647b84d34f8a3bf1295fd9a32, type: 2}
   - {fileID: 7400000, guid: 9e77e7baf31c36f4da768468d0375db6, type: 2}
   - {fileID: 7400000, guid: 52342db0bad351348856d9d2f093db96, type: 2}
+--- !u!114 &1131173954214946128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365672224816715787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2a8d2566fd18474699dad974f43de77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetEntityView
+  entityId: 0
+  ArchetypeId: 
 --- !u!1 &3151408337958476115
 GameObject:
   m_ObjectHideFlags: 0

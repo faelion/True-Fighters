@@ -80,9 +80,27 @@ public class NetEntitySpawner : MonoBehaviour
                  go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
              }
         }
+        else if (type == ServerGame.Entities.EntityType.Neutral)
+        {
+             if (baseNeutralPrefab)
+             {
+                 go = Instantiate(baseNeutralPrefab);
+                 if (prefab != null)
+                 {
+                     var visuals = Instantiate(prefab, go.transform);
+                     visuals.transform.localPosition = Vector3.zero;
+                     visuals.transform.localRotation = Quaternion.identity;
+                 }
+             }
+             else
+             {
+                 // Fallback to legacy behavior (direct prefab)
+                 if (prefab != null) go = Instantiate(prefab);
+             }
+        }
         else
         {
-            // Standard Entities directly use the prefab
+            // Standard Entities directly use the prefab (Projectiles, etc.)
             if (prefab != null) go = Instantiate(prefab);
         }
 

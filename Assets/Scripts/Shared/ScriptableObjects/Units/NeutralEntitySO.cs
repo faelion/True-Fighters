@@ -12,5 +12,8 @@ namespace ClientContent
         public AnimationClip idleClip;
         public AnimationClip walkClip;
         public AnimationClip attackClip;
+        
+        [Header("AI Config")]
+        public Shared.ScriptableObjects.AI.AIStrategySO aiStrategy;
     }
 }
