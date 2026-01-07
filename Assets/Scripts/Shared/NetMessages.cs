@@ -1,6 +1,6 @@
 // Network message DTOs shared between client and server
 
-public enum InputKind { None, RightClick, Q, W, E, R }
+public enum InputKind { None, RightClick, Q, W, E, R, Stop }
 
 public class InputMessage
 {

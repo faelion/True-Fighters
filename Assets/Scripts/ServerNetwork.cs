@@ -195,6 +195,26 @@ public class ServerNetwork : MonoBehaviour
             world.HandleMove(pid, im.targetX, im.targetY);
             return;
         }
+
+        if (im.kind == InputKind.Stop)
+        {
+            // Handle Stop Command
+            var p = world.EnsurePlayer(pid);
+            if (p != null && p.TryGetComponent(out ServerGame.Entities.MovementComponent move))
+            {
+                move.hasDestination = false;
+                move.velX = 0;
+                move.velY = 0;
+                move.pathCorners = null;
+                // Also interrupt casting if needed? Starcraft logic: Stop cancels cast.
+                if (p.TryGetComponent(out ServerGame.Entities.CastingComponent cast) && cast.IsCasting)
+                {
+                    cast.IsCasting = false;
+                }
+            }
+            return;
+        }
+
         var key = ServerGame.Systems.AbilitySystem.KeyFromInputKind(im.kind);
         if (key != null)
         {

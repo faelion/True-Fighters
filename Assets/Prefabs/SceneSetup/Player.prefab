@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -3161226549225133522}
   - component: {fileID: 8259493209873752446}
   - component: {fileID: -1857011326074595392}
+  - component: {fileID: 1718792122881403483}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -111,6 +112,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fae487aa3cf9af488f17062c3552081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Client.Replicator.NetworkMovementVisual
+--- !u!114 &1718792122881403483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365672224816715787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80dbbf112b7644b4cb1ed1db37aec10f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Client.Replicator.NetworkCastBar
+  slider: {fileID: 0}
+  canvasGroup: {fileID: 0}
 --- !u!1 &3151408337958476115
 GameObject:
   m_ObjectHideFlags: 0

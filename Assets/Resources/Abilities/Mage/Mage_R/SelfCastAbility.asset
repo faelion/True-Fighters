@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 7
   displayName: Flash
   defaultKey: R
-  range: 20
+  range: 10
   castTime: 0
   cooldown: 2
   Effects:

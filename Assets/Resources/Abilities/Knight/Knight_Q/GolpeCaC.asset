@@ -15,8 +15,8 @@ MonoBehaviour:
   id: 3
   displayName: AttackCaC
   defaultKey: E
-  range: 2
-  castTime: 0
+  range: 1000
+  castTime: 0.1
   cooldown: 2
   projectileLifeMs: 150
   onHitEffects:

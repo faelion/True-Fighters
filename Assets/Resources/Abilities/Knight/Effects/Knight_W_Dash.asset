@@ -14,5 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.DashEffect
   id: dash
   Duration: 0.5
-  Speed: 10
+  vfxPrefab: {fileID: 0}
+  destroyVfxOnEnd: 1
+  vfxDuration: 0
+  Speed: 25
   disableCombat: 0

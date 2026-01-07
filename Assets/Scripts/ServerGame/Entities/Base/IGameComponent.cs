@@ -13,7 +13,8 @@ namespace ServerGame.Entities
         AIBehavior = 6,
         Collision = 7,
         Lifetime = 8,
-        StatusEffect = 9
+        StatusEffect = 9,
+        Casting = 10
     }
 
     public interface IGameComponent

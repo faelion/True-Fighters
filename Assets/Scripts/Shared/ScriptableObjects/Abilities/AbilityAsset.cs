@@ -13,7 +13,11 @@ namespace ClientContent
         public float range = 12f;
         public float castTime = 0f;
         public float cooldown = 2f;
-
+        [Tooltip("If true, moving will interrupt the cast. If false, you can cast while moving.")]
+        public bool interruptOnMove = false;
+        
+        [Tooltip("If true, you cannot move while casting. Move inputs will be ignored.")]
+        public bool stopWhileCasting = true;
 
         public abstract bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY);
 
@@ -33,13 +37,10 @@ namespace ClientContent
             return true;
         }
 
-
-
         public virtual void OnEntitySpawn(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity) { }
         public virtual void OnEntityTick(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity, float dt) { }
         public virtual void OnEntityCollision(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity me, ServerGame.Entities.GameEntity other) { }
         public virtual void OnEntityDespawn(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity entity) { }
-
 
         public abstract void ClientHandleEvent(IGameEvent evt, GameObject contextRoot);
         

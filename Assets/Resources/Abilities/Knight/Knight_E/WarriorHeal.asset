@@ -15,8 +15,8 @@ MonoBehaviour:
   id: warriorheal
   displayName: warriorheal
   defaultKey: R
-  range: 1
-  castTime: 0
+  range: 1000
+  castTime: 0.2
   cooldown: 5
   Effects:
   - {fileID: 11400000, guid: 2f82e803b75fd2c4e800d6a70cc95035, type: 2}

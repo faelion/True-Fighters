@@ -29,6 +29,7 @@ public class UserInput : MonoBehaviour
             else if (keyboard.wKey.wasPressedThisFrame) kind = InputKind.W;
             else if (keyboard.eKey.wasPressedThisFrame) kind = InputKind.E;
             else if (keyboard.rKey.wasPressedThisFrame) kind = InputKind.R;
+            else if (keyboard.sKey.wasPressedThisFrame) kind = InputKind.Stop;
         }
 
         if (kind == InputKind.None) return;

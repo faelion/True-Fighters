@@ -15,8 +15,8 @@ MonoBehaviour:
   id: dash
   displayName: Dash
   defaultKey: W
-  range: 12
-  castTime: 0
+  range: 1000
+  castTime: 0.3
   cooldown: 2
   Effects:
   - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}

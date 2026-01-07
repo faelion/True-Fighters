@@ -73,6 +73,20 @@ namespace ServerGame
         public void HandleMove(int playerId, float targetX, float targetY)
         {
             var entity = EnsurePlayer(playerId);
+            
+            // Check for Blocking Cast
+            if (entity.TryGetComponent(out CastingComponent casting) && casting.IsCasting)
+            {
+                 if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(casting.AbilityId, out var ability))
+                 {
+                     if (ability.stopWhileCasting)
+                     {
+                         // Ignore Move Command (Rooted while casting)
+                         return;
+                     }
+                 }
+            }
+
             if (entity.TryGetComponent(out MovementComponent movement))
             {
                 movement.destX = targetX;

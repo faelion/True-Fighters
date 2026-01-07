@@ -15,8 +15,8 @@ MonoBehaviour:
   id: 1
   displayName: DisparoMistico
   defaultKey: Q
-  range: 12
-  castTime: 0
+  range: 1000
+  castTime: 0.2
   cooldown: 2
   movementStrategy: {fileID: 11400000, guid: 5a98ccce66e943f468f26598c2e0c946, type: 2}
   projectileSpeed: 8
