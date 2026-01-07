@@ -3,11 +3,33 @@ using UnityEngine;
 using ServerGame.Entities;
 using ClientContent;
 using Unity.Cinemachine;
+using System.IO;
 
 public class NetEntitySpawner : MonoBehaviour
 {
     [SerializeField] private GameObject basePlayerPrefab;
     [SerializeField] private GameObject baseNeutralPrefab; // Added
+
+    private Vector2 GetInitialPos(EntityStateData m)
+    {
+        if (m.components != null)
+        {
+            foreach (var c in m.components)
+            {
+                if (c.type == 1) // Transform
+                {
+                    using (var ms = new MemoryStream(c.data))
+                    using (var br = new BinaryReader(ms))
+                    {
+                        float x = br.ReadSingle();
+                        float y = br.ReadSingle();
+                        return new Vector2(x, y);
+                    }
+                }
+            }
+        }
+        return Vector2.zero;
+    }
 
     private readonly Dictionary<int, NetEntityView> views = new Dictionary<int, NetEntityView>();
 
@@ -101,7 +123,18 @@ public class NetEntitySpawner : MonoBehaviour
         else
         {
             // Standard Entities directly use the prefab (Projectiles, etc.)
-            if (prefab != null) go = Instantiate(prefab);
+            // Check for Handover first!
+            Vector2 initialPos = GetInitialPos(m); 
+            if (Client.Replicator.CastingVfxHandover.TryClaim(m.archetypeId, initialPos, out var existingVfx))
+            {
+                go = existingVfx;
+                // Ensure it's active and reset (if needed)
+                go.SetActive(true);
+            }
+            else
+            {
+                if (prefab != null) go = Instantiate(prefab);
+            }
         }
 
         if (go == null) go = new GameObject($"Entity_{m.entityId}");

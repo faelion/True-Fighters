@@ -15,9 +15,13 @@ MonoBehaviour:
   id: 6
   displayName: crystalAoE
   defaultKey: E
+  castingEffectPrefab: {fileID: 0}
+  castingPreviewMode: 3
   range: 12
-  castTime: 0.5
+  castTime: 0.2
   cooldown: 2
+  interruptOnMove: 0
+  stopWhileCasting: 1
   projectileLifeMs: 1000
   onHitEffects:
   - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}

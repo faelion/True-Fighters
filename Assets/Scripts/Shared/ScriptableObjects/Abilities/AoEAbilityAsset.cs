@@ -23,6 +23,8 @@ namespace ClientContent
         [Header("View")]
         public GameObject aoePrefab;
 
+        public override GameObject GetPreviewPrefab() => aoePrefab;
+
         private bool hasHit = false;
 
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)

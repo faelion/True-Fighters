@@ -26,6 +26,8 @@ namespace ClientContent
         [Header("View")]
         public GameObject projectilePrefab;
 
+        public override GameObject GetPreviewPrefab() => projectilePrefab;
+
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
             if (!ValidateCastRange(world, playerId, targetX, targetY, out var dir)) return false;

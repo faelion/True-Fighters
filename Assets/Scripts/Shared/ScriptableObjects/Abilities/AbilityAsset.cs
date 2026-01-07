@@ -9,15 +9,26 @@ namespace ClientContent
         public string displayName;
         public string defaultKey = "";
 
+        [Header("Casting")]
+        [Tooltip("Visual effect to spawn on the CASTER while casting (e.g. magic circle, glowing hands).")]
+        public GameObject castingEffectPrefab;
+
+        public enum CastingPreviewMode { None, MainPrefabAtTarget, MainPrefabAtCaster, MainPrefabAtCasterNoFollow }
+        
+        [Tooltip("Controls if/where the ability's main prefab should be shown during the cast.")]
+        public CastingPreviewMode castingPreviewMode;
+        
         [Header("Balance")]
         public float range = 12f;
-        public float castTime = 0f;
-        public float cooldown = 2f;
+        public float castTime;
+        public float cooldown;
         [Tooltip("If true, moving will interrupt the cast. If false, you can cast while moving.")]
         public bool interruptOnMove = false;
         
         [Tooltip("If true, you cannot move while casting. Move inputs will be ignored.")]
         public bool stopWhileCasting = true;
+
+        public virtual GameObject GetPreviewPrefab() => null;
 
         public abstract bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY);
 

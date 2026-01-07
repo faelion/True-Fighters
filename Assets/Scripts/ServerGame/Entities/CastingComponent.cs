@@ -26,6 +26,8 @@ namespace ServerGame.Entities
                 writer.Write(AbilityId ?? "");
                 writer.Write(Timer);
                 writer.Write(TotalTime);
+                writer.Write(TargetX);
+                writer.Write(TargetY);
             }
         }
 
@@ -37,6 +39,8 @@ namespace ServerGame.Entities
                 AbilityId = reader.ReadString();
                 Timer = reader.ReadSingle();
                 TotalTime = reader.ReadSingle();
+                TargetX = reader.ReadSingle();
+                TargetY = reader.ReadSingle();
             }
             else
             {
