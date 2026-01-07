@@ -29,6 +29,7 @@ public class NetEntityView : MonoBehaviour
         if (!HasHandler((int)ComponentType.StatusEffect)) RegisterHandler(gameObject.AddComponent<NetworkStatusEffectsVisual>());
         if (!HasHandler((int)ComponentType.Movement)) RegisterHandler(gameObject.AddComponent<NetworkMovementVisual>());
         if (!HasHandler((int)ComponentType.Casting)) RegisterHandler(gameObject.AddComponent<NetworkCastBar>());
+        if (!HasHandler((int)ComponentType.Cooldown)) RegisterHandler(gameObject.AddComponent<NetworkCooldownData>());
     }
 
     private void RegisterHandler(INetworkComponentVisual handler)

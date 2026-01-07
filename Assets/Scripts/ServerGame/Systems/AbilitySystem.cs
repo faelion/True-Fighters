@@ -9,8 +9,6 @@ namespace ServerGame.Systems
     public class AbilitySystem : ISystem
     {
 
-        private readonly Dictionary<int, Dictionary<string, float>> cooldowns = new Dictionary<int, Dictionary<string, float>>();
-
         public static string KeyFromInputKind(InputKind kind)
         {
             switch (kind)
@@ -25,18 +23,15 @@ namespace ServerGame.Systems
 
         public void Tick(ServerWorld world, float dt)
         {
-
-            foreach (var kv in cooldowns)
+            // Update Cooldown Components
+            foreach (var entity in world.HeroEntities)
             {
-                var byKey = kv.Value;
-                if (byKey == null) continue;
-                var keys = new List<string>(byKey.Keys);
-                foreach (var key in keys)
+                if (entity.TryGetComponent(out ServerGame.Entities.CooldownComponent cd))
                 {
-                    float v = byKey[key];
-                    if (v <= 0f) continue;
-                    v -= dt;
-                    byKey[key] = v < 0f ? 0f : v;
+                    if (cd.cdQ > 0) cd.cdQ -= dt;
+                    if (cd.cdW > 0) cd.cdW -= dt;
+                    if (cd.cdE > 0) cd.cdE -= dt;
+                    if (cd.cdR > 0) cd.cdR -= dt;
                 }
             }
 
@@ -52,7 +47,7 @@ namespace ServerGame.Systems
                     {
                         // Interruption Logic (e.g. Movement)
                         // Only interrupt if the ability explicitly says so
-                        if (castAbility.interruptOnMove)
+                        if (castAbility.interruptOnMove || castAbility.stopWhileCasting)
                         {
                             if (entity.TryGetComponent(out ServerGame.Entities.MovementComponent move))
                             {
@@ -87,8 +82,15 @@ namespace ServerGame.Systems
                 casting = new ServerGame.Entities.CastingComponent();
                 caster.AddComponent(casting);
             }
+            
+            // Ensure Cooldown Component Exists (Lazy Init)
+            if (!caster.TryGetComponent(out ServerGame.Entities.CooldownComponent cdComp))
+            {
+                cdComp = new ServerGame.Entities.CooldownComponent();
+                caster.AddComponent(cdComp);
+            }
 
-            // If already casting, ignore new input (or queue it, but ignoring is simpler)
+            // If already casting, ignore new input (or queue it)
             if (casting.IsCasting) return false;
 
             if (!world.AbilityBooks.TryGetValue(playerId, out var book) || book == null || !book.TryGetValue(key, out var ability))
@@ -101,20 +103,14 @@ namespace ServerGame.Systems
             if (!ClientContent.ContentAssetRegistry.Abilities.ContainsKey(ability.id))
                 ClientContent.ContentAssetRegistry.Abilities[ability.id] = ability;
 
-            if (!cooldowns.TryGetValue(playerId, out var cdByKey))
-            {
-                cdByKey = new Dictionary<string, float>();
-                cooldowns[playerId] = cdByKey;
-            }
-
             // Check for silence/stun/disable
             if (caster.TryGetComponent(out ServerGame.Entities.CombatComponent combat) && !combat.IsActive)
             {
                 return false;
             }
 
-            if (cdByKey.TryGetValue(key, out float cd) && cd > 0f)
-                return false;
+            // Check Cooldown
+            if (cdComp.GetCooldown(key) > 0f) return false;
 
             // Check Cast Time
             if (ability.castTime > 0f)
@@ -170,9 +166,11 @@ namespace ServerGame.Systems
                 TargetY = targetY
             });
 
-            if (cooldowns.TryGetValue(playerId, out var cdByKey))
+            // Set Cooldown
+            var caster = world.EnsurePlayer(playerId);
+            if (caster.TryGetComponent(out ServerGame.Entities.CooldownComponent cdComp))
             {
-                cdByKey[key] = ability.cooldown;
+                cdComp.SetCooldown(key, ability.cooldown);
             }
             return true;
         }
