@@ -130,6 +130,7 @@ public class NetEntitySpawner : MonoBehaviour
                 go = existingVfx;
                 // Ensure it's active and reset (if needed)
                 go.SetActive(true);
+                go.transform.position = new Vector3(initialPos.x, 0, initialPos.y);
             }
             else
             {

@@ -15,6 +15,7 @@ namespace Client.Replicator
 
         private bool isCasting;
         private float timer;
+        private float lastKnownTimer;
         private float totalTime;
 
         private NetEntityView view;
@@ -69,8 +70,13 @@ namespace Client.Replicator
                 targetX = reader.ReadSingle();
                 targetY = reader.ReadSingle();
 
+                // Detect Restart/Recast (Timer jumped up)
+                bool isRestart = (timer > (lastKnownTimer + 0.1f)); 
+                // We use lastKnownTimer because 'timer' is modified in Update(), so comparing against it is noisy but valid since it decays. 
+                // Any increase means server reset it.
+                
                 // Handle VFX Start
-                if (!wasCasting || abilityId != lastAbilityId)
+                if (!wasCasting || abilityId != lastAbilityId || isRestart)
                 {
                     // Cleanup old
                     if (currentPreviewVfx) Destroy(currentPreviewVfx);
@@ -156,6 +162,7 @@ namespace Client.Replicator
                 if (currentPreviewVfx) Destroy(currentPreviewVfx);
                 if (currentCasterVfx) Destroy(currentCasterVfx);
             }
+            lastKnownTimer = timer;
         }
 
         void Update()
