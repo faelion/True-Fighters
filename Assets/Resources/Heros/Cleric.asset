@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4945a1f6b582daa4db6db837b9da270e, type: 3}
+  m_Name: Cleric
+  m_EditorClassIdentifier: Assembly-CSharp::ClientContent.HeroSO
+  id: cleric
+  displayName: Cleric
+  baseHp: 100
+  moveSpeed: 4
+  movementStrategy: {fileID: 11400000, guid: d4018944ee58b4b42aa938c1c4400ddf, type: 2}
+  bindings:
+  - key: Q
+    ability: {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}
+    castClip: {fileID: 0}
+  - key: W
+    ability: {fileID: 11400000, guid: 299f7434df4b9e34f900c0c6479631ac, type: 2}
+    castClip: {fileID: 0}
+  - key: E
+    ability: {fileID: 11400000, guid: 4e1b2f1285f45ba4582aeaa3ab50e4a5, type: 2}
+    castClip: {fileID: 0}
+  - key: R
+    ability: {fileID: 11400000, guid: 235ddee9bd57e0b4ba28f183546fe35b, type: 2}
+    castClip: {fileID: 0}
+  heroPrefab: {fileID: 8133725713713014745, guid: 8820b7094a157c74d9443e34e731d3be, type: 3}
+  baseControllerTemplate: {fileID: 9100000, guid: 0f12453f2c01eab4ca5f5aad96761aae, type: 2}
+  idleClip: {fileID: 345275505875579249, guid: f010878e45a4fd54bb8094e7bc4871a2, type: 3}
+  walkClip: {fileID: 3174661419259135242, guid: fe23e1687ec0bf245b5ad1f7a63d4ddb, type: 3}
