@@ -11,6 +11,12 @@ namespace Shared.Effects
         [Tooltip("Amount of damage to deal instantly.")]
         public float Amount;
 
+        private void OnEnable()
+        {
+            destroyVfxOnEnd = false; // Instant effects should not destroy immediately
+            if (vfxDuration <= 0f) vfxDuration = 1.5f; // Default safety
+        }
+
         public override void OnStart(ServerWorld world, ActiveEffect runtime, GameEntity target)
         {
             if (target.TryGetComponent(out HealthComponent health))

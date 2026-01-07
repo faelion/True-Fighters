@@ -20,7 +20,7 @@ MonoBehaviour:
   cooldown: 2
   projectileLifeMs: 150
   onHitEffects:
-  - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}
+  - {fileID: 11400000, guid: 5364083749a20ae40bcd63af68647078, type: 2}
   selfEffects:
   - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
   collisionRadius: 1

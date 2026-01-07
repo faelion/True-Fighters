@@ -10,8 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 32ca5f08fdd3be540a3dd7ef2fdff2cd, type: 3}
-  m_Name: DefaultProjectileInstantDamageEffect
+  m_Name: Mage_Q_Damage
   m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.InstantDamageEffect
   id: projdmg
   Duration: 0
+  vfxPrefab: {fileID: 8500920156052182585, guid: 830e92a3f95c4b04caf8edd648aed9bd, type: 3}
+  destroyVfxOnEnd: 0
+  vfxDuration: 0.5
   Amount: 50

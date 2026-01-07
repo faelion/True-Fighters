@@ -9,9 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aced72b1934eccf44adadfc891063aad, type: 3}
-  m_Name: BlinkEffect
-  m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.BlinkEffect
-  id: blink
-  Duration: 0
-  clearPath: 1
+  m_Script: {fileID: 11500000, guid: 8381d5d3dc79e7e44882805d5e9d5247, type: 3}
+  m_Name: Knight_W_Dash
+  m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.DashEffect
+  id: dash
+  Duration: 0.5
+  Speed: 10
+  disableCombat: 0

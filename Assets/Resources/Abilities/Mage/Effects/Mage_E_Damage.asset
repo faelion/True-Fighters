@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32ca5f08fdd3be540a3dd7ef2fdff2cd, type: 3}
+  m_Name: Mage_E_Damage
+  m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.InstantDamageEffect
+  id: dmg
+  Duration: 0
+  vfxPrefab: {fileID: 8500920156052182585, guid: 830e92a3f95c4b04caf8edd648aed9bd, type: 3}
+  destroyVfxOnEnd: 0
+  vfxDuration: 0.5
+  Amount: 25

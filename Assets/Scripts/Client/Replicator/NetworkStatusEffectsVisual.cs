@@ -56,5 +56,17 @@ namespace Client.Replicator
             currentEffects.Clear();
             foreach(var id in serverEffects) currentEffects.Add(id);
         }
+
+        void OnDisable()
+        {
+            foreach (var effectId in currentEffects)
+            {
+                if (ContentAssetRegistry.Effects.TryGetValue(effectId, out var effect))
+                {
+                    effect.ClientOnRemove(gameObject);
+                }
+            }
+            currentEffects.Clear();
+        }
     }
 }

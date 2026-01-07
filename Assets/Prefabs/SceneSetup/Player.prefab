@@ -11,6 +11,9 @@ GameObject:
   - component: {fileID: 6682834146038823048}
   - component: {fileID: 2483148188101050572}
   - component: {fileID: 1131173954214946128}
+  - component: {fileID: -3161226549225133522}
+  - component: {fileID: 8259493209873752446}
+  - component: {fileID: -1857011326074595392}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -71,6 +74,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetEntityView
   entityId: 0
   ArchetypeId: 
+--- !u!114 &-3161226549225133522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365672224816715787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98c754184f432e342bec6c8ba65b0063, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Client.Replicator.NetworkStatusEffectsVisual
+--- !u!114 &8259493209873752446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365672224816715787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efd860ca7b93d1f44abd036499404ea5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Client.Replicator.NetworkTransformVisual
+  PredictionSpeed: 5
+--- !u!114 &-1857011326074595392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365672224816715787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fae487aa3cf9af488f17062c3552081, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Client.Replicator.NetworkMovementVisual
 --- !u!1 &3151408337958476115
 GameObject:
   m_ObjectHideFlags: 0
