@@ -14,21 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.HeroSO
   id: rogue
   displayName: Rogue
-  baseHp: 100
-  moveSpeed: 4
+  baseHp: 150
+  moveSpeed: 10
   movementStrategy: {fileID: 11400000, guid: d4018944ee58b4b42aa938c1c4400ddf, type: 2}
   bindings:
   - key: Q
-    ability: {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
+    ability: {fileID: 11400000, guid: fd98b11c17fd6d347bbf8ce7db6f094f, type: 2}
     castClip: {fileID: 0}
   - key: W
     ability: {fileID: 11400000, guid: 6f8f45bb69e57604e84661c59533a1b5, type: 2}
     castClip: {fileID: 0}
   - key: E
-    ability: {fileID: 11400000, guid: 49c07ae51eaa4ea42a14341f9b606cf7, type: 2}
+    ability: {fileID: 11400000, guid: 945286dc9896636408c8ac15264d658c, type: 2}
     castClip: {fileID: 0}
   - key: R
-    ability: {fileID: 11400000, guid: 235ddee9bd57e0b4ba28f183546fe35b, type: 2}
+    ability: {fileID: 11400000, guid: 49c07ae51eaa4ea42a14341f9b606cf7, type: 2}
     castClip: {fileID: 0}
   heroPrefab: {fileID: 2308078121916595099, guid: b3e2cfcc1cf14864cb5117855c6994c3, type: 3}
   baseControllerTemplate: {fileID: 9100000, guid: 0f12453f2c01eab4ca5f5aad96761aae, type: 2}

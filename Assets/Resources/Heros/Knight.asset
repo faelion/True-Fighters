@@ -14,21 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.HeroSO
   id: knight
   displayName: Knight
-  baseHp: 100
-  moveSpeed: 4
+  baseHp: 300
+  moveSpeed: 5
   movementStrategy: {fileID: 11400000, guid: d4018944ee58b4b42aa938c1c4400ddf, type: 2}
   bindings:
   - key: Q
     ability: {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}
     castClip: {fileID: -8653722278162725603, guid: f0c244fac520efa48b958b7b43da5734, type: 3}
   - key: W
-    ability: {fileID: 11400000, guid: 4e1b2f1285f45ba4582aeaa3ab50e4a5, type: 2}
+    ability: {fileID: 11400000, guid: 235ddee9bd57e0b4ba28f183546fe35b, type: 2}
     castClip: {fileID: -3851722262833059593, guid: 89bf0923eeb152a498f8b5c175456551, type: 3}
   - key: E
-    ability: {fileID: 11400000, guid: f21a954cac6cea14baee52a8ee00d9b0, type: 2}
+    ability: {fileID: 11400000, guid: 4e1b2f1285f45ba4582aeaa3ab50e4a5, type: 2}
     castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   - key: R
-    ability: {fileID: 11400000, guid: f995a8f26de81fa42867e716d6aad8ee, type: 2}
+    ability: {fileID: 11400000, guid: f21a954cac6cea14baee52a8ee00d9b0, type: 2}
     castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   heroPrefab: {fileID: 5229275301457161681, guid: f75172a1aca57c149908c81e5806740f, type: 3}
   baseControllerTemplate: {fileID: 9100000, guid: 0f12453f2c01eab4ca5f5aad96761aae, type: 2}

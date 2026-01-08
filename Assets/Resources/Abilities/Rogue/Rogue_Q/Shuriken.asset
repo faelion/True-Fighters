@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5d9c3f116def3f4886672a7506123c5, type: 3}
-  m_Name: DisparoMistico
+  m_Name: Shuriken
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.ProjectileAbilityAsset
-  id: disparoMistico
-  displayName: DisparoMistico
+  id: shuriken
+  displayName: Shuriken
   defaultKey: Q
   castingEffectPrefab: {fileID: 0}
   castingPreviewMode: 0
@@ -28,7 +28,7 @@ MonoBehaviour:
   selfEffects:
   - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
   onHitEffects:
-  - {fileID: 11400000, guid: 7e4ff6dbfba1fba46bc8a94f382ad5eb, type: 2}
+  - {fileID: 11400000, guid: 77e27290400efc748985595b3ebda834, type: 2}
   collisionRadius: 0.25
   isTrigger: 1
-  projectilePrefab: {fileID: 2603975711762807716, guid: 4fbea7c813015c143ac88b98a76686f7, type: 3}
+  projectilePrefab: {fileID: 2360245473695100080, guid: 18aac5c788161504591a8c268685b915, type: 3}

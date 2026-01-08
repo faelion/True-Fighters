@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 990967dc3fd149b4d9989af420eb5bb5, type: 3}
+  m_Name: Rogue_CaC
+  m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AttackCaCAbilityAsset
+  id: 3
+  displayName: AttackCaC
+  defaultKey: E
+  castingEffectPrefab: {fileID: 0}
+  castingPreviewMode: 0
+  range: 1000
+  castTime: 0.1
+  cooldown: 2
+  interruptOnMove: 0
+  stopWhileCasting: 0
+  projectileLifeMs: 150
+  onHitEffects:
+  - {fileID: 11400000, guid: b91dec22b1f969f43b25c8a44ec07267, type: 2}
+  selfEffects:
+  - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
+  collisionRadius: 1
+  isTrigger: 1
+  CaCPrefab: {fileID: 1171201465392465800, guid: 4aa9f30a28a77224ba84b2a2c334c71b, type: 3}
+  spawnDistance: 1.5

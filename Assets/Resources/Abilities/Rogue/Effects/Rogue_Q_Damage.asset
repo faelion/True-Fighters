@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7d099096a9d4e947bf081080b99059a, type: 3}
-  m_Name: SpeedEffect
-  m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.SpeedEffect
-  id: speed
-  Duration: 3
+  m_Script: {fileID: 11500000, guid: 32ca5f08fdd3be540a3dd7ef2fdff2cd, type: 3}
+  m_Name: Rogue_Q_Damage
+  m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.InstantDamageEffect
+  id: projdmg
+  Duration: 0
   vfxPrefab: {fileID: 0}
-  destroyVfxOnEnd: 1
-  vfxDuration: 0
-  speedMultiplier: 2
+  destroyVfxOnEnd: 0
+  vfxDuration: 1.5
+  Amount: 50

@@ -10,9 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2df5de7aec0e381439fafea044b2dbe4, type: 3}
-  m_Name: Knight_E_Heal
+  m_Name: Heal
   m_EditorClassIdentifier: Assembly-CSharp::Shared.Effects.HealDuration
-  id: 
+  id: heal
   Duration: 5
+  vfxPrefab: {fileID: 7155335147208632822, guid: 472a24d17c18d3a47b8e03cd1532c63d, type: 3}
+  destroyVfxOnEnd: 1
+  vfxDuration: 5
   HealPerTick: 5
   Interval: 1

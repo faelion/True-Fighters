@@ -10,14 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9964161c4b687747ac680671b323b0d, type: 3}
-  m_Name: DashCleric
+  m_Name: DashKnight
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.SelfCastAbilityAsset
   id: dash
   displayName: Dash
-  defaultKey: W
+  defaultKey: E
+  castingEffectPrefab: {fileID: 0}
+  castingPreviewMode: 0
   range: 1000
   castTime: 0.3
   cooldown: 2
+  interruptOnMove: 0
+  stopWhileCasting: 1
   Effects:
   - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
   - {fileID: 11400000, guid: 733de97f98940bf47b75da630c8b1dd3, type: 2}
