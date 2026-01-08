@@ -157,6 +157,21 @@ namespace ServerGame.Systems
                  return false;
             }
 
+            // Validate Range
+            if (ability.range > 0)
+            {
+                 // Check distance
+                 if (caster.TryGetComponent(out ServerGame.Entities.TransformComponent tc))
+                 {
+                     float dist = Vector2.Distance(new Vector2(tc.posX, tc.posY), new Vector2(targetX, targetY));
+                     // Allow small epsilon for floating point sync issues
+                     if (dist > ability.range + 1.0f) 
+                     {
+                         return false;
+                     }
+                 }
+            }
+
             // Check Cast Time
             if (ability.castTime > 0f)
             {

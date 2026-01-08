@@ -63,6 +63,32 @@ public class UserInput : MonoBehaviour
             targetY = targetPoint.z,
             timestamp = Time.time
         };
+
+        if (GameSettings.ClampCastToMaxRange && (kind == InputKind.Q || kind == InputKind.W || kind == InputKind.E || kind == InputKind.R))
+        {
+            float range = GetAbilityRange(kind);
+            if (range > 0)
+            {
+                // Find caster pos
+                if (NetEntityView.AllViews.TryGetValue(net.AssignedPlayerId, out var view))
+                {
+                    Vector3 origin = view.transform.position;
+                    // Ignore Y for distance
+                    Vector3 targetFlat = new Vector3(targetPoint.x, 0, targetPoint.z);
+                    Vector3 originFlat = new Vector3(origin.x, 0, origin.z);
+                    
+                    float dist = Vector3.Distance(originFlat, targetFlat);
+                    if (dist > range)
+                    {
+                        Vector3 dir = (targetFlat - originFlat).normalized;
+                        Vector3 clamped = originFlat + dir * range;
+                        msg.targetX = clamped.x;
+                        msg.targetY = clamped.z;
+                    }
+                }
+            }
+        }
+
         if (GameSettings.UseMovementPrediction && kind == InputKind.RightClick)
         {
             if (NetEntityView.AllViews.TryGetValue(net.AssignedPlayerId, out var localView))
@@ -71,5 +97,26 @@ public class UserInput : MonoBehaviour
             }
         }
         net.SendInput(msg);
+    }
+
+    private float GetAbilityRange(InputKind kind)
+    {
+        if (!net.HasAssignedId) return 0f;
+        if (!NetEntityView.AllViews.TryGetValue(net.AssignedPlayerId, out var view)) return 0f;
+        
+        string heroId = view.ArchetypeId;
+        if (ClientContent.ContentAssetRegistry.Heroes.TryGetValue(heroId, out var hero))
+        {
+             string k = kind.ToString(); 
+             // InputKind.Q -> "Q"
+             foreach (var b in hero.bindings)
+             {
+                 if (b.key == k && b.ability != null)
+                 {
+                     return b.ability.range;
+                 }
+             }
+        }
+        return 0f;
     }
 }
