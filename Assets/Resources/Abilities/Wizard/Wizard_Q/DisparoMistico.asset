@@ -15,11 +15,15 @@ MonoBehaviour:
   id: 1
   displayName: DisparoMistico
   defaultKey: Q
+  castingEffectPrefab: {fileID: 0}
+  castingPreviewMode: 0
   range: 1000
   castTime: 0.2
   cooldown: 2
+  interruptOnMove: 0
+  stopWhileCasting: 1
   movementStrategy: {fileID: 11400000, guid: 5a98ccce66e943f468f26598c2e0c946, type: 2}
-  projectileSpeed: 8
+  projectileSpeed: 16
   projectileLifeMs: 1500
   selfEffects:
   - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9964161c4b687747ac680671b323b0d, type: 3}
-  m_Name: SelfCastAbility
+  m_Name: Flash
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.FlashAbilityAsset
   id: 7
   displayName: Flash
