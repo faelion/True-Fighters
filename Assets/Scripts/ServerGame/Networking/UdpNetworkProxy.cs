@@ -14,7 +14,9 @@ namespace ServerGame.Networking
         private UdpTransport transport;
         
         public event Action<int> OnPlayerJoined;
+#pragma warning disable 67
         public event Action<int> OnPlayerLeft;
+#pragma warning restore 67
         public event Action<int, object> OnDataReceived;
 
         public ConnectionRegistry Registry => connections;

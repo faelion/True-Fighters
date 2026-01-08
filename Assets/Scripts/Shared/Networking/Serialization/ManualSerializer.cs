@@ -17,6 +17,8 @@ namespace Networking.Serialization
         
         private const byte TYPE_LobbyUpdateMessage = 7;
         private const byte TYPE_LobbyActionMessage = 8;
+        private const byte TYPE_PingMessage = 9;
+        private const byte TYPE_PongMessage = 10;
         
         // Event payloads
         private const byte TYPE_EntityDespawnEvent = 15;
@@ -74,6 +76,16 @@ namespace Networking.Serialization
                     bw.Write(TYPE_LobbyActionMessage);
                     WriteLobbyAction(bw, lam);
                 }
+                else if (obj is PingMessage ping)
+                {
+                    bw.Write(TYPE_PingMessage);
+                    WritePing(bw, ping);
+                }
+                else if (obj is PongMessage pong)
+                {
+                    bw.Write(TYPE_PongMessage);
+                    WritePong(bw, pong);
+                }
                 else
                 {
                     throw new NotSupportedException("Unknown message type: " + obj.GetType().FullName);
@@ -107,6 +119,8 @@ namespace Networking.Serialization
                     case TYPE_TickPacketMessage: return ReadTickPacket(br);
                     case TYPE_LobbyUpdateMessage: return ReadLobbyUpdate(br);
                     case TYPE_LobbyActionMessage: return ReadLobbyAction(br);
+                    case TYPE_PingMessage: return ReadPing(br);
+                    case TYPE_PongMessage: return ReadPong(br);
                     case TYPE_EntityDespawnEvent: return ReadEntityDespawnEvent(br);
                     case TYPE_EntitySpawnEvent: return ReadEntitySpawnEvent(br);
                     default:
@@ -143,6 +157,25 @@ namespace Networking.Serialization
             };
         }
         
+        private static void WritePing(BinaryWriter bw, PingMessage m)
+        {
+            bw.Write(m.clientTime);
+        }
+        private static PingMessage ReadPing(BinaryReader br)
+        {
+            return new PingMessage { clientTime = br.ReadSingle() };
+        }
+
+        private static void WritePong(BinaryWriter bw, PongMessage m)
+        {
+            bw.Write(m.clientTime);
+            bw.Write(m.serverTime);
+        }
+        private static PongMessage ReadPong(BinaryReader br)
+        {
+            return new PongMessage { clientTime = br.ReadSingle(), serverTime = br.ReadSingle() };
+        }
+        
         // Static Helpers for Strings/etc
         private static void WriteString(BinaryWriter bw, string s)
         {
@@ -165,6 +198,7 @@ namespace Networking.Serialization
             bw.Write(m.targetX);
             bw.Write(m.targetY);
             bw.Write(m.lastReceivedTick);
+            bw.Write(m.timestamp);
         }
         private static InputMessage ReadInputMessage(BinaryReader br)
         {
@@ -175,6 +209,7 @@ namespace Networking.Serialization
                 targetX = br.ReadSingle(),
                 targetY = br.ReadSingle(),
                 lastReceivedTick = br.ReadInt32(),
+                timestamp = br.ReadSingle(),
             };
         }
 

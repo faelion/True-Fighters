@@ -28,6 +28,10 @@ public class ClientNetwork : MonoBehaviour
 
     public bool HasAssignedId => hasAssignedId;
     public int AssignedPlayerId => assignedPlayerId;
+    
+    public float RTT { get; private set; }
+    private float lastPingTime = 0f;
+    private const float PING_INTERVAL = 1.0f;
 
     private string _currentGameModeId;
     public string CurrentGameModeId 
@@ -125,6 +129,16 @@ public class ClientNetwork : MonoBehaviour
                 SendJoinRequest();
             }
         }
+        
+        if (hasAssignedId)
+        {
+             lastPingTime += Time.deltaTime;
+             if (lastPingTime >= PING_INTERVAL)
+             {
+                 lastPingTime = 0f;
+                 SendToServer(new PingMessage { clientTime = Time.time });
+             }
+        }
     }
 
     public event Action<Shared.LobbyStateData> OnLobbyUpdate;
@@ -177,6 +191,12 @@ public class ClientNetwork : MonoBehaviour
                     ClientMessageRouter.RaiseServerEvent(ev);
                 }
             }
+        }
+        else if (msg is PongMessage pong)
+        {
+            float now = Time.time;
+            float rtt = now - pong.clientTime;
+            RTT = rtt; 
         }
         else
         {

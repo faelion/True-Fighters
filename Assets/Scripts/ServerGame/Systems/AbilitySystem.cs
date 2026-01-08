@@ -8,6 +8,15 @@ namespace ServerGame.Systems
 
     public class AbilitySystem : ISystem
     {
+        private class PendingCast
+        {
+            public string key;
+            public float tx;
+            public float ty;
+            public float expires;
+        }
+        
+        private Dictionary<int, PendingCast> inputBuffer = new Dictionary<int, PendingCast>();
 
         public static string KeyFromInputKind(InputKind kind)
         {
@@ -73,9 +82,38 @@ namespace ServerGame.Systems
                     }
                 }
             }
+            
+            // Process Input Buffer
+            List<int> toRemove = null;
+            foreach (var kv in inputBuffer)
+            {
+                if (kv.Value.expires < Time.time)
+                {
+                    if (toRemove == null) toRemove = new List<int>();
+                    toRemove.Add(kv.Key);
+                    continue;
+                }
+                
+                // Retry Cast (Lag = 0 for buffered inputs as they are already delayed)
+                if (TryCastInternal(world, kv.Key, kv.Value.key, kv.Value.tx, kv.Value.ty, 0f, true))
+                {
+                    if (toRemove == null) toRemove = new List<int>();
+                    toRemove.Add(kv.Key);
+                }
+            }
+            
+            if (toRemove != null)
+            {
+                foreach (var id in toRemove) inputBuffer.Remove(id);
+            }
         }
 
-        public bool TryCast(ServerGame.ServerWorld world, int playerId, string key, float targetX, float targetY)
+        public bool TryCast(ServerGame.ServerWorld world, int playerId, string key, float targetX, float targetY, float lag)
+        {
+            return TryCastInternal(world, playerId, key, targetX, targetY, lag, false);
+        }
+
+        private bool TryCastInternal(ServerGame.ServerWorld world, int playerId, string key, float targetX, float targetY, float lag, bool isReplay)
         {
             var caster = world.GetHeroEntity(playerId) ?? world.EnsurePlayer(playerId);
 
@@ -113,7 +151,11 @@ namespace ServerGame.Systems
             }
 
             // Check Cooldown
-            if (cdComp.GetCooldown(key) > 0f) return false;
+            if (cdComp.GetCooldown(key) > 0f) 
+            {
+                 if (!isReplay) BufferInput(playerId, key, targetX, targetY);
+                 return false;
+            }
 
             // Check Cast Time
             if (ability.castTime > 0f)
@@ -123,7 +165,12 @@ namespace ServerGame.Systems
                 casting.AbilityId = ability.id;
                 casting.Key = key;
                 casting.TotalTime = ability.castTime;
-                casting.Timer = ability.castTime;
+                
+                // Backdating / Lag Compensation
+                float adjustedTime = ability.castTime - lag;
+                if (adjustedTime < 0f) adjustedTime = 0f;
+                
+                casting.Timer = adjustedTime;
                 casting.TargetX = targetX;
                 casting.TargetY = targetY;
 
@@ -176,6 +223,11 @@ namespace ServerGame.Systems
                 cdComp.SetCooldown(key, ability.cooldown);
             }
             return true;
+        }
+        
+        private void BufferInput(int pid, string key, float x, float y)
+        {
+            inputBuffer[pid] = new PendingCast { key = key, tx = x, ty = y, expires = Time.time + 0.2f };
         }
     }
 }

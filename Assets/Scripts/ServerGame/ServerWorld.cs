@@ -21,6 +21,9 @@ namespace ServerGame
         private Systems.AbilitySystem abilitySystem;
 
         public Shared.ScriptableObjects.GameModeSO GameMode { get; set; }
+        
+        // Reference to Network for RTT
+        public ServerNetwork Network { get; set; }
 
         public ServerWorld(Shared.ScriptableObjects.GameModeSO mode = null)
         {
@@ -127,7 +130,8 @@ namespace ServerGame
         public bool TryCastAbility(int playerId, string key, float targetX, float targetY)
         {
             if (abilitySystem == null) return false;
-            return abilitySystem.TryCast(this, playerId, key, targetX, targetY);
+            float lag = Network != null ? Network.GetLag(playerId) : 0f;
+            return abilitySystem.TryCast(this, playerId, key, targetX, targetY, lag);
         }
 
         internal void BindAbilitySystem(Systems.AbilitySystem system) => abilitySystem = system;

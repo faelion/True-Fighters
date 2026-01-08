@@ -132,7 +132,6 @@ namespace Client.Replicator
                    // Using a small threshold like 0.1s. 
                    // (Note: Server tick rate impacts this. If server tick is 20Hz (0.05s))
                    
-                   bool handedOver = false;
                    if (timer <= 0.1f && lastAbilityId != "")
                    {
                        if (ClientContent.ContentAssetRegistry.Abilities.TryGetValue(lastAbilityId, out var ability))
@@ -151,7 +150,6 @@ namespace Client.Replicator
                                // Handover!
                                CastingVfxHandover.Register(ability.id, currentPreviewVfx, spawnPos);
                                currentPreviewVfx = null; // Orphan it so we don't destroy it below
-                               handedOver = true;
                            }
                        }
                    }

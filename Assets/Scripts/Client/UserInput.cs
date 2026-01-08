@@ -60,7 +60,8 @@ public class UserInput : MonoBehaviour
             playerId = net.AssignedPlayerId,
             kind = kind,
             targetX = targetPoint.x,
-            targetY = targetPoint.z
+            targetY = targetPoint.z,
+            timestamp = Time.time
         };
         if (GameSettings.UseMovementPrediction && kind == InputKind.RightClick)
         {

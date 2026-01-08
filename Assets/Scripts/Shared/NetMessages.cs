@@ -9,7 +9,21 @@ public class InputMessage
     public float targetX;
     public float targetY;
     public int lastReceivedTick;
+    public float timestamp; // Client-side Time.time when input was generated
     public InputMessage() { }
+}
+
+public class PingMessage
+{
+    public float clientTime; // Timestamp when ping was sent
+    public PingMessage() { }
+}
+
+public class PongMessage
+{
+    public float clientTime; // Echo back the client timestamp
+    public float serverTime; // Server timestamp when processed
+    public PongMessage() { }
 }
 
 public class ComponentData

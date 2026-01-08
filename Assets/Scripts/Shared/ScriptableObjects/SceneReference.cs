@@ -20,11 +20,15 @@ namespace Shared.ScriptableObjects
         public void OnBeforeSerialize()
         {
 #if UNITY_EDITOR
-            if (sceneAsset != null)
+            try
             {
-                sceneName = sceneAsset.name;
-                scenePath = AssetDatabase.GetAssetPath(sceneAsset);
+                if (sceneAsset != null)
+                {
+                    sceneName = sceneAsset.name;
+                    scenePath = AssetDatabase.GetAssetPath(sceneAsset);
+                }
             }
+            catch { }
 #endif
         }
 
