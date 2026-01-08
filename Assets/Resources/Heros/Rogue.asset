@@ -28,7 +28,7 @@ MonoBehaviour:
     ability: {fileID: 11400000, guid: 49c07ae51eaa4ea42a14341f9b606cf7, type: 2}
     castClip: {fileID: 0}
   - key: R
-    ability: {fileID: 11400000, guid: f995a8f26de81fa42867e716d6aad8ee, type: 2}
+    ability: {fileID: 11400000, guid: 235ddee9bd57e0b4ba28f183546fe35b, type: 2}
     castClip: {fileID: 0}
   heroPrefab: {fileID: 2308078121916595099, guid: b3e2cfcc1cf14864cb5117855c6994c3, type: 3}
   baseControllerTemplate: {fileID: 9100000, guid: 0f12453f2c01eab4ca5f5aad96761aae, type: 2}

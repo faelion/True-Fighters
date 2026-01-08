@@ -22,7 +22,7 @@ MonoBehaviour:
     ability: {fileID: 11400000, guid: cd06da18a6ddd644285e6056b92c1b3b, type: 2}
     castClip: {fileID: 0}
   - key: W
-    ability: {fileID: 11400000, guid: 299f7434df4b9e34f900c0c6479631ac, type: 2}
+    ability: {fileID: 11400000, guid: df596a7ebdc843346bdfa3bdf163ffe8, type: 2}
     castClip: {fileID: 0}
   - key: E
     ability: {fileID: 11400000, guid: 4e1b2f1285f45ba4582aeaa3ab50e4a5, type: 2}

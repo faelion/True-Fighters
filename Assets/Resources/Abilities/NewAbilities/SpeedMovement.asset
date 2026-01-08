@@ -17,7 +17,7 @@ MonoBehaviour:
   defaultKey: E
   castingEffectPrefab: {fileID: 0}
   castingPreviewMode: 0
-  range: 1
+  range: 1000
   castTime: 0.5
   cooldown: 5
   interruptOnMove: 0

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f77c80af0d181fa46890180fe01daf00, type: 3}
-  m_Name: RedSplash
+  m_Name: GroundSmash
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AoEAbilityAsset
-  id: redsplash
-  displayName: RedSplash
+  id: groundsamsh
+  displayName: groundSmash
   defaultKey: W
   castingEffectPrefab: {fileID: 0}
   castingPreviewMode: 0
-  range: 1
+  range: 10000
   castTime: 0.5
   cooldown: 5
   interruptOnMove: 1
@@ -28,4 +28,4 @@ MonoBehaviour:
   collisionRadius: 2
   isTrigger: 1
   distanceFromCaster: 0
-  aoePrefab: {fileID: 8378648546881499446, guid: 67417b16842eb6b44bed45a57128b60d, type: 3}
+  aoePrefab: {fileID: 4994997792314849709, guid: b817fd49d85051d4e934f4bcc15f1ae9, type: 3}
