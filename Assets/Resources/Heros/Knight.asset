@@ -25,7 +25,7 @@ MonoBehaviour:
     ability: {fileID: 11400000, guid: 4e1b2f1285f45ba4582aeaa3ab50e4a5, type: 2}
     castClip: {fileID: -3851722262833059593, guid: 89bf0923eeb152a498f8b5c175456551, type: 3}
   - key: E
-    ability: {fileID: 11400000, guid: 235ddee9bd57e0b4ba28f183546fe35b, type: 2}
+    ability: {fileID: 11400000, guid: f21a954cac6cea14baee52a8ee00d9b0, type: 2}
     castClip: {fileID: 3433596340313048746, guid: ba487743b3b745046810bcdfed1b6a45, type: 3}
   - key: R
     ability: {fileID: 11400000, guid: f995a8f26de81fa42867e716d6aad8ee, type: 2}

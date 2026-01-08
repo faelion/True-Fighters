@@ -22,10 +22,10 @@ MonoBehaviour:
     ability: {fileID: 11400000, guid: 6a1b5938c84e61c4ca9184d7ca562a8f, type: 2}
     castClip: {fileID: 0}
   - key: W
-    ability: {fileID: 11400000, guid: 94dddadb3cc6bb64fb058369626bb25e, type: 2}
+    ability: {fileID: 11400000, guid: 6f8f45bb69e57604e84661c59533a1b5, type: 2}
     castClip: {fileID: 0}
   - key: E
-    ability: {fileID: 11400000, guid: 0420b112ea9c81640a5c60e203edcde3, type: 2}
+    ability: {fileID: 11400000, guid: 49c07ae51eaa4ea42a14341f9b606cf7, type: 2}
     castClip: {fileID: 0}
   - key: R
     ability: {fileID: 11400000, guid: f995a8f26de81fa42867e716d6aad8ee, type: 2}
