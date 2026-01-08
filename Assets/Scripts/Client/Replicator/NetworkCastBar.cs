@@ -71,7 +71,8 @@ namespace Client.Replicator
                 targetY = reader.ReadSingle();
 
                 // Detect Restart/Recast (Timer jumped up)
-                bool isRestart = (timer > (lastKnownTimer + 0.1f)); 
+                // Increased threshold to 0.2f to avoid jitter triggering restarts
+                bool isRestart = (timer > (lastKnownTimer + 0.2f)); 
                 // We use lastKnownTimer because 'timer' is modified in Update(), so comparing against it is noisy but valid since it decays. 
                 // Any increase means server reset it.
                 

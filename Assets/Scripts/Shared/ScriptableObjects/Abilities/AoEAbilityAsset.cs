@@ -18,7 +18,6 @@ namespace ClientContent
         [Header("Collision")]
         public float collisionRadius = 2.0f;
         public bool isTrigger = true;
-        public float distanceFromCaster = 3.0f;
 
         [Header("View")]
         public GameObject aoePrefab;
@@ -34,26 +33,25 @@ namespace ClientContent
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent casterTransform)) return false;
 
+            // Fix for VFX Handover Mismatch:
+            // If the visual preview is anchored to the caster, the logical entity spawn must also be at the caster.
+            if (castingPreviewMode == CastingPreviewMode.MainPrefabAtCaster || 
+                castingPreviewMode == CastingPreviewMode.MainPrefabAtCasterNoFollow)
+            {
+                targetX = casterTransform.posX;
+                targetY = casterTransform.posY;
+            }
+
             hasHit = false;
-
-            float dx = targetX - casterTransform.posX;
-            float dy = targetY - casterTransform.posY;
-            float distSq = dx * dx + dy * dy;
-
-            float dist = Mathf.Sqrt(distSq);
-            float nx = dx / dist;
-            float ny = dy / dist;
 
             var projectile = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.AoE); 
             projectile.OwnerPlayerId = playerId;
             projectile.ArchetypeId = id;
 
-            float clampDist = (dist > distanceFromCaster) ? distanceFromCaster : dist;
-
             var t = new ServerGame.Entities.TransformComponent 
             {
-                posX = casterTransform.posX + (nx * clampDist),
-                posY = casterTransform.posY + (ny * clampDist),
+                posX = targetX,
+                posY = targetY,
 
                 rotZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg
             };

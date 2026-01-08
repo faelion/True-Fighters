@@ -29,6 +29,13 @@ namespace Client.UI
                 GameSettings.UseMovementPrediction = newPred;
             }
 
+            bool currentClamp = GameSettings.ClampCastToMaxRange;
+            bool newClamp = GUILayout.Toggle(currentClamp, "Clamp Cast Values to Max Range");
+            if (newClamp != currentClamp)
+            {
+                GameSettings.ClampCastToMaxRange = newClamp;
+            }
+
             GUILayout.EndArea();
         }
     }
