@@ -47,7 +47,10 @@ namespace ServerGame.Systems
                     {
                         // Interruption Logic (e.g. Movement)
                         // Only interrupt if the ability explicitly says so
-                        if (castAbility.interruptOnMove || castAbility.stopWhileCasting)
+                        // Grace Period: Don't interrupt in the first 0.15s to allow velocity to zero out from Stop command or jitter
+                        float elapsedTime = casting.TotalTime - casting.Timer;
+                        
+                        if ((castAbility.interruptOnMove || castAbility.stopWhileCasting) && elapsedTime > 0.15f)
                         {
                             if (entity.TryGetComponent(out ServerGame.Entities.MovementComponent move))
                             {

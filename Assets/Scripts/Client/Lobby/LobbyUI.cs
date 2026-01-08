@@ -215,15 +215,16 @@ public class LobbyUI : MonoBehaviour
         foreach (var kvp in ContentAssetRegistry.Heroes)
         {
             var heroId = kvp.Key;
-            
+            var heroName = kvp.Value.displayName;
+
             var go = Instantiate(heroButtonPrefab, heroGridContent);
             var btn = go.GetComponent<Button>();
             var txt = go.GetComponentInChildren<TMP_Text>();
-            if (txt) txt.text = heroId;
+            if (txt) txt.text = heroName;
 
             btn.onClick.AddListener(() => {
                 manager.SelectHero(heroId);
-                UpdatePreview(heroId);
+                UpdatePreview(heroName);
             });
         }
     }

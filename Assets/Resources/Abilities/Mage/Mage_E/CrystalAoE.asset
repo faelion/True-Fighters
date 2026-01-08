@@ -19,7 +19,7 @@ MonoBehaviour:
   castingPreviewMode: 3
   range: 12
   castTime: 0.2
-  cooldown: 2
+  cooldown: 4
   interruptOnMove: 0
   stopWhileCasting: 1
   projectileLifeMs: 1000

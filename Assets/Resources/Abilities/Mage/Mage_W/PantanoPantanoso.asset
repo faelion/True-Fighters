@@ -19,10 +19,10 @@ MonoBehaviour:
   castingPreviewMode: 1
   range: 10
   castTime: 0.4
-  cooldown: 5
+  cooldown: 9
   interruptOnMove: 0
   stopWhileCasting: 1
-  projectileLifeMs: 5000
+  projectileLifeMs: 4000
   onHitEffects:
   - {fileID: 11400000, guid: 884ca524fbb41164886a0c91f6499e27, type: 2}
   collisionRadius: 2
