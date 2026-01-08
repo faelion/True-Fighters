@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 990967dc3fd149b4d9989af420eb5bb5, type: 3}
   m_Name: Rogue_CaC
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AttackCaCAbilityAsset
-  id: 3
-  displayName: AttackCaC
+  id: rogue_CaC
+  displayName: Rogue_CaC
   defaultKey: E
   castingEffectPrefab: {fileID: 0}
   castingPreviewMode: 0

@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f77c80af0d181fa46890180fe01daf00, type: 3}
-  m_Name: PantanoPantanoso
+  m_Name: RayoLaser
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AoEAbilityAsset
-  id: pantanoPantanoso
-  displayName: Pantano
-  defaultKey: R
+  id: rayoLaser
+  displayName: RayoLaser
+  defaultKey: E
   castingEffectPrefab: {fileID: 0}
   castingPreviewMode: 1
   range: 10
-  castTime: 0.4
+  castTime: 0.5
   cooldown: 9
   interruptOnMove: 0
   stopWhileCasting: 1
-  projectileLifeMs: 4000
+  projectileLifeMs: 4500
   onHitEffects:
   - {fileID: 11400000, guid: 884ca524fbb41164886a0c91f6499e27, type: 2}
   collisionRadius: 2
   isTrigger: 1
-  aoePrefab: {fileID: 7957833072274404953, guid: 3355f6bfa6db8b24281b827de929694c, type: 3}
+  aoePrefab: {fileID: 7478731271839673279, guid: 4d3c8045dd8857a4b8d34c2361c61045, type: 3}

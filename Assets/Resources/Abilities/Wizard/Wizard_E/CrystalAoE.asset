@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f77c80af0d181fa46890180fe01daf00, type: 3}
   m_Name: CrystalAoE
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.AoEAbilityAsset
-  id: 6
-  displayName: crystalAoE
+  id: crystalAoE
+  displayName: CrystalAoE
   defaultKey: E
   castingEffectPrefab: {fileID: 0}
   castingPreviewMode: 3
@@ -27,5 +27,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a48c331d62f85bd4ab746f8d122070fc, type: 2}
   collisionRadius: 5
   isTrigger: 1
-  distanceFromCaster: 0
   aoePrefab: {fileID: 584207449403360073, guid: d05406da6bc63c74db9c198b427eb1ce, type: 3}

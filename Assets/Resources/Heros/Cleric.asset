@@ -15,7 +15,7 @@ MonoBehaviour:
   id: cleric
   displayName: Cleric
   baseHp: 150
-  moveSpeed: 8
+  moveSpeed: 6
   movementStrategy: {fileID: 11400000, guid: d4018944ee58b4b42aa938c1c4400ddf, type: 2}
   bindings:
   - key: Q
@@ -25,7 +25,7 @@ MonoBehaviour:
     ability: {fileID: 11400000, guid: df596a7ebdc843346bdfa3bdf163ffe8, type: 2}
     castClip: {fileID: 0}
   - key: E
-    ability: {fileID: 0}
+    ability: {fileID: 11400000, guid: cfbdff04f2cacb042a667d643ab73ba4, type: 2}
     castClip: {fileID: 0}
   - key: R
     ability: {fileID: 11400000, guid: f995a8f26de81fa42867e716d6aad8ee, type: 2}

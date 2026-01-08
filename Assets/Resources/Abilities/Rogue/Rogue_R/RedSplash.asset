@@ -19,13 +19,12 @@ MonoBehaviour:
   castingPreviewMode: 3
   range: 10000
   castTime: 0.9
-  cooldown: 5
+  cooldown: 15
   interruptOnMove: 1
   stopWhileCasting: 1
   projectileLifeMs: 1500
   onHitEffects:
-  - {fileID: 11400000, guid: 5364083749a20ae40bcd63af68647078, type: 2}
+  - {fileID: 11400000, guid: e52065d87094cc94ebed7b4a63e3d00e, type: 2}
   collisionRadius: 2
   isTrigger: 1
-  distanceFromCaster: 0
   aoePrefab: {fileID: 8378648546881499446, guid: 67417b16842eb6b44bed45a57128b60d, type: 3}

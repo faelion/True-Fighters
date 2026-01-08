@@ -15,7 +15,7 @@ MonoBehaviour:
   id: rogue
   displayName: Rogue
   baseHp: 150
-  moveSpeed: 10
+  moveSpeed: 8
   movementStrategy: {fileID: 11400000, guid: d4018944ee58b4b42aa938c1c4400ddf, type: 2}
   bindings:
   - key: Q

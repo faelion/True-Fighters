@@ -17,4 +17,4 @@ MonoBehaviour:
   vfxPrefab: {fileID: 8500920156052182585, guid: 830e92a3f95c4b04caf8edd648aed9bd, type: 3}
   destroyVfxOnEnd: 0
   vfxDuration: 0.5
-  Amount: 25
+  Amount: 100

@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9964161c4b687747ac680671b323b0d, type: 3}
   m_Name: Flash
   m_EditorClassIdentifier: Assembly-CSharp::ClientContent.FlashAbilityAsset
-  id: 7
+  id: flash
   displayName: Flash
   defaultKey: R
+  castingEffectPrefab: {fileID: 0}
+  castingPreviewMode: 0
   range: 10
   castTime: 0
   cooldown: 2
+  interruptOnMove: 0
+  stopWhileCasting: 1
   Effects:
   - {fileID: 11400000, guid: 29e1d4bdc3b91ec45bcf428b0903b799, type: 2}
   - {fileID: 11400000, guid: 685cc30d2d2b743469a05939eb64b514, type: 2}
