@@ -29,6 +29,19 @@ public class ClientNetwork : MonoBehaviour
     public bool HasAssignedId => hasAssignedId;
     public int AssignedPlayerId => assignedPlayerId;
 
+    private string _currentGameModeId;
+    public string CurrentGameModeId 
+    { 
+        get 
+        {
+             if (!string.IsNullOrEmpty(_currentGameModeId)) return _currentGameModeId;
+             if (!string.IsNullOrEmpty(LastLobbyState.SelectedGameModeId)) return LastLobbyState.SelectedGameModeId;
+             // Fallback for direct scene testing or late join without info
+             return ClientContent.ContentAssetRegistry.DefaultGameModeId;
+        }
+        private set => _currentGameModeId = value;
+    }
+
     void Start()
     {
         DontDestroyOnLoad(gameObject);
@@ -143,6 +156,7 @@ public class ClientNetwork : MonoBehaviour
         else if (msg is StartGameMessage sgm)
         {
             Debug.Log($"Client: Received StartGameMessage -> Loading scene '{sgm.sceneName}'");
+            CurrentGameModeId = sgm.gameModeId;
             UnityEngine.SceneManagement.SceneManager.LoadScene(sgm.sceneName);
         }
         else if (msg is TickPacketMessage tpm)

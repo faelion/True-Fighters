@@ -77,10 +77,44 @@ public class ServerLobbyManager : MonoBehaviour
         else if (lam.actionType == 4) // SetGameMode
         {
             // Only allow if it's a known game mode
-            if (ClientContent.ContentAssetRegistry.GameModes.ContainsKey(lam.payload))
+            if (ClientContent.ContentAssetRegistry.GameModes.TryGetValue(lam.payload, out var gm))
             {
                 currentGameModeId = lam.payload;
                 changed = true;
+
+                // Shuffle & Assign Teams
+                var allPlayers = new System.Collections.Generic.List<int>();
+                foreach (var kvp in connections.PlayerEndpoints) allPlayers.Add(kvp.Key);
+
+                // Fisher-Yates Shuffle
+                var rng = new System.Random();
+                int n = allPlayers.Count;
+                while (n > 1)
+                {
+                    n--;
+                    int k = rng.Next(n + 1);
+                    int value = allPlayers[k];
+                    allPlayers[k] = allPlayers[n];
+                    allPlayers[n] = value;
+                }
+
+                if (gm.teams != null && gm.teams.Length > 0)
+                {
+                    // Distribute Round-Robin
+                    for (int i = 0; i < allPlayers.Count; i++)
+                    {
+                        int teamIndex = i % gm.teams.Length;
+                        connections.SetTeam(allPlayers[i], teamIndex + 1); // 1-based teams
+                    }
+                }
+                else
+                {
+                    // FFA -> Reset to 0
+                    foreach (var id in allPlayers)
+                    {
+                        connections.SetTeam(id, 0);
+                    }
+                }
             }
         }
 
