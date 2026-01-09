@@ -24,7 +24,7 @@ namespace ClientContent
 
         public override GameObject GetPreviewPrefab() => aoePrefab;
 
-        private bool hasHit = false;
+        private HashSet<int> hitTargets;
 
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
@@ -42,7 +42,7 @@ namespace ClientContent
                 targetY = casterTransform.posY;
             }
 
-            hasHit = false;
+            hitTargets = new HashSet<int>();
 
             var projectile = world.EntityRepo.CreateEntity(ServerGame.Entities.EntityType.AoE); 
             projectile.OwnerPlayerId = playerId;
@@ -87,7 +87,6 @@ namespace ClientContent
 
         public override void OnEntityCollision(ServerGame.ServerWorld world, ServerGame.Entities.GameEntity me, ServerGame.Entities.GameEntity other)
         {
-            // Prevent self-damage
             if (me.OwnerPlayerId == other.Id) return;
 
             if (other.TryGetComponent(out ServerGame.Entities.TeamComponent otherTeam))
@@ -96,14 +95,17 @@ namespace ClientContent
                 {
                     if (myTeam.IsEnemyTo(otherTeam))
                     {
-                        // Apply Effects
+                        if (hitTargets.Contains(other.Id)) return;
+
+                        hitTargets.Add(other.Id);
+
                         if (onHitEffects != null)
                         {
                             foreach (var effect in onHitEffects)
                             {
-                                if (effect != null && !hasHit)
+                                // Ja no comprovem !hasHit aquí
+                                if (effect != null)
                                 {
-                                    hasHit = true;
                                     effect.Apply(world, me, other);
                                 }
                             }

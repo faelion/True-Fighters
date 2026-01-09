@@ -25,6 +25,6 @@ MonoBehaviour:
   projectileLifeMs: 4500
   onHitEffects:
   - {fileID: 11400000, guid: 884ca524fbb41164886a0c91f6499e27, type: 2}
-  collisionRadius: 2
+  collisionRadius: 5
   isTrigger: 1
   aoePrefab: {fileID: 7478731271839673279, guid: 4d3c8045dd8857a4b8d34c2361c61045, type: 3}

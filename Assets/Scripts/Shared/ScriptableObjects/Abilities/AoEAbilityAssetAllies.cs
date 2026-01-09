@@ -25,7 +25,7 @@ namespace ClientContent
 
         public override GameObject GetPreviewPrefab() => aoePrefab;
 
-        private bool hasHit = false;
+        private HashSet<int> hitTargets;
 
         public override bool ServerTryCast(ServerGame.ServerWorld world, int playerId, float targetX, float targetY)
         {
@@ -34,7 +34,7 @@ namespace ClientContent
             var caster = world.EnsurePlayer(playerId);
             if (!caster.TryGetComponent(out ServerGame.Entities.TransformComponent casterTransform)) return false;
 
-            hasHit = false;
+            hitTargets = new HashSet<int>();
 
             float dx = targetX - casterTransform.posX;
             float dy = targetY - casterTransform.posY;
@@ -95,18 +95,20 @@ namespace ClientContent
                 {
                     if (myTeam.teamId == otherTeam.teamId)
                     {
+                        if (hitTargets.Contains(other.Id)) return;
+
+                        hitTargets.Add(other.Id);
+
                         if (onHitEffects != null)
                         {
                             foreach (var effect in onHitEffects)
                             {
-                                if (effect != null && !hasHit)
+                                if (effect != null)
                                 {
-                                    hasHit = true;
                                     effect.Apply(world, me, other);
                                 }
                             }
                         }
-                        return;
                     }
                 }
             }
